@@ -38,8 +38,8 @@ Quest runs seamlessly across all major platforms:
 <!-- Add platform-specific screenshots -->
 <div align="center">
   <h3>Multi-Platform Experience</h3>
-  <img src="screenshots/mobile.jpg" width="100%" alt="Mobile"/>
-  <img src="screenshots/web.PNG" width="100%" alt="Web"/>
+  <img src="screenshots/mobile.jpg" width="30%" alt="Mobile"/>
+  <img src="screenshots/web.PNG" width="70%" alt="Web"/>
 </div>
 
 ## Built With
