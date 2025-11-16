@@ -8,12 +8,9 @@ A cross-platform Flutter productivity app that combines task management, habit t
 ## Screenshots
 
 <div align="center">
-  <img src="screenshots/home.png" width="24%" alt="Home Screen"/>
-  <img src="screenshots/habits.png" width="24%" alt="Habit Tracking"/>
-  <img src="screenshots/focus_dark.png" width="24%" alt="Focus Dark"/>
-  <img src="screenshots/focus.png" width="24%" alt="Focus Light"/>
-  
-  <!-- <img src="screenshots/quest.png" width="24%" alt="Quest System"/> -->
+  <img src="screenshots/habits.PNG" width="24%" alt="Habit Tracking"/>
+  <img src="screenshots/focus_dark.PNG" width="24%" alt="Focus Dark"/>
+  <img src="screenshots/focus.jpg" width="24%" alt="Focus Light"/>
 </div>
 
 ## Features
@@ -41,8 +38,8 @@ Quest runs seamlessly across all major platforms:
 <!-- Add platform-specific screenshots -->
 <div align="center">
   <h3>Multi-Platform Experience</h3>
-  <img src="screenshots/mobile.png" width="30%" alt="Mobile"/>
-  <img src="screenshots/web.png" width="30%" alt="Web"/>
+  <img src="screenshots/mobile.jpg" width="30%" alt="Mobile"/>
+  <img src="screenshots/web.PNG" width="30%" alt="Web"/>
 </div>
 
 ## Built With
