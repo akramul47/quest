@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:visibility_detector/visibility_detector.dart';
-import 'package:media_kit/media_kit.dart';
-import 'package:media_kit_video/media_kit_video.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../Utils/app_theme.dart';
 import '../Utils/responsive_layout.dart';
 import '../providers/theme_provider.dart';
+import '../widgets/animated_boom_logo.dart';
+import '../widgets/window_controls_bar.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -53,6 +54,11 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final deviceType = ResponsiveLayout.getDeviceType(context);
+    final bool isTabletOrDesktop = deviceType == DeviceType.tablet || deviceType == DeviceType.desktop;
+    final bool showWindowControls = !kIsWeb && Platform.isWindows && isTabletOrDesktop;
+    // Sidebar width: 220 for desktop, 72 for tablet
+    final double sidebarWidth = deviceType == DeviceType.desktop ? 220 : 72;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),
@@ -73,76 +79,107 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        extendBodyBehindAppBar: false,
-        appBar: AppBar(
-          backgroundColor: isDark ? Colors.black : Colors.white,
-          elevation: 0,
-          leading: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withOpacity(0.08)
-                  : Colors.white.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isDark
-                    ? Colors.white.withOpacity(0.15)
-                    : Colors.black.withOpacity(0.08),
-                width: 1.5,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: isDark
-                      ? Colors.black.withOpacity(0.3)
-                      : Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
+        body: Column(
+          children: [
+            // Window controls bar for Windows tablet/desktop
+            if (showWindowControls) WindowControlsBar(sidebarWidth: sidebarWidth, showDragIndicator: true),
+            // Main content
+            Expanded(
+              child: SafeArea(
+                top: !showWindowControls, // No top safe area on Windows tablet/desktop (controls handle it)
+                bottom: true,
+                left: false,
+                right: false,
+                child: Column(
+                  children: [
+                    // Header with back button and title
+                    Container(
+                      color: isDark ? Colors.black : Colors.white,
+                      padding: EdgeInsets.only(
+                        left: deviceType == DeviceType.mobile ? 16 : deviceType == DeviceType.tablet ? 24 : 32,
+                        right: deviceType == DeviceType.mobile ? 16 : deviceType == DeviceType.tablet ? 24 : 32,
+                        top: 8,
+                        bottom: 8,
+                      ),
+                      child: Row(
+                        children: [
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            margin: const EdgeInsets.only(right: 8),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withOpacity(0.08)
+                                  : Colors.white.withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.white.withOpacity(0.15)
+                                    : Colors.black.withOpacity(0.08),
+                                width: 1.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: isDark
+                                      ? Colors.black.withOpacity(0.3)
+                                      : Colors.black.withOpacity(0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.arrow_back_ios_new_rounded,
+                                color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
+                                size: 20,
+                              ),
+                              onPressed: () => Navigator.pop(context),
+                              padding: EdgeInsets.zero,
+                            ),
+                          ),
+                          Text(
+                            ' Settings',
+                            style: GoogleFonts.outfit(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Scrollable content
+                    Expanded(
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          padding: ResponsiveLayout.responsivePadding(context).copyWith(top: 24, bottom: 24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Appearance Section
+                              _buildSectionHeader(context, 'Appearance', Icons.palette_outlined),
+                              const SizedBox(height: 20),
+                              _buildThemeSelector(context, themeProvider, isDark),
+                              const SizedBox(height: 40),
+                              
+                              // About Section
+                              _buildSectionHeader(context, 'About', Icons.info_outline),
+                              const SizedBox(height: 20),
+                              _buildAboutCard(context, isDark),
+                              const SizedBox(height: 24),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: IconButton(
-              icon: Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
-                size: 20,
               ),
-              onPressed: () => Navigator.pop(context),
-              padding: EdgeInsets.zero,
             ),
-          ),
-          title: Text(
-            'Settings',
-            style: GoogleFonts.outfit(
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-              color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
-              letterSpacing: -0.5,
-            ),
-          ),
-        ),
-        body: FadeTransition(
-          opacity: _fadeAnimation,
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: ResponsiveLayout.responsivePadding(context).copyWith(top: 24, bottom: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Appearance Section
-                _buildSectionHeader(context, 'Appearance', Icons.palette_outlined),
-                const SizedBox(height: 20),
-                _buildThemeSelector(context, themeProvider, isDark),
-                const SizedBox(height: 40),
-                
-                // About Section
-                _buildSectionHeader(context, 'About', Icons.info_outline),
-                const SizedBox(height: 20),
-                _buildAboutCard(context, isDark),
-                const SizedBox(height: 24),
-              ],
-            ),
-          ),
+          ],
         ),
       ),
     );
@@ -857,8 +894,8 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
           ),
           const SizedBox(height: 24),
           
-          // Logo with Video
-          _LogoWithVideo(isDark: isDark),
+          // BOOM Logo
+          _BoomLogo(isDark: isDark),
           const SizedBox(height: 32),
           
           // Built using Flutter with love
@@ -902,227 +939,63 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
   }
 }
 
-class _LogoWithVideo extends StatefulWidget {
+class _BoomLogo extends StatefulWidget {
   final bool isDark;
 
-  const _LogoWithVideo({required this.isDark});
+  const _BoomLogo({required this.isDark});
 
   @override
-  State<_LogoWithVideo> createState() => _LogoWithVideoState();
+  State<_BoomLogo> createState() => _BoomLogoState();
 }
 
-class _LogoWithVideoState extends State<_LogoWithVideo> with SingleTickerProviderStateMixin {
-  Player? _player;
-  VideoController? _videoController;
-  bool _videoEnded = false;
-  bool _videoError = false;
-  bool _isVisible = false;
-  bool _isPlayingVideo = false;
-  late AnimationController _fadeController;
-  late Animation<double> _fadeAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 400),
-      vsync: this,
-    );
-    _fadeAnimation = CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeInOut,
-    );
-    _fadeController.value = 1.0; // Start with logo visible
-  }
-
-  Future<void> _initializeVideo() async {
-    if (_player != null || _isPlayingVideo) return;
-
-    setState(() {
-      _isPlayingVideo = true;
-      _videoEnded = false;
-      _videoError = false;
-    });
-
-    try {
-      _player = Player();
-      _videoController = VideoController(_player!);
-      
-      // Listen to player state
-      _player!.stream.completed.listen((completed) {
-        if (completed && !_videoEnded) {
-          if (mounted) {
-            setState(() {
-              _videoEnded = true;
-              _isPlayingVideo = false;
-            });
-            _fadeController.forward(); // Fade in logo
-          }
-        }
-      });
-
-      await _player!.open(Media('asset:///assets/boom_logo.mp4'));
-      
-      if (!mounted) return;
-
-      // Wait for video to be buffered and ready
-      await Future.delayed(const Duration(milliseconds: 500));
-      
-      // Wait until video is actually buffered
-      bool isBuffered = false;
-      int attempts = 0;
-      while (!isBuffered && attempts < 20 && mounted) {
-        await Future.delayed(const Duration(milliseconds: 100));
-        // Check if player is ready (has duration)
-        final duration = _player!.state.duration;
-        if (duration != Duration.zero) {
-          isBuffered = true;
-        }
-        attempts++;
-      }
-      
-      if (!mounted) return;
-
-      setState(() {});
-      
-      // Fade out logo
-      await _fadeController.reverse();
-      
-      if (mounted && _player != null) {
-        await _player!.play();
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _videoError = true;
-          _isPlayingVideo = false;
-        });
-        _fadeController.forward(); // Fade logo back in
-      }
-    }
-  }
-
-  void _onVisibilityChanged(VisibilityInfo info) {
-    final bool nowVisible = info.visibleFraction > 0.3; // More than 30% visible
-    
-    if (nowVisible && !_isVisible && !_isPlayingVideo) {
-      setState(() {
-        _isVisible = true;
-      });
-      _initializeVideo();
-    } else if (!nowVisible && _isVisible) {
-      setState(() {
-        _isVisible = false;
-      });
-      // Cleanup player when not visible
-      if (_videoEnded && _player != null) {
-        _player?.dispose();
-        _player = null;
-        _videoController = null;
-        _fadeController.value = 1.0; // Reset to logo visible
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _player?.dispose();
-    _fadeController.dispose();
-    super.dispose();
-  }
-
+class _BoomLogoState extends State<_BoomLogo> {
   @override
   Widget build(BuildContext context) {
-    return VisibilityDetector(
-      key: const Key('logo-video-detector'),
-      onVisibilityChanged: _onVisibilityChanged,
-      child: Container(
-        padding: const EdgeInsets.all(15),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: widget.isDark
-                ? [
-                    AppTheme.primaryColorDark.withOpacity(0.35),
-                    AppTheme.primaryColorDark.withOpacity(0.25),
-                  ]
-                : [
-                    AppTheme.primaryColor.withOpacity(0.12),
-                    AppTheme.primaryColor.withOpacity(0.06),
-                  ],
-          ),
-          borderRadius: BorderRadius.circular(28),
-          border: Border.all(
-            color: widget.isDark
-                ? AppTheme.primaryColorDark.withOpacity(0.5)
-                : AppTheme.primaryColor.withOpacity(0.25),
-            width: 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: (widget.isDark ? AppTheme.primaryColorDark : AppTheme.primaryColor).withOpacity(0.15),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Color(0xFFF1F1F1),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: SizedBox(
-              height: 200,
-              width: 200,
-              child: Stack(
-                children: [
-                  // Logo image (always present, fades out during video)
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Image.asset(
-                      'assets/boom.png',
-                      height: 200,
-                      width: 200,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          height: 200,
-                          width: 200,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                widget.isDark ? AppTheme.primaryColorDark : AppTheme.primaryColor,
-                                (widget.isDark ? AppTheme.primaryColorDark : AppTheme.primaryColor).withOpacity(0.8),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Icon(
-                            Icons.rocket_launch_rounded,
-                            size: 80,
-                            color: widget.isDark ? Colors.black : Colors.white,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  // Video player (shown when playing, inverse fade)
-                  if (_videoController != null && !_videoEnded && !_videoError)
-                    FadeTransition(
-                      opacity: ReverseAnimation(_fadeAnimation),
-                      child: Video(
-                        controller: _videoController!,
-                        fit: BoxFit.contain,
-                        controls: NoVideoControls,
-                      ),
-                    ),
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: widget.isDark
+              ? [
+                  AppTheme.primaryColorDark.withOpacity(0.35),
+                  AppTheme.primaryColorDark.withOpacity(0.25),
+                ]
+              : [
+                  AppTheme.primaryColor.withOpacity(0.12),
+                  AppTheme.primaryColor.withOpacity(0.06),
                 ],
-              ),
+        ),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: widget.isDark
+              ? AppTheme.primaryColorDark.withOpacity(0.5)
+              : AppTheme.primaryColor.withOpacity(0.25),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (widget.isDark ? AppTheme.primaryColorDark : AppTheme.primaryColor).withOpacity(0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Color(0xFFF1F1F1),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: SizedBox(
+            height: 200,
+            width: 200,
+            child: AnimatedBoomLogo(
+              isDark: widget.isDark,
+              size: 200,
+              primaryColor: widget.isDark ? AppTheme.primaryColorDark : AppTheme.primaryColor,
             ),
           ),
         ),

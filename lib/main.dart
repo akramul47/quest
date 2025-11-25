@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:screen_retriever/screen_retriever.dart';
-import 'package:media_kit/media_kit.dart';
 import 'package:quest/Utils/app_theme.dart';
 import 'package:quest/providers/theme_provider.dart';
 import 'package:quest/screens/main_navigation_screen.dart';
@@ -72,9 +71,6 @@ Future<Offset> _getSafeWindowPosition(Offset position, Size windowSize) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize MediaKit for video playback
-  MediaKit.ensureInitialized();
   
   // Note: System UI overlay will be configured dynamically based on theme in MaterialApp
   // This ensures proper status bar colors for both light and dark modes

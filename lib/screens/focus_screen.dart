@@ -30,7 +30,7 @@ class _FocusScreenState extends State<FocusScreen> {
     final isMobile = deviceType == DeviceType.mobile;
     final isTabletOrDesktop = deviceType == DeviceType.tablet || deviceType == DeviceType.desktop;
     final bool showWindowControls = !kIsWeb && Platform.isWindows && isTabletOrDesktop;
-    final bool isDesktopOrWeb = kIsWeb || (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux));
+    final bool isDesktopPlatform = !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
 
     return Container(
         decoration: BoxDecoration(
@@ -90,7 +90,7 @@ class _FocusScreenState extends State<FocusScreen> {
                                           
                                           // Session type label with hover animation - use Opacity to keep space
                                           Opacity(
-                                            opacity: (isDesktopOrWeb && !isMobile) 
+                                            opacity: (isDesktopPlatform && !isMobile) 
                                               ? (_isHovering ? 1.0 : 0.0) 
                                               : 1.0,
                                             child: _buildSessionLabel(focusProvider, isDark, isMobile),
@@ -114,7 +114,7 @@ class _FocusScreenState extends State<FocusScreen> {
                                         Opacity(
                                           opacity: (focusProvider.status == TimerStatus.idle && 
                                               focusProvider.currentSessionType == SessionType.focus &&
-                                              ((isDesktopOrWeb && !isMobile) ? _isHovering : true))
+                                              ((isDesktopPlatform && !isMobile) ? _isHovering : true))
                                             ? 1.0 
                                             : 0.0,
                                           child: _buildDurationSelector(focusProvider, isDark, isMobile),
@@ -124,7 +124,7 @@ class _FocusScreenState extends State<FocusScreen> {
                                         
                                         // Control buttons (at bottom) with hover animation - use Opacity to keep space
                                         Opacity(
-                                          opacity: (isDesktopOrWeb && !isMobile) 
+                                          opacity: (isDesktopPlatform && !isMobile) 
                                             ? (_isHovering ? 1.0 : 0.0) 
                                             : 1.0,
                                           child: _buildControlButtons(context, focusProvider, isDark, isMobile),
