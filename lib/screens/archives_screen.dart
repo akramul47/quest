@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,6 +8,7 @@ import '../Utils/app_theme.dart';
 import '../Utils/responsive_layout.dart';
 import '../models/todo.dart';
 import '../models/todo_list.dart';
+import '../widgets/window_controls_bar.dart';
 
 class ArchivesScreen extends StatefulWidget {
   const ArchivesScreen({super.key});
@@ -39,6 +42,10 @@ class _ArchivesScreenState extends State<ArchivesScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final deviceType = ResponsiveLayout.getDeviceType(context);
+    final isTablet = deviceType == DeviceType.tablet;
+    final isDesktop = deviceType == DeviceType.desktop;
+    final bool showWindowControls = (isTablet || isDesktop) && !kIsWeb && Platform.isWindows;
     
     return Container(
       decoration: BoxDecoration(
@@ -58,7 +65,8 @@ class _ArchivesScreenState extends State<ArchivesScreen> {
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
+        // Only show AppBar on mobile or non-Windows platforms
+        appBar: !showWindowControls ? AppBar(
           title: Text(
             'Archives',
             style: GoogleFonts.outfit(
@@ -68,8 +76,15 @@ class _ArchivesScreenState extends State<ArchivesScreen> {
             ),
           ),
           elevation: 0,
-        ),
-        body: Consumer<TodoList>(
+        ) : null,
+        body: Column(
+          children: [
+            // Window controls bar for tablet/desktop Windows
+            if (showWindowControls)
+              WindowControlsBar(showBackButton: true, showDragIndicator: false),
+            
+            Expanded(
+              child: Consumer<TodoList>(
           builder: (context, todoList, child) {
             final archivedTodos = todoList.archivedTodos;
 
@@ -264,6 +279,9 @@ class _ArchivesScreenState extends State<ArchivesScreen> {
               },
             );
           },
+        ),
+            ),
+          ],
         ),
       ),
     );

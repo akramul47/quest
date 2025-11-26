@@ -57,8 +57,6 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
     final deviceType = ResponsiveLayout.getDeviceType(context);
     final bool isTabletOrDesktop = deviceType == DeviceType.tablet || deviceType == DeviceType.desktop;
     final bool showWindowControls = !kIsWeb && Platform.isWindows && isTabletOrDesktop;
-    // Sidebar width: 220 for desktop, 72 for tablet
-    final double sidebarWidth = deviceType == DeviceType.desktop ? 220 : 72;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),
@@ -82,7 +80,7 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
         body: Column(
           children: [
             // Window controls bar for Windows tablet/desktop
-            if (showWindowControls) WindowControlsBar(sidebarWidth: sidebarWidth, showDragIndicator: true),
+            if (showWindowControls) WindowControlsBar(showBackButton: true, showDragIndicator: false),
             // Main content
             Expanded(
               child: SafeArea(
@@ -92,9 +90,11 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                 right: false,
                 child: Column(
                   children: [
-                    // Header with back button and title
+                    // Header with back button and title - only show on mobile
+                    if (!showWindowControls)
                     Container(
-                      color: isDark ? Colors.black : Colors.white,
+                      // color: isDark ? Colors.black : Colors.white,
+                      color: Colors.transparent,
                       padding: EdgeInsets.only(
                         left: deviceType == DeviceType.mobile ? 16 : deviceType == DeviceType.tablet ? 24 : 32,
                         right: deviceType == DeviceType.mobile ? 16 : deviceType == DeviceType.tablet ? 24 : 32,

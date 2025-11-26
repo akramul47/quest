@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
+import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 import '../Utils/app_theme.dart';
+import '../providers/window_state_provider.dart';
 
-class WindowControlsBar extends StatefulWidget {
+class WindowControlsBar extends StatelessWidget {
   final bool showBackButton;
   final VoidCallback? onBackPressed;
   final double sidebarWidth; // Width of the sidebar (if any)
@@ -19,44 +21,12 @@ class WindowControlsBar extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<WindowControlsBar> createState() => _WindowControlsBarState();
-}
-
-class _WindowControlsBarState extends State<WindowControlsBar> {
-  bool _isAlwaysOnTop = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkAlwaysOnTop();
-  }
-
-  Future<void> _checkAlwaysOnTop() async {
-    if (!kIsWeb && Platform.isWindows) {
-      final isOnTop = await windowManager.isAlwaysOnTop();
-      if (mounted) {
-        setState(() {
-          _isAlwaysOnTop = isOnTop;
-        });
-      }
-    }
-  }
-
-  Future<void> _toggleAlwaysOnTop() async {
-    if (!kIsWeb && Platform.isWindows) {
-      setState(() {
-        _isAlwaysOnTop = !_isAlwaysOnTop;
-      });
-      await windowManager.setAlwaysOnTop(_isAlwaysOnTop);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final windowStateProvider = context.watch<WindowStateProvider>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     // Calculate the offset to center the indicator in the full window
     // If there's a sidebar, we need to shift left by half its width
-    final centerOffset = widget.sidebarWidth > 0 ? -(widget.sidebarWidth / 2) : 0.0;
+    final centerOffset = sidebarWidth > 0 ? -(sidebarWidth / 2) : 0.0;
 
     return GestureDetector(
       onPanStart: (_) {
@@ -81,7 +51,7 @@ class _WindowControlsBarState extends State<WindowControlsBar> {
         child: Stack(
           children: [
             // Centered drag indicator (adjusted for sidebar)
-            if (widget.showDragIndicator)
+            if (showDragIndicator)
               Positioned.fill(
                 child: MouseRegion(
                   cursor: SystemMouseCursors.move,
@@ -106,19 +76,21 @@ class _WindowControlsBarState extends State<WindowControlsBar> {
             Row(
               children: [
                 // Back button (optional, for detail screens)
-                if (widget.showBackButton)
+                if (showBackButton)
                   _buildWindowButton(
                     icon: Icons.arrow_back,
-                    onPressed: widget.onBackPressed ?? () => Navigator.pop(context),
+                    onPressed: onBackPressed ?? () => Navigator.pop(context),
                     isDark: isDark,
+                    isAlwaysOnTop: windowStateProvider.isAlwaysOnTop,
                   ),
                 const Spacer(),
                 // Pin/Always on top button
                 _buildWindowButton(
-                  icon: _isAlwaysOnTop ? Icons.push_pin : Icons.push_pin_outlined,
-                  onPressed: _toggleAlwaysOnTop,
+                  icon: windowStateProvider.isAlwaysOnTop ? Icons.push_pin : Icons.push_pin_outlined,
+                  onPressed: () => windowStateProvider.toggleAlwaysOnTop(),
                   isDark: isDark,
                   isPin: true,
+                  isAlwaysOnTop: windowStateProvider.isAlwaysOnTop,
                 ),
                 // Minimize button
                 _buildWindowButton(
@@ -129,6 +101,7 @@ class _WindowControlsBarState extends State<WindowControlsBar> {
                     }
                   },
                   isDark: isDark,
+                  isAlwaysOnTop: windowStateProvider.isAlwaysOnTop,
                 ),
                 // Maximize/Restore button
                 _buildWindowButton(
@@ -143,6 +116,7 @@ class _WindowControlsBarState extends State<WindowControlsBar> {
                     }
                   },
                   isDark: isDark,
+                  isAlwaysOnTop: windowStateProvider.isAlwaysOnTop,
                 ),
                 // Close button
                 _buildWindowButton(
@@ -154,6 +128,7 @@ class _WindowControlsBarState extends State<WindowControlsBar> {
                   },
                   isDark: isDark,
                   isClose: true,
+                  isAlwaysOnTop: windowStateProvider.isAlwaysOnTop,
                 ),
               ],
             ),
@@ -167,6 +142,7 @@ class _WindowControlsBarState extends State<WindowControlsBar> {
     required IconData icon,
     required VoidCallback onPressed,
     required bool isDark,
+    required bool isAlwaysOnTop,
     bool isClose = false,
     bool isPin = false,
   }) {
@@ -179,7 +155,7 @@ class _WindowControlsBarState extends State<WindowControlsBar> {
         icon: Icon(
           icon,
           size: 16,
-          color: isPin && _isAlwaysOnTop
+          color: isPin && isAlwaysOnTop
               ? (isDark ? AppTheme.primaryColorDark : AppTheme.primaryColor)
               : (isDark ? AppTheme.textDarkMode : AppTheme.textDark),
         ),

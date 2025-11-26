@@ -14,6 +14,7 @@ import 'package:quest/services/windows_service.dart';
 import 'models/todo_list.dart';
 import 'providers/habit_provider.dart';
 import 'providers/focus_provider.dart';
+import 'providers/window_state_provider.dart';
 
 // Platform detection helpers
 bool get isWindows => !kIsWeb && Platform.isWindows;
@@ -179,6 +180,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => HabitList()),
         ChangeNotifierProvider(create: (_) => FocusProvider()..initialize()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => WindowStateProvider()..initialize()),
         Provider(create: (_) => StorageService()),
       ],
       child: Consumer<ThemeProvider>(
@@ -233,7 +235,6 @@ class WindowFrame extends StatefulWidget {
 class _WindowFrameState extends State<WindowFrame> with WindowListener {
   bool _isHovered = false; // Track if window frame is hovered
   bool _isHeaderHovered = false; // Track if header is hovered
-  bool _isAlwaysOnTop = true; // Track always-on-top state
   bool _isMaximized = false; // Track maximized state
 
   @override
@@ -250,8 +251,14 @@ class _WindowFrameState extends State<WindowFrame> with WindowListener {
       final isAlwaysOnTop = await windowManager.isAlwaysOnTop();
       setState(() {
         _isMaximized = isMaximized;
-        _isAlwaysOnTop = isAlwaysOnTop;
       });
+      // Update provider with current state
+      if (mounted) {
+        final windowStateProvider = context.read<WindowStateProvider>();
+        if (windowStateProvider.isAlwaysOnTop != isAlwaysOnTop) {
+          await windowStateProvider.setAlwaysOnTop(isAlwaysOnTop);
+        }
+      }
     } catch (e) {
       debugPrint('Failed to load window state: $e');
     }
@@ -263,29 +270,17 @@ class _WindowFrameState extends State<WindowFrame> with WindowListener {
       final size = await windowManager.getSize();
       final position = await windowManager.getPosition();
       final storageService = StorageService();
+      final windowStateProvider = context.read<WindowStateProvider>();
       await storageService.saveWindowState(
         width: size.width,
         height: size.height,
         x: position.dx,
         y: position.dy,
         isMaximized: _isMaximized,
-        isAlwaysOnTop: _isAlwaysOnTop,
+        isAlwaysOnTop: windowStateProvider.isAlwaysOnTop,
       );
     } catch (e) {
       debugPrint('Failed to save window state: $e');
-    }
-  }
-
-  // Toggle always on top
-  Future<void> _toggleAlwaysOnTop() async {
-    try {
-      setState(() {
-        _isAlwaysOnTop = !_isAlwaysOnTop;
-      });
-      await windowManager.setAlwaysOnTop(_isAlwaysOnTop);
-      await _saveWindowState();
-    } catch (e) {
-      debugPrint('Failed to toggle always on top: $e');
     }
   }
 
@@ -429,22 +424,29 @@ class _WindowFrameState extends State<WindowFrame> with WindowListener {
                               if (!_isHeaderHovered)
                                 const Spacer(),
                               // Always on top toggle button
-                              IconButton(
-                                icon: Icon(
-                                  _isAlwaysOnTop ? Icons.push_pin : Icons.push_pin_outlined,
-                                  size: 18,
-                                  color: _isAlwaysOnTop
-                                      ? (isDark
-                                          ? AppTheme.primaryColorDark
-                                          : Theme.of(context).colorScheme.primary)
-                                      : (isDark
-                                          ? AppTheme.primaryColorDark.withOpacity(0.6)
-                                          : Theme.of(context).colorScheme.primary.withOpacity(0.6)),
-                                ),
-                                onPressed: _toggleAlwaysOnTop,
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                                tooltip: _isAlwaysOnTop ? 'Unpin window' : 'Pin window on top',
+                              Consumer<WindowStateProvider>(
+                                builder: (context, windowStateProvider, child) {
+                                  return IconButton(
+                                    icon: Icon(
+                                      windowStateProvider.isAlwaysOnTop ? Icons.push_pin : Icons.push_pin_outlined,
+                                      size: 18,
+                                      color: windowStateProvider.isAlwaysOnTop
+                                          ? (isDark
+                                              ? AppTheme.primaryColorDark
+                                              : Theme.of(context).colorScheme.primary)
+                                          : (isDark
+                                              ? AppTheme.primaryColorDark.withOpacity(0.6)
+                                              : Theme.of(context).colorScheme.primary.withOpacity(0.6)),
+                                    ),
+                                    onPressed: () async {
+                                      await windowStateProvider.toggleAlwaysOnTop();
+                                      await _saveWindowState();
+                                    },
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    tooltip: windowStateProvider.isAlwaysOnTop ? 'Unpin window' : 'Pin window on top',
+                                  );
+                                },
                               ),
                               const SizedBox(width: 8),
                               // Minimize button

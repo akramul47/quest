@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
 import 'package:google_fonts/google_fonts.dart';
 import '../models/todo.dart';
 import '../Utils/app_theme.dart';
+import '../Utils/responsive_layout.dart';
+import '../widgets/window_controls_bar.dart';
 import '../widgets/task_detail/priority_selector.dart';
 import '../widgets/task_detail/description_field.dart';
 import '../widgets/task_detail/date_time_section.dart';
@@ -145,12 +149,17 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isNewTask = widget.todo == null;
     final isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+    final deviceType = ResponsiveLayout.getDeviceType(context);
+    final isTablet = deviceType == DeviceType.tablet;
+    final isDesktop = deviceType == DeviceType.desktop;
+    final bool showWindowControls = (isTablet || isDesktop) && !kIsWeb && Platform.isWindows;
 
     return Scaffold(
       backgroundColor: isDark
           ? const Color(0xFF000000)
           : const Color(0xFFFAFAFA),
-      appBar: AppBar(
+      // Only show AppBar on mobile or non-Windows platforms
+      appBar: !showWindowControls ? AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -178,55 +187,69 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
             onPressed: () {},
           ),
         ],
-      ),
+      ) : null,
       body: Stack(
         children: [
-          FadeTransition(
-            opacity: _opacityAnimation,
-            child: SlideTransition(
-              position: _slideAnimation,
-              child: Column(
-                children: [
-                  Expanded(
+          Column(
+            children: [
+              // Window controls bar for tablet/desktop Windows
+              if (showWindowControls)
+                WindowControlsBar(showBackButton: true, showDragIndicator: false),
+              const SizedBox(height: 20),
+              Expanded(
+                child: FadeTransition(
+                  opacity: _opacityAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          PrioritySelector(
-                            selectedPriority: _selectedPriority,
-                            onPriorityChanged: (priority) {
-                              setState(() => _selectedPriority = priority);
-                              _autoSaveTodo();
-                            },
-                            isDark: isDark,
+                      child: Center(
+                        child: Container(
+                          constraints: BoxConstraints(
+                            maxWidth: ResponsiveLayout.getMaxContentWidth(context),
                           ),
-                          const SizedBox(height: 24),
-                          TextField(
-                            controller: _titleController,
-                            focusNode: _titleFocusNode,
-                            textInputAction: TextInputAction.done,
-                            style: GoogleFonts.outfit(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white : Colors.black87,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: 'Task title',
-                              hintStyle: GoogleFonts.outfit(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w600,
-                                color: (isDark ? Colors.white : Colors.black87)
-                                    .withOpacity(0.3),
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              PrioritySelector(
+                                selectedPriority: _selectedPriority,
+                                onPriorityChanged: (priority) {
+                                  setState(() => _selectedPriority = priority);
+                                  _autoSaveTodo();
+                                },
+                                isDark: isDark,
                               ),
-                              border: InputBorder.none,
-                            ),
-                            maxLines: null,
-                            onSubmitted: (_) {
-                              _autoSaveTodo();
-                              _descriptionFocusNode.requestFocus();
-                            },
-                          ),
+                              const SizedBox(height: 24),
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 600,
+                                ),
+                                child: TextField(
+                                  controller: _titleController,
+                                  focusNode: _titleFocusNode,
+                                  textInputAction: TextInputAction.done,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark ? Colors.white : Colors.black87,
+                                  ),
+                                  decoration: InputDecoration(
+                                    hintText: 'Quest title',
+                                    hintStyle: GoogleFonts.outfit(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w600,
+                                      color: (isDark ? Colors.white : Colors.black87)
+                                          .withOpacity(0.3),
+                                    ),
+                                    border: InputBorder.none,
+                                  ),
+                                  maxLines: null,
+                                  onSubmitted: (_) {
+                                    _autoSaveTodo();
+                                    _descriptionFocusNode.requestFocus();
+                                  },
+                                ),
+                              ),
                           const SizedBox(height: 24),
                           DescriptionField(
                             controller: _descriptionController,
@@ -273,10 +296,12 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
                       ),
                     ),
                   ),
-                ],
+                ),
               ),
             ),
           ),
+          ],
+        ),
           if (!isNewTask && !isKeyboardVisible)
             Positioned(
               bottom: 0,
