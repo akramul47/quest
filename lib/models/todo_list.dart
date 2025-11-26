@@ -10,17 +10,21 @@ class TodoList extends ChangeNotifier {
       _todos.where((todo) => !todo.isCompleted && !todo.isArchived).toList();
 
   List<Todo> get mainQuestTodos => _todos
-      .where((todo) =>
-          !todo.isCompleted &&
-          !todo.isArchived &&
-          todo.priority == TodoPriority.mainQuest)
+      .where(
+        (todo) =>
+            !todo.isCompleted &&
+            !todo.isArchived &&
+            todo.priority == TodoPriority.mainQuest,
+      )
       .toList();
 
   List<Todo> get sideQuestTodos => _todos
-      .where((todo) =>
-          !todo.isCompleted &&
-          !todo.isArchived &&
-          todo.priority == TodoPriority.sideQuest)
+      .where(
+        (todo) =>
+            !todo.isCompleted &&
+            !todo.isArchived &&
+            todo.priority == TodoPriority.sideQuest,
+      )
       .toList();
 
   List<Todo> get completedTodos =>
@@ -35,12 +39,14 @@ class TodoList extends ChangeNotifier {
   }
 
   void addTodo(String task, {TodoPriority priority = TodoPriority.sideQuest}) {
-    _todos.add(Todo(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      task: task,
-      createdAt: DateTime.now(),
-      priority: priority,
-    ));
+    _todos.add(
+      Todo(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        task: task,
+        createdAt: DateTime.now(),
+        priority: priority,
+      ),
+    );
     notifyListeners();
   }
 
@@ -56,8 +62,9 @@ class TodoList extends ChangeNotifier {
   }
 
   void reorderTodo(TodoPriority priority, int oldIndex, int newIndex) {
-    final todos =
-        priority == TodoPriority.mainQuest ? mainQuestTodos : sideQuestTodos;
+    final todos = priority == TodoPriority.mainQuest
+        ? mainQuestTodos
+        : sideQuestTodos;
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
@@ -67,7 +74,8 @@ class TodoList extends ChangeNotifier {
     // Update the main _todos list to reflect the new order
     _todos = [
       ..._todos.where(
-          (t) => t.priority != priority || t.isCompleted || t.isArchived),
+        (t) => t.priority != priority || t.isCompleted || t.isArchived,
+      ),
       ...todos,
     ];
 
@@ -81,11 +89,23 @@ class TodoList extends ChangeNotifier {
       notifyListeners();
     }
   }
-  
+
   void editTodo(String id, String newTask) {
     final todoIndex = _todos.indexWhere((todo) => todo.id == id);
     if (todoIndex != -1) {
       _todos[todoIndex] = _todos[todoIndex].copyWith(task: newTask);
+      notifyListeners();
+    }
+  }
+
+  void updateTodo(Todo updatedTodo) {
+    final todoIndex = _todos.indexWhere((todo) => todo.id == updatedTodo.id);
+    if (todoIndex != -1) {
+      _todos[todoIndex] = updatedTodo;
+      notifyListeners();
+    } else {
+      // If not found, add it (for new tasks)
+      _todos.add(updatedTodo);
       notifyListeners();
     }
   }

@@ -29,7 +29,8 @@ class GlassTaskCard extends StatefulWidget {
   _GlassTaskCardState createState() => _GlassTaskCardState();
 }
 
-class _GlassTaskCardState extends State<GlassTaskCard> with TickerProviderStateMixin {
+class _GlassTaskCardState extends State<GlassTaskCard>
+    with TickerProviderStateMixin {
   bool _isEditing = false;
   late TextEditingController _editingController;
   late ConfettiController _confettiController;
@@ -46,8 +47,10 @@ class _GlassTaskCardState extends State<GlassTaskCard> with TickerProviderStateM
   void initState() {
     super.initState();
     _editingController = TextEditingController(text: widget.todo.task);
-    _confettiController = ConfettiController(duration: const Duration(milliseconds: 1200));
-    
+    _confettiController = ConfettiController(
+      duration: const Duration(milliseconds: 1200),
+    );
+
     // Checkbox bounce animation
     _checkboxAnimationController = AnimationController(
       duration: const Duration(milliseconds: 400),
@@ -59,7 +62,7 @@ class _GlassTaskCardState extends State<GlassTaskCard> with TickerProviderStateM
         curve: Curves.elasticOut,
       ),
     );
-    
+
     // Success overlay animation
     _successAnimationController = AnimationController(
       duration: const Duration(milliseconds: 800),
@@ -77,17 +80,14 @@ class _GlassTaskCardState extends State<GlassTaskCard> with TickerProviderStateM
         curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
       ),
     );
-    
+
     // Card fade animation for completion
     _cardFadeController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
     _cardFadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
-      CurvedAnimation(
-        parent: _cardFadeController!,
-        curve: Curves.easeInOut,
-      ),
+      CurvedAnimation(parent: _cardFadeController!, curve: Curves.easeInOut),
     );
   }
 
@@ -119,13 +119,17 @@ class _GlassTaskCardState extends State<GlassTaskCard> with TickerProviderStateM
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Dismissible(
       key: Key(widget.todo.id),
-      background:
-          _buildDismissibleBackground(context, DismissDirection.startToEnd),
-      secondaryBackground:
-          _buildDismissibleBackground(context, DismissDirection.endToStart),
+      background: _buildDismissibleBackground(
+        context,
+        DismissDirection.startToEnd,
+      ),
+      secondaryBackground: _buildDismissibleBackground(
+        context,
+        DismissDirection.endToStart,
+      ),
       onDismissed: (direction) {
         if (direction == DismissDirection.endToStart) {
           widget.onDelete(widget.todo);
@@ -139,156 +143,213 @@ class _GlassTaskCardState extends State<GlassTaskCard> with TickerProviderStateM
             opacity: _cardFadeAnimation ?? const AlwaysStoppedAnimation(1.0),
             child: Container(
               margin: const EdgeInsets.symmetric(vertical: 4),
-              decoration: isDark ? AppTheme.taskCardEffectDark : AppTheme.taskCardEffect,
+              decoration: isDark
+                  ? AppTheme.taskCardEffectDark
+                  : AppTheme.taskCardEffect,
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: widget.isCompleted ? null : (_isEditing ? null : _startEditing),
+                  onTap: widget.isCompleted
+                      ? null
+                      : ((widget.onTap != null)
+                            ? widget.onTap
+                            : (_isEditing ? null : _startEditing)),
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Row(
                       children: [
-                  _buildCheckbox(),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: (_isEditing && !widget.isCompleted)
-                        ? TextField(
-                            controller: _editingController,
-                            autofocus: true,
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintText: 'Edit task',
-                              hintStyle: GoogleFonts.outfit(
-                                fontSize: 16.5,
-                                fontWeight: FontWeight.w400,
-                                letterSpacing: 0.3,
-                                color: (isDark ? Colors.grey.shade400 : Colors.grey).withOpacity(0.6),
-                              ),
-                            ),
-                            style: GoogleFonts.outfit(
-                              fontSize: 16.5,
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 0.3,
-                              height: 1.5,
-                              decoration: widget.isCompleted
-                                  ? TextDecoration.lineThrough
-                                  : null,
-                              color: widget.isCompleted
-                                  ? (isDark ? Colors.grey.shade500 : Colors.grey).withOpacity(0.65)
-                                  : (isDark ? AppTheme.textDarkMode : const Color(0xFF1a1a1a)),
-                            ),
-                            onSubmitted: (_) => _finishEditing(),
-                            onEditingComplete: _finishEditing,
-                          )
-                        : Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                widget.todo.task,
-                                style: GoogleFonts.outfit(
-                                  fontSize: 16.5,
-                                  fontWeight: FontWeight.w500,
-                                  letterSpacing: 0.3,
-                                  height: 1.5,
-                                  decoration: widget.isCompleted
-                                      ? TextDecoration.lineThrough
-                                      : null,
-                                  decorationColor: widget.isCompleted
-                                      ? (isDark ? Colors.grey.shade500 : Colors.grey).withOpacity(0.6)
-                                      : null,
-                                  decorationThickness: 2,
-                                  color: widget.isCompleted
-                                      ? (isDark ? Colors.grey.shade500 : Colors.grey).withOpacity(0.65)
-                                      : (isDark ? AppTheme.textDarkMode : const Color(0xFF1a1a1a)),
-                                  shadows: widget.isCompleted
-                                      ? null
-                                      : [
-                                          Shadow(
-                                            color: (isDark ? Colors.white : Colors.black).withOpacity(0.03),
-                                            offset: const Offset(0, 1),
-                                            blurRadius: 2,
-                                          ),
-                                        ],
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  Flexible(
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 3,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            (isDark ? AppTheme.primaryColorDark : Theme.of(context).colorScheme.primary)
-                                                .withOpacity(0.12),
-                                            (isDark ? AppTheme.primaryColorDark : Theme.of(context).colorScheme.primary)
-                                                .withOpacity(0.08),
-                                          ],
-                                        ),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            widget.todo.priority.icon,
-                                            size: 13,
-                                            color: (isDark ? AppTheme.primaryColorDark : Theme.of(context).colorScheme.primary)
-                                                .withOpacity(0.85),
-                                          ),
-                                          const SizedBox(width: 5),
-                                          Flexible(
-                                            child: Text(
-                                              widget.todo.priority.displayName,
-                                              style: GoogleFonts.outfit(
-                                                fontSize: 11.5,
-                                                fontWeight: FontWeight.w600,
-                                                letterSpacing: 0.4,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary
-                                                    .withOpacity(0.85),
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines: 1,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                        _buildCheckbox(),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: (_isEditing && !widget.isCompleted)
+                              ? TextField(
+                                  controller: _editingController,
+                                  autofocus: true,
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    hintText: 'Edit task',
+                                    hintStyle: GoogleFonts.outfit(
+                                      fontSize: 16.5,
+                                      fontWeight: FontWeight.w400,
+                                      letterSpacing: 0.3,
+                                      color:
+                                          (isDark
+                                                  ? Colors.grey.shade400
+                                                  : Colors.grey)
+                                              .withOpacity(0.6),
                                     ),
                                   ),
-                                ],
-                              ),
-                            ],
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 16.5,
+                                    fontWeight: FontWeight.w500,
+                                    letterSpacing: 0.3,
+                                    height: 1.5,
+                                    decoration: widget.isCompleted
+                                        ? TextDecoration.lineThrough
+                                        : null,
+                                    color: widget.isCompleted
+                                        ? (isDark
+                                                  ? Colors.grey.shade500
+                                                  : Colors.grey)
+                                              .withOpacity(0.65)
+                                        : (isDark
+                                              ? AppTheme.textDarkMode
+                                              : const Color(0xFF1a1a1a)),
+                                  ),
+                                  onSubmitted: (_) => _finishEditing(),
+                                  onEditingComplete: _finishEditing,
+                                )
+                              : Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      widget.todo.task,
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 16.5,
+                                        fontWeight: FontWeight.w500,
+                                        letterSpacing: 0.3,
+                                        height: 1.5,
+                                        decoration: widget.isCompleted
+                                            ? TextDecoration.lineThrough
+                                            : null,
+                                        decorationColor: widget.isCompleted
+                                            ? (isDark
+                                                      ? Colors.grey.shade500
+                                                      : Colors.grey)
+                                                  .withOpacity(0.6)
+                                            : null,
+                                        decorationThickness: 2,
+                                        color: widget.isCompleted
+                                            ? (isDark
+                                                      ? Colors.grey.shade500
+                                                      : Colors.grey)
+                                                  .withOpacity(0.65)
+                                            : (isDark
+                                                  ? AppTheme.textDarkMode
+                                                  : const Color(0xFF1a1a1a)),
+                                        shadows: widget.isCompleted
+                                            ? null
+                                            : [
+                                                Shadow(
+                                                  color:
+                                                      (isDark
+                                                              ? Colors.white
+                                                              : Colors.black)
+                                                          .withOpacity(0.03),
+                                                  offset: const Offset(0, 1),
+                                                  blurRadius: 2,
+                                                ),
+                                              ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      children: [
+                                        Flexible(
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 3,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  (isDark
+                                                          ? AppTheme
+                                                                .primaryColorDark
+                                                          : Theme.of(context)
+                                                                .colorScheme
+                                                                .primary)
+                                                      .withOpacity(0.12),
+                                                  (isDark
+                                                          ? AppTheme
+                                                                .primaryColorDark
+                                                          : Theme.of(context)
+                                                                .colorScheme
+                                                                .primary)
+                                                      .withOpacity(0.08),
+                                                ],
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  widget.todo.priority.icon,
+                                                  size: 13,
+                                                  color:
+                                                      (isDark
+                                                              ? AppTheme
+                                                                    .primaryColorDark
+                                                              : Theme.of(
+                                                                      context,
+                                                                    )
+                                                                    .colorScheme
+                                                                    .primary)
+                                                          .withOpacity(0.85),
+                                                ),
+                                                const SizedBox(width: 5),
+                                                Flexible(
+                                                  child: Text(
+                                                    widget
+                                                        .todo
+                                                        .priority
+                                                        .displayName,
+                                                    style: GoogleFonts.outfit(
+                                                      fontSize: 11.5,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      letterSpacing: 0.4,
+                                                      color: Theme.of(context)
+                                                          .colorScheme
+                                                          .primary
+                                                          .withOpacity(0.85),
+                                                    ),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    maxLines: 1,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Star icon on the right - hide for completed tasks
+                        if (!widget.isCompleted)
+                          Icon(
+                            Icons.star_outline,
+                            size: 20,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withOpacity(0.6),
                           ),
-                  ),
-                  const SizedBox(width: 8),
-                  // Star icon on the right - hide for completed tasks
-                  if (!widget.isCompleted)
-                    Icon(
-                      Icons.star_outline,
-                      size: 20,
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.6),
+                      ],
                     ),
-                ],
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      ),
-    ),
           // Success overlay animation
           if (_showSuccessOverlay)
             Positioned.fill(
               child: FadeTransition(
-                opacity: _successOpacityAnimation ?? const AlwaysStoppedAnimation(1.0),
+                opacity:
+                    _successOpacityAnimation ??
+                    const AlwaysStoppedAnimation(1.0),
                 child: ScaleTransition(
-                  scale: _successScaleAnimation ?? const AlwaysStoppedAnimation(1.0),
+                  scale:
+                      _successScaleAnimation ??
+                      const AlwaysStoppedAnimation(1.0),
                   child: Container(
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     decoration: BoxDecoration(
@@ -360,33 +421,32 @@ class _GlassTaskCardState extends State<GlassTaskCard> with TickerProviderStateM
               if (!widget.isCompleted) {
                 // Haptic feedback
                 HapticFeedback.mediumImpact();
-                
+
                 // 1. Start confetti explosion
                 _confettiController.play();
-                
+
                 // 2. Checkbox bounce animation
                 _checkboxAnimationController?.forward().then((_) {
                   _checkboxAnimationController?.reverse();
                 });
-                
+
                 // 3. Show and animate success overlay
                 setState(() {
                   _showSuccessOverlay = true;
                 });
                 _successAnimationController?.forward();
-                
+
                 // Wait for success overlay to reach peak (400ms)
                 await Future.delayed(const Duration(milliseconds: 400));
-                
+
                 // 4. Start card fade out
                 _cardFadeController?.forward();
-                
+
                 // Wait for card to fade out (600ms)
                 await Future.delayed(const Duration(milliseconds: 600));
-                
+
                 // 5. Move task to completed section
                 widget.onToggle(widget.todo);
-                
               } else {
                 HapticFeedback.lightImpact();
                 widget.onToggle(widget.todo);
@@ -431,7 +491,9 @@ class _GlassTaskCardState extends State<GlassTaskCard> with TickerProviderStateM
   }
 
   Widget _buildDismissibleBackground(
-      BuildContext context, DismissDirection direction) {
+    BuildContext context,
+    DismissDirection direction,
+  ) {
     final isDeleteAction = direction == DismissDirection.endToStart;
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
@@ -440,19 +502,15 @@ class _GlassTaskCardState extends State<GlassTaskCard> with TickerProviderStateM
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: isDeleteAction
-              ? [
-                  Colors.red.shade400,
-                  Colors.red.shade600,
-                ]
-              : [
-                  Colors.orange.shade400,
-                  Colors.orange.shade600,
-                ],
+              ? [Colors.red.shade400, Colors.red.shade600]
+              : [Colors.orange.shade400, Colors.orange.shade600],
         ),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: (isDeleteAction ? Colors.red : Colors.orange).withOpacity(0.3),
+            color: (isDeleteAction ? Colors.red : Colors.orange).withOpacity(
+              0.3,
+            ),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

@@ -13,7 +13,9 @@ import '../widgets/profile_avatar.dart';
 import '../widgets/window_controls_bar.dart';
 import 'archives_screen.dart';
 import 'settings_screen.dart';
+import 'task_detail_screen.dart';
 import '../widgets/glass_task_card.dart';
+import '../utils/page_transitions.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -51,10 +53,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _showUndoSnackBar(String message, VoidCallback onUndo) {
     ScaffoldMessenger.of(context).clearSnackBars();
-    
+
     final deviceType = ResponsiveLayout.getDeviceType(context);
     final isMobile = deviceType == DeviceType.mobile;
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message, style: GoogleFonts.inter()),
@@ -62,9 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.black87,
         width: isMobile ? null : 400,
         margin: isMobile ? const EdgeInsets.all(8) : null,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         action: SnackBarAction(
           label: 'UNDO',
           textColor: Colors.white,
@@ -108,15 +108,15 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.only(bottom: 12),
             child: AddTaskField(
               controller: controller,
-              hintText: priority == TodoPriority.mainQuest 
-                  ? 'Add main quest' 
+              hintText: priority == TodoPriority.mainQuest
+                  ? 'Add main quest'
                   : 'Add side quest',
               onAdd: () {
                 if (controller.text.isNotEmpty) {
                   context.read<TodoList>().addTodo(
-                        controller.text,
-                        priority: priority,
-                      );
+                    controller.text,
+                    priority: priority,
+                  );
                   controller.clear();
                   _saveTodos();
                 }
@@ -133,8 +133,10 @@ class _HomeScreenState extends State<HomeScreen> {
         DragTarget<Todo>(
           builder: (context, candidateData, rejectedData) {
             final bool isHovering =
-                candidateData.isNotEmpty && candidateData.first?.priority != priority;
-            final bool showDropZone = _isDragging &&
+                candidateData.isNotEmpty &&
+                candidateData.first?.priority != priority;
+            final bool showDropZone =
+                _isDragging &&
                 _draggingFromPriority != null &&
                 _draggingFromPriority != priority;
 
@@ -147,16 +149,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: isHovering
                     ? Theme.of(context).colorScheme.primary.withOpacity(0.15)
                     : showDropZone
-                        ? Theme.of(context).colorScheme.primary.withOpacity(0.05)
-                        : Colors.transparent,
+                    ? Theme.of(context).colorScheme.primary.withOpacity(0.05)
+                    : Colors.transparent,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: isHovering
                       ? Theme.of(context).colorScheme.primary.withOpacity(0.6)
                       : showDropZone
-                          ? Theme.of(context).colorScheme.primary.withOpacity(0.3)
-                          : Colors.transparent,
-                  width: isHovering ? 2.5 : showDropZone ? 2 : 0,
+                      ? Theme.of(context).colorScheme.primary.withOpacity(0.3)
+                      : Colors.transparent,
+                  width: isHovering
+                      ? 2.5
+                      : showDropZone
+                      ? 2
+                      : 0,
                 ),
               ),
               child: Column(
@@ -164,29 +170,38 @@ class _HomeScreenState extends State<HomeScreen> {
                   // Show drop zone message when dragging from another section
                   if (showDropZone)
                     Container(
-                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 20,
+                        horizontal: 16,
+                      ),
                       margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                       decoration: BoxDecoration(
                         color: isHovering
-                            ? Theme.of(context).colorScheme.primary.withOpacity(0.2)
-                            : Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                            ? Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.2)
+                            : Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(
-                                isHovering ? 0.4 : 0.2,
-                              ),
+                          color: Theme.of(context).colorScheme.primary
+                              .withOpacity(isHovering ? 0.4 : 0.2),
                           width: 1.5,
                         ),
                       ),
                       child: Center(
                         child: Text(
-                          isHovering ? 'Release to add here' : 'Drag here to add to $title',
+                          isHovering
+                              ? 'Release to add here'
+                              : 'Drag here to add to $title',
                           style: GoogleFonts.inter(
                             fontSize: 14,
-                            fontWeight: isHovering ? FontWeight.w600 : FontWeight.w500,
-                            color: Theme.of(context).colorScheme.primary.withOpacity(
-                                  isHovering ? 1 : 0.7,
-                                ),
+                            fontWeight: isHovering
+                                ? FontWeight.w600
+                                : FontWeight.w500,
+                            color: Theme.of(context).colorScheme.primary
+                                .withOpacity(isHovering ? 1 : 0.7),
                           ),
                           textAlign: TextAlign.center,
                           overflow: TextOverflow.ellipsis,
@@ -197,7 +212,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   // Show tasks
                   if (todos.isNotEmpty)
                     Column(
-                      children: todos.map((todo) => _buildDraggableTask(todo, priority)).toList(),
+                      children: todos
+                          .map((todo) => _buildDraggableTask(todo, priority))
+                          .toList(),
                     ),
                   // Empty state
                   if (todos.isEmpty && !showDropZone)
@@ -215,15 +232,21 @@ class _HomeScreenState extends State<HomeScreen> {
                                 shape: BoxShape.circle,
                                 gradient: LinearGradient(
                                   colors: [
-                                    Theme.of(context).colorScheme.primary.withOpacity(0.08),
-                                    Theme.of(context).colorScheme.primary.withOpacity(0.04),
+                                    Theme.of(
+                                      context,
+                                    ).colorScheme.primary.withOpacity(0.08),
+                                    Theme.of(
+                                      context,
+                                    ).colorScheme.primary.withOpacity(0.04),
                                   ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary.withOpacity(0.05),
                                     blurRadius: 12,
                                     spreadRadius: 2,
                                   ),
@@ -232,7 +255,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: Icon(
                                 priority.icon,
                                 size: 56,
-                                color: Theme.of(context).colorScheme.primary.withOpacity(0.35),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withOpacity(0.35),
                               ),
                             ),
                             const SizedBox(height: 20),
@@ -242,7 +267,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
                                 letterSpacing: 0.2,
-                                color: Theme.of(context).colorScheme.primary.withOpacity(0.6),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withOpacity(0.6),
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -263,17 +290,21 @@ class _HomeScreenState extends State<HomeScreen> {
             final todoList = context.read<TodoList>();
             todoList.changeTodoPriority(todo.id, priority);
             _saveTodos();
-            
+
             // Show centered snackbar for task moved
             final deviceType = ResponsiveLayout.getDeviceType(context);
             final isMobile = deviceType == DeviceType.mobile;
-            
+
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                    const Icon(
+                      Icons.check_circle,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                     const SizedBox(width: 12),
                     Text(
                       'Moved to $title',
@@ -333,7 +364,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(2),
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(0.3),
                       blurRadius: 4,
                     ),
                   ],
@@ -364,7 +397,9 @@ class _HomeScreenState extends State<HomeScreen> {
               feedback: Material(
                 elevation: 12,
                 borderRadius: BorderRadius.circular(12),
-                shadowColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                shadowColor: Theme.of(
+                  context,
+                ).colorScheme.primary.withOpacity(0.5),
                 child: Container(
                   width: 300,
                   padding: const EdgeInsets.all(16),
@@ -377,12 +412,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.6),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(0.6),
                       width: 2.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withOpacity(0.4),
                         blurRadius: 24,
                         spreadRadius: 4,
                       ),
@@ -437,24 +476,32 @@ class _HomeScreenState extends State<HomeScreen> {
                   final todoList = context.read<TodoList>();
                   todoList.deleteTodo(todo.id);
                   _saveTodos();
-                  _showUndoSnackBar(
-                    'Task deleted',
-                    () {
-                      todoList.addTodo(todo.task, priority: todo.priority);
-                      _saveTodos();
-                    },
-                  );
+                  _showUndoSnackBar('Task deleted', () {
+                    todoList.addTodo(todo.task, priority: todo.priority);
+                    _saveTodos();
+                  });
                 },
                 onArchive: (todo) {
                   final todoList = context.read<TodoList>();
                   todoList.archiveTodo(todo.id);
                   _saveTodos();
-                  _showUndoSnackBar(
-                    'Task archived',
-                    () {
-                      todoList.unarchiveTodo(todo.id);
-                      _saveTodos();
-                    },
+                  _showUndoSnackBar('Task archived', () {
+                    todoList.unarchiveTodo(todo.id);
+                    _saveTodos();
+                  });
+                },
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    RightToLeftRoute(
+                      page: TaskDetailScreen(
+                        todo: todo,
+                        onSave: (updatedTodo) {
+                          context.read<TodoList>().updateTodo(updatedTodo);
+                          _saveTodos();
+                        },
+                      ),
+                    ),
                   );
                 },
               ),
@@ -466,12 +513,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Helper method to build just the tasks list (for scrollable content)
-  Widget _buildTasksList(List<Todo> todos, TodoPriority priority, String title) {
+  Widget _buildTasksList(
+    List<Todo> todos,
+    TodoPriority priority,
+    String title,
+  ) {
     return DragTarget<Todo>(
       builder: (context, candidateData, rejectedData) {
         final bool isHovering =
-            candidateData.isNotEmpty && candidateData.first?.priority != priority;
-        final bool showDropZone = _isDragging &&
+            candidateData.isNotEmpty &&
+            candidateData.first?.priority != priority;
+        final bool showDropZone =
+            _isDragging &&
             _draggingFromPriority != null &&
             _draggingFromPriority != priority;
 
@@ -484,45 +537,58 @@ class _HomeScreenState extends State<HomeScreen> {
             color: isHovering
                 ? Theme.of(context).colorScheme.primary.withOpacity(0.15)
                 : showDropZone
-                    ? Theme.of(context).colorScheme.primary.withOpacity(0.05)
-                    : Colors.transparent,
+                ? Theme.of(context).colorScheme.primary.withOpacity(0.05)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isHovering
                   ? Theme.of(context).colorScheme.primary.withOpacity(0.6)
                   : showDropZone
-                      ? Theme.of(context).colorScheme.primary.withOpacity(0.3)
-                      : Colors.transparent,
-              width: isHovering ? 2.5 : showDropZone ? 2 : 0,
+                  ? Theme.of(context).colorScheme.primary.withOpacity(0.3)
+                  : Colors.transparent,
+              width: isHovering
+                  ? 2.5
+                  : showDropZone
+                  ? 2
+                  : 0,
             ),
           ),
           child: Column(
             children: [
               if (showDropZone)
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 20,
+                    horizontal: 16,
+                  ),
                   margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                   decoration: BoxDecoration(
                     color: isHovering
                         ? Theme.of(context).colorScheme.primary.withOpacity(0.2)
-                        : Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                        : Theme.of(
+                            context,
+                          ).colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(
-                            isHovering ? 0.4 : 0.2,
-                          ),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(isHovering ? 0.4 : 0.2),
                       width: 1.5,
                     ),
                   ),
                   child: Center(
                     child: Text(
-                      isHovering ? 'Release to add here' : 'Drag here to add to $title',
+                      isHovering
+                          ? 'Release to add here'
+                          : 'Drag here to add to $title',
                       style: GoogleFonts.inter(
                         fontSize: 14,
-                        fontWeight: isHovering ? FontWeight.w600 : FontWeight.w500,
-                        color: Theme.of(context).colorScheme.primary.withOpacity(
-                              isHovering ? 1 : 0.7,
-                            ),
+                        fontWeight: isHovering
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withOpacity(isHovering ? 1 : 0.7),
                       ),
                       textAlign: TextAlign.center,
                       overflow: TextOverflow.ellipsis,
@@ -532,7 +598,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               if (todos.isNotEmpty)
                 Column(
-                  children: todos.map((todo) => _buildDraggableTask(todo, priority)).toList(),
+                  children: todos
+                      .map((todo) => _buildDraggableTask(todo, priority))
+                      .toList(),
                 ),
               if (todos.isEmpty && !showDropZone)
                 Center(
@@ -549,15 +617,21 @@ class _HomeScreenState extends State<HomeScreen> {
                             shape: BoxShape.circle,
                             gradient: LinearGradient(
                               colors: [
-                                Theme.of(context).colorScheme.primary.withOpacity(0.08),
-                                Theme.of(context).colorScheme.primary.withOpacity(0.04),
+                                Theme.of(
+                                  context,
+                                ).colorScheme.primary.withOpacity(0.08),
+                                Theme.of(
+                                  context,
+                                ).colorScheme.primary.withOpacity(0.04),
                               ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withOpacity(0.05),
                                 blurRadius: 12,
                                 spreadRadius: 2,
                               ),
@@ -566,7 +640,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Icon(
                             priority.icon,
                             size: 56,
-                            color: Theme.of(context).colorScheme.primary.withOpacity(0.35),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withOpacity(0.35),
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -576,7 +652,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                             letterSpacing: 0.2,
-                            color: Theme.of(context).colorScheme.primary.withOpacity(0.6),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withOpacity(0.6),
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -597,11 +675,11 @@ class _HomeScreenState extends State<HomeScreen> {
         final todoList = context.read<TodoList>();
         todoList.changeTodoPriority(todo.id, priority);
         _saveTodos();
-        
+
         // Show centered snackbar for task moved
         final deviceType = ResponsiveLayout.getDeviceType(context);
         final isMobile = deviceType == DeviceType.mobile;
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -631,13 +709,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Collapsible completed section
   Widget _buildCollapsibleCompletedSection(
-      List<Todo> completedMainQuest, List<Todo> completedSideQuest, int totalCount) {
+    List<Todo> completedMainQuest,
+    List<Todo> completedSideQuest,
+    int totalCount,
+  ) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
-      constraints: BoxConstraints(
-        maxHeight: _isCompletedExpanded ? 220 : 64,
-      ),
+      constraints: BoxConstraints(maxHeight: _isCompletedExpanded ? 220 : 64),
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -679,7 +758,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -699,9 +780,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -719,7 +805,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     duration: const Duration(milliseconds: 300),
                     child: Icon(
                       Icons.keyboard_arrow_down,
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(0.7),
                     ),
                   ),
                 ],
@@ -743,7 +831,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               if (completedMainQuest.isEmpty)
                                 Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 24),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 24,
+                                  ),
                                   child: Text(
                                     'No completed main quests',
                                     style: GoogleFonts.inter(
@@ -755,30 +845,32 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 )
                               else
-                                ...completedMainQuest.map((todo) => GlassTaskCard(
-                                      todo: todo,
-                                      isCompleted: true,
-                                      onToggle: (todo) {
-                                        final todoList = context.read<TodoList>();
-                                        todoList.toggleTodo(todo.id);
-                                        _saveTodos();
-                                      },
-                                      onEdit: (todo, newTask) {
-                                        final todoList = context.read<TodoList>();
-                                        todoList.editTodo(todo.id, newTask);
-                                        _saveTodos();
-                                      },
-                                      onDelete: (todo) {
-                                        final todoList = context.read<TodoList>();
-                                        todoList.deleteTodo(todo.id);
-                                        _saveTodos();
-                                      },
-                                      onArchive: (todo) {
-                                        final todoList = context.read<TodoList>();
-                                        todoList.archiveTodo(todo.id);
-                                        _saveTodos();
-                                      },
-                                    )),
+                                ...completedMainQuest.map(
+                                  (todo) => GlassTaskCard(
+                                    todo: todo,
+                                    isCompleted: true,
+                                    onToggle: (todo) {
+                                      final todoList = context.read<TodoList>();
+                                      todoList.toggleTodo(todo.id);
+                                      _saveTodos();
+                                    },
+                                    onEdit: (todo, newTask) {
+                                      final todoList = context.read<TodoList>();
+                                      todoList.editTodo(todo.id, newTask);
+                                      _saveTodos();
+                                    },
+                                    onDelete: (todo) {
+                                      final todoList = context.read<TodoList>();
+                                      todoList.deleteTodo(todo.id);
+                                      _saveTodos();
+                                    },
+                                    onArchive: (todo) {
+                                      final todoList = context.read<TodoList>();
+                                      todoList.archiveTodo(todo.id);
+                                      _saveTodos();
+                                    },
+                                  ),
+                                ),
                             ],
                           ),
                         ),
@@ -793,9 +885,15 @@ class _HomeScreenState extends State<HomeScreen> {
                             end: Alignment.bottomCenter,
                             colors: [
                               Colors.transparent,
-                              Theme.of(context).colorScheme.primary.withOpacity(0.12),
-                              Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                              Theme.of(context).colorScheme.primary.withOpacity(0.12),
+                              Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.12),
+                              Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.2),
+                              Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.12),
                               Colors.transparent,
                             ],
                             stops: const [0.0, 0.2, 0.5, 0.8, 1.0],
@@ -811,7 +909,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               if (completedSideQuest.isEmpty)
                                 Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 24),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 24,
+                                  ),
                                   child: Text(
                                     'No completed side quests',
                                     style: GoogleFonts.inter(
@@ -823,30 +923,32 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 )
                               else
-                                ...completedSideQuest.map((todo) => GlassTaskCard(
-                                      todo: todo,
-                                      isCompleted: true,
-                                      onToggle: (todo) {
-                                        final todoList = context.read<TodoList>();
-                                        todoList.toggleTodo(todo.id);
-                                        _saveTodos();
-                                      },
-                                      onEdit: (todo, newTask) {
-                                        final todoList = context.read<TodoList>();
-                                        todoList.editTodo(todo.id, newTask);
-                                        _saveTodos();
-                                      },
-                                      onDelete: (todo) {
-                                        final todoList = context.read<TodoList>();
-                                        todoList.deleteTodo(todo.id);
-                                        _saveTodos();
-                                      },
-                                      onArchive: (todo) {
-                                        final todoList = context.read<TodoList>();
-                                        todoList.archiveTodo(todo.id);
-                                        _saveTodos();
-                                      },
-                                    )),
+                                ...completedSideQuest.map(
+                                  (todo) => GlassTaskCard(
+                                    todo: todo,
+                                    isCompleted: true,
+                                    onToggle: (todo) {
+                                      final todoList = context.read<TodoList>();
+                                      todoList.toggleTodo(todo.id);
+                                      _saveTodos();
+                                    },
+                                    onEdit: (todo, newTask) {
+                                      final todoList = context.read<TodoList>();
+                                      todoList.editTodo(todo.id, newTask);
+                                      _saveTodos();
+                                    },
+                                    onDelete: (todo) {
+                                      final todoList = context.read<TodoList>();
+                                      todoList.deleteTodo(todo.id);
+                                      _saveTodos();
+                                    },
+                                    onArchive: (todo) {
+                                      final todoList = context.read<TodoList>();
+                                      todoList.archiveTodo(todo.id);
+                                      _saveTodos();
+                                    },
+                                  ),
+                                ),
                             ],
                           ),
                         ),
@@ -907,7 +1009,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -927,9 +1031,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -947,7 +1056,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     duration: const Duration(milliseconds: 300),
                     child: Icon(
                       Icons.keyboard_arrow_down,
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(0.7),
                     ),
                   ),
                 ],
@@ -1024,7 +1135,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // Tablet/Desktop layout - side by side
   Widget _buildTabletDesktopLayout(TodoList todoList) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     // Separate completed tasks by priority
     final completedMainQuest = todoList.completedTodos
         .where((todo) => todo.priority == TodoPriority.mainQuest)
@@ -1068,14 +1179,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       border: Border.all(
                         color: isDark
                             ? Colors.white.withOpacity(0.1)
-                            : Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                            : Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.08),
                         width: 1,
                       ),
                       boxShadow: [
                         BoxShadow(
                           color: isDark
                               ? Colors.black.withOpacity(0.3)
-                              : Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                              : Theme.of(
+                                  context,
+                                ).colorScheme.primary.withOpacity(0.05),
                           blurRadius: 20,
                           offset: const Offset(0, 4),
                         ),
@@ -1094,7 +1209,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               bottom: BorderSide(
                                 color: isDark
                                     ? Colors.white.withOpacity(0.1)
-                                    : Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                    : Theme.of(
+                                        context,
+                                      ).colorScheme.primary.withOpacity(0.1),
                                 width: 1.5,
                               ),
                             ),
@@ -1106,9 +1223,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
-                                      (isDark ? AppTheme.primaryColorDark : Theme.of(context).colorScheme.primary)
+                                      (isDark
+                                              ? AppTheme.primaryColorDark
+                                              : Theme.of(
+                                                  context,
+                                                ).colorScheme.primary)
                                           .withOpacity(0.15),
-                                      (isDark ? AppTheme.primaryColorDark : Theme.of(context).colorScheme.primary)
+                                      (isDark
+                                              ? AppTheme.primaryColorDark
+                                              : Theme.of(
+                                                  context,
+                                                ).colorScheme.primary)
                                           .withOpacity(0.08),
                                     ],
                                   ),
@@ -1117,14 +1242,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: Icon(
                                   TodoPriority.mainQuest.icon,
                                   size: 20,
-                                  color: isDark ? AppTheme.primaryColorDark : Theme.of(context).colorScheme.primary,
+                                  color: isDark
+                                      ? AppTheme.primaryColorDark
+                                      : Theme.of(context).colorScheme.primary,
                                 ),
                               ),
                               const SizedBox(width: 12),
                               Text(
                                 'Main Quest',
                                 style: AppTheme.sectionHeaderStyle.copyWith(
-                                  color: isDark ? AppTheme.primaryColorDark : Theme.of(context).colorScheme.primary,
+                                  color: isDark
+                                      ? AppTheme.primaryColorDark
+                                      : Theme.of(context).colorScheme.primary,
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: 0.5,
@@ -1142,16 +1271,19 @@ class _HomeScreenState extends State<HomeScreen> {
                             onAdd: () {
                               if (_mainQuestController.text.isNotEmpty) {
                                 context.read<TodoList>().addTodo(
-                                      _mainQuestController.text,
-                                      priority: TodoPriority.mainQuest,
-                                    );
+                                  _mainQuestController.text,
+                                  priority: TodoPriority.mainQuest,
+                                );
                                 _mainQuestController.clear();
                                 _saveTodos();
                               }
                             },
                             onSubmitted: (value) {
                               if (value.isNotEmpty) {
-                                context.read<TodoList>().addTodo(value, priority: TodoPriority.mainQuest);
+                                context.read<TodoList>().addTodo(
+                                  value,
+                                  priority: TodoPriority.mainQuest,
+                                );
                                 _mainQuestController.clear();
                                 _saveTodos();
                               }
@@ -1178,7 +1310,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Beautiful divider with enhanced visibility
                 Container(
                   width: 3,
-                  margin: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+                  margin: const EdgeInsets.symmetric(
+                    vertical: 32,
+                    horizontal: 16,
+                  ),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
@@ -1193,9 +1328,15 @@ class _HomeScreenState extends State<HomeScreen> {
                             ]
                           : [
                               Colors.transparent,
-                              Theme.of(context).colorScheme.primary.withOpacity(0.12),
-                              Theme.of(context).colorScheme.primary.withOpacity(0.25),
-                              Theme.of(context).colorScheme.primary.withOpacity(0.12),
+                              Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.12),
+                              Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.25),
+                              Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.12),
                               Colors.transparent,
                             ],
                       stops: const [0.0, 0.15, 0.5, 0.85, 1.0],
@@ -1205,7 +1346,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       BoxShadow(
                         color: isDark
                             ? AppTheme.primaryColorDark.withOpacity(0.15)
-                            : Theme.of(context).colorScheme.primary.withOpacity(0.15),
+                            : Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.15),
                         blurRadius: 8,
                         spreadRadius: 1,
                       ),
@@ -1233,14 +1376,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       border: Border.all(
                         color: isDark
                             ? Colors.white.withOpacity(0.1)
-                            : Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                            : Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.08),
                         width: 1,
                       ),
                       boxShadow: [
                         BoxShadow(
                           color: isDark
                               ? Colors.black.withOpacity(0.3)
-                              : Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                              : Theme.of(
+                                  context,
+                                ).colorScheme.primary.withOpacity(0.05),
                           blurRadius: 20,
                           offset: const Offset(0, 4),
                         ),
@@ -1259,7 +1406,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               bottom: BorderSide(
                                 color: isDark
                                     ? Colors.white.withOpacity(0.1)
-                                    : Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                    : Theme.of(
+                                        context,
+                                      ).colorScheme.primary.withOpacity(0.1),
                                 width: 1.5,
                               ),
                             ),
@@ -1271,9 +1420,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
-                                      (isDark ? AppTheme.primaryColorDark : Theme.of(context).colorScheme.primary)
+                                      (isDark
+                                              ? AppTheme.primaryColorDark
+                                              : Theme.of(
+                                                  context,
+                                                ).colorScheme.primary)
                                           .withOpacity(0.15),
-                                      (isDark ? AppTheme.primaryColorDark : Theme.of(context).colorScheme.primary)
+                                      (isDark
+                                              ? AppTheme.primaryColorDark
+                                              : Theme.of(
+                                                  context,
+                                                ).colorScheme.primary)
                                           .withOpacity(0.08),
                                     ],
                                   ),
@@ -1282,14 +1439,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: Icon(
                                   TodoPriority.sideQuest.icon,
                                   size: 20,
-                                  color: isDark ? AppTheme.primaryColorDark : Theme.of(context).colorScheme.primary,
+                                  color: isDark
+                                      ? AppTheme.primaryColorDark
+                                      : Theme.of(context).colorScheme.primary,
                                 ),
                               ),
                               const SizedBox(width: 12),
                               Text(
                                 'Side Quest',
                                 style: AppTheme.sectionHeaderStyle.copyWith(
-                                  color: isDark ? AppTheme.primaryColorDark : Theme.of(context).colorScheme.primary,
+                                  color: isDark
+                                      ? AppTheme.primaryColorDark
+                                      : Theme.of(context).colorScheme.primary,
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: 0.5,
@@ -1307,16 +1468,19 @@ class _HomeScreenState extends State<HomeScreen> {
                             onAdd: () {
                               if (_sideQuestController.text.isNotEmpty) {
                                 context.read<TodoList>().addTodo(
-                                      _sideQuestController.text,
-                                      priority: TodoPriority.sideQuest,
-                                    );
+                                  _sideQuestController.text,
+                                  priority: TodoPriority.sideQuest,
+                                );
                                 _sideQuestController.clear();
                                 _saveTodos();
                               }
                             },
                             onSubmitted: (value) {
                               if (value.isNotEmpty) {
-                                context.read<TodoList>().addTodo(value, priority: TodoPriority.sideQuest);
+                                context.read<TodoList>().addTodo(
+                                  value,
+                                  priority: TodoPriority.sideQuest,
+                                );
                                 _sideQuestController.clear();
                                 _saveTodos();
                               }
@@ -1346,14 +1510,18 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         // Completed tasks at the bottom - collapsible
         if (todoList.completedTodos.isNotEmpty)
-          _buildCollapsibleCompletedSection(completedMainQuest, completedSideQuest, todoList.completedTodos.length),
+          _buildCollapsibleCompletedSection(
+            completedMainQuest,
+            completedSideQuest,
+            todoList.completedTodos.length,
+          ),
       ],
     );
   }
 
   Widget _buildHeader() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Row(
       children: [
         Text(
@@ -1381,10 +1549,12 @@ class _HomeScreenState extends State<HomeScreen> {
             Navigator.push(
               context,
               PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) => const ArchivesScreen(),
-                transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                  return TaskAnimations.slideIn(animation, child);
-                },
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    const ArchivesScreen(),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                      return TaskAnimations.slideIn(animation, child);
+                    },
               ),
             );
           },
@@ -1405,7 +1575,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _showProfilePanel(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     showDialog(
       context: context,
       barrierColor: Colors.black.withOpacity(0.2),
@@ -1426,10 +1596,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     return Transform.scale(
                       scale: value,
                       alignment: Alignment.topRight,
-                      child: Opacity(
-                        opacity: value,
-                        child: child,
-                      ),
+                      child: Opacity(opacity: value, child: child),
                     );
                   },
                   child: Container(
@@ -1440,14 +1607,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: isDark
-                            ? [
-                                const Color(0xFF1A1A1A),
-                                const Color(0xFF0D0D0D),
-                              ]
-                            : [
-                                Colors.white,
-                                const Color(0xFFFAFAFA),
-                              ],
+                            ? [const Color(0xFF1A1A1A), const Color(0xFF0D0D0D)]
+                            : [Colors.white, const Color(0xFFFAFAFA)],
                       ),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
@@ -1478,9 +1639,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Row(
                           children: [
                             // Avatar - using ProfileAvatar widget for consistency
-                            const ProfileAvatar(
-                              size: 52,
-                            ),
+                            const ProfileAvatar(size: 52),
                             const SizedBox(width: 14),
                             // Tier info
                             Expanded(
@@ -1492,7 +1651,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     style: GoogleFonts.outfit(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w700,
-                                      color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
+                                      color: isDark
+                                          ? AppTheme.textDarkMode
+                                          : AppTheme.textDark,
                                       letterSpacing: -0.3,
                                     ),
                                   ),
@@ -1512,7 +1673,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                       borderRadius: BorderRadius.circular(8),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: const Color(0xFFFFD700).withOpacity(0.4),
+                                          color: const Color(
+                                            0xFFFFD700,
+                                          ).withOpacity(0.4),
                                           blurRadius: 8,
                                           offset: const Offset(0, 2),
                                         ),
@@ -1552,7 +1715,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             gradient: LinearGradient(
                               colors: [
                                 Colors.transparent,
-                                (isDark ? Colors.white : Colors.black).withOpacity(0.1),
+                                (isDark ? Colors.white : Colors.black)
+                                    .withOpacity(0.1),
                                 Colors.transparent,
                               ],
                             ),
@@ -1621,16 +1785,24 @@ class _HomeScreenState extends State<HomeScreen> {
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
                                         colors: [
-                                          (isDark ? AppTheme.primaryColorDark : AppTheme.primaryColor),
-                                          (isDark ? AppTheme.primaryColorDark : AppTheme.primaryColor)
+                                          (isDark
+                                              ? AppTheme.primaryColorDark
+                                              : AppTheme.primaryColor),
+                                          (isDark
+                                                  ? AppTheme.primaryColorDark
+                                                  : AppTheme.primaryColor)
                                               .withOpacity(0.8),
                                         ],
                                       ),
                                       borderRadius: BorderRadius.circular(10),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: (isDark ? AppTheme.primaryColorDark : AppTheme.primaryColor)
-                                              .withOpacity(0.3),
+                                          color:
+                                              (isDark
+                                                      ? AppTheme
+                                                            .primaryColorDark
+                                                      : AppTheme.primaryColor)
+                                                  .withOpacity(0.3),
                                           blurRadius: 8,
                                           offset: const Offset(0, 2),
                                         ),
@@ -1638,7 +1810,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     child: Icon(
                                       Icons.settings_rounded,
-                                      color: isDark ? Colors.black : Colors.white,
+                                      color: isDark
+                                          ? Colors.black
+                                          : Colors.white,
                                       size: 20,
                                     ),
                                   ),
@@ -1649,7 +1823,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                       style: GoogleFonts.outfit(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w600,
-                                        color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
+                                        color: isDark
+                                            ? AppTheme.textDarkMode
+                                            : AppTheme.textDark,
                                         letterSpacing: -0.2,
                                       ),
                                     ),
@@ -1657,7 +1833,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Icon(
                                     Icons.arrow_forward_ios_rounded,
                                     size: 15,
-                                    color: isDark ? AppTheme.textMediumDark : AppTheme.textMedium,
+                                    color: isDark
+                                        ? AppTheme.textMediumDark
+                                        : AppTheme.textMedium,
                                   ),
                                 ],
                               ),
@@ -1680,11 +1858,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final deviceType = ResponsiveLayout.getDeviceType(context);
-    final bool isTabletOrDesktop = deviceType == DeviceType.tablet || deviceType == DeviceType.desktop;
-    final bool showWindowControls = !kIsWeb && Platform.isWindows && isTabletOrDesktop;
+    final bool isTabletOrDesktop =
+        deviceType == DeviceType.tablet || deviceType == DeviceType.desktop;
+    final bool showWindowControls =
+        !kIsWeb && Platform.isWindows && isTabletOrDesktop;
     // Sidebar width: 220 for desktop, 72 for tablet
     final double sidebarWidth = deviceType == DeviceType.desktop ? 220 : 72;
-    
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -1695,10 +1875,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   AppTheme.backgroundGradientStartDark,
                   AppTheme.backgroundGradientEndDark,
                 ]
-              : [
-                  Colors.blue.shade50,
-                  Colors.purple.shade50,
-                ],
+              : [Colors.blue.shade50, Colors.purple.shade50],
         ),
       ),
       child: Scaffold(
@@ -1707,11 +1884,16 @@ class _HomeScreenState extends State<HomeScreen> {
         body: Column(
           children: [
             // Window controls bar for Windows tablet/desktop
-            if (showWindowControls) WindowControlsBar(sidebarWidth: sidebarWidth, showDragIndicator: true),
+            if (showWindowControls)
+              WindowControlsBar(
+                sidebarWidth: sidebarWidth,
+                showDragIndicator: true,
+              ),
             // Main content
             Expanded(
               child: SafeArea(
-                top: !showWindowControls, // No top safe area on Windows tablet/desktop (controls handle it)
+                top:
+                    !showWindowControls, // No top safe area on Windows tablet/desktop (controls handle it)
                 bottom: true,
                 left: false,
                 right: false,
@@ -1726,6 +1908,26 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              RightToLeftRoute(
+                page: TaskDetailScreen(
+                  initialPriority: TodoPriority.mainQuest,
+                  onSave: (newTodo) {
+                    context.read<TodoList>().updateTodo(newTodo);
+                    _saveTodos();
+                  },
+                ),
+              ),
+            );
+          },
+          backgroundColor: isDark
+              ? AppTheme.primaryColorDark
+              : Theme.of(context).colorScheme.primary,
+          child: const Icon(Icons.add, color: Colors.white),
         ),
       ),
     );
