@@ -117,11 +117,16 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
 
   void _saveTodo() {
     if (_titleController.text.trim().isEmpty) {
+      final deviceType = ResponsiveLayout.getDeviceType(context);
+      final isMobile = deviceType == DeviceType.mobile;
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Please enter a title', style: GoogleFonts.inter()),
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.red.shade700,
+          width: isMobile ? null : 400,
+          margin: isMobile ? const EdgeInsets.all(8) : null,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -212,65 +217,90 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               PrioritySelector(
-                                selectedPriority: _selectedPriority,
-                                onPriorityChanged: (priority) {
-                                  setState(() => _selectedPriority = priority);
-                                  _autoSaveTodo();
+                              selectedPriority: _selectedPriority,
+                              onPriorityChanged: (priority) {
+                                setState(() => _selectedPriority = priority);
+                                _autoSaveTodo();
+                              },
+                              isDark: isDark,
+                              ),
+                              const SizedBox(height: 24),
+                                ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                maxWidth: 600,
+                                ),
+                                child: TextField(
+                                controller: _titleController,
+                                focusNode: _titleFocusNode,
+                                textInputAction: TextInputAction.done,
+                                style: GoogleFonts.outfit(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white : Colors.black87,
+                                ),
+                                decoration: InputDecoration(
+                                hintText: 'Quest title',
+                                hintStyle: GoogleFonts.outfit(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w600,
+                                  color: (isDark ? Colors.white : Colors.black87)
+                                  .withOpacity(0.3),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                  color: (isDark ? Colors.white : Colors.black87)
+                                  .withOpacity(0.2),
+                                  width: 2.0,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                  color: isDark
+                                  ? AppTheme.primaryColorDark
+                                  : Theme.of(context).colorScheme.primary,
+                                  width: 2.0,
+                                  ),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                ),
+                                maxLines: null,
+                                onSubmitted: (_) {
+                                _autoSaveTodo();
+                                _descriptionFocusNode.requestFocus();
+                                },
+                                ),
+                                ),
+                              const SizedBox(height: 24),
+                              ConstrainedBox(
+                              constraints: const BoxConstraints(
+                                maxWidth: 600,
+                              ),
+                              child: DescriptionField(
+                                controller: _descriptionController,
+                                focusNode: _descriptionFocusNode,
+                                onSubmitted: () {
+                                _autoSaveTodo();
+                                FocusScope.of(context).unfocus();
                                 },
                                 isDark: isDark,
                               ),
-                              const SizedBox(height: 24),
-                              ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxWidth: 600,
-                                ),
-                                child: TextField(
-                                  controller: _titleController,
-                                  focusNode: _titleFocusNode,
-                                  textInputAction: TextInputAction.done,
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w600,
-                                    color: isDark ? Colors.white : Colors.black87,
-                                  ),
-                                  decoration: InputDecoration(
-                                    hintText: 'Quest title',
-                                    hintStyle: GoogleFonts.outfit(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w600,
-                                      color: (isDark ? Colors.white : Colors.black87)
-                                          .withOpacity(0.3),
-                                    ),
-                                    border: InputBorder.none,
-                                  ),
-                                  maxLines: null,
-                                  onSubmitted: (_) {
-                                    _autoSaveTodo();
-                                    _descriptionFocusNode.requestFocus();
-                                  },
-                                ),
                               ),
-                          const SizedBox(height: 24),
-                          DescriptionField(
-                            controller: _descriptionController,
-                            focusNode: _descriptionFocusNode,
-                            onSubmitted: () {
-                              _autoSaveTodo();
-                              FocusScope.of(context).unfocus();
-                            },
-                            isDark: isDark,
-                          ),
-                          const SizedBox(height: 16),
-                          DateTimeSection(
-                            label: 'Add deadline',
-                            icon: Icons.radio_button_checked,
-                            selectedDate: _selectedDeadline,
-                            onChanged: (date) {
-                              setState(() => _selectedDeadline = date);
-                              _autoSaveTodo();
-                            },
-                            isDark: isDark,
-                          ),
+                              const SizedBox(height: 16),
+                              DateTimeSection(
+                              label: 'Add deadline',
+                              icon: Icons.radio_button_checked,
+                              selectedDate: _selectedDeadline,
+                              onChanged: (date) {
+                                setState(() => _selectedDeadline = date);
+                                _autoSaveTodo();
+                              },
+                              isDark: isDark,
+                              ),
                           const SizedBox(height: 16),
                           DateTimeSection(
                             label: 'Add date/time',

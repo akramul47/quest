@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../Utils/app_theme.dart';
 
 Future<DateTime?> showCustomDatePicker(
   BuildContext context, {
@@ -24,18 +25,39 @@ Future<DateTime?> showCustomDatePicker(
       return StatefulBuilder(
         builder: (context, setDialogState) {
           return Dialog(
+            backgroundColor: isDark ? const Color(0xFF1C1C1E) : null,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
             child: Container(
               constraints: const BoxConstraints(maxWidth: 400),
+              decoration: isDark
+                  ? BoxDecoration(
+                      color: const Color(0xFF1C1C1E),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.1),
+                        width: 1,
+                      ),
+                    )
+                  : null,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Theme(
                     data: Theme.of(context).copyWith(
-                      colorScheme: ColorScheme.light(
-                        primary: Theme.of(context).colorScheme.primary,
+                      colorScheme: isDark
+                          ? ColorScheme.dark(
+                              primary: Theme.of(context).colorScheme.primary,
+                              surface: const Color(0xFF1C1C1E),
+                            )
+                          : ColorScheme.light(
+                              primary: Theme.of(context).colorScheme.primary,
+                            ),
+                      textButtonTheme: TextButtonThemeData(
+                        style: TextButton.styleFrom(
+                          foregroundColor: isDark ? Colors.white : null,
+                        ),
                       ),
                     ),
                     child: CalendarDatePicker(
