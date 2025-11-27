@@ -2,7 +2,7 @@
 description: "Your life, organized by intent."
 publish_to: 'none'
 
-version: 1.0.1+1
+version: 1.0.1+3
 
 environment:
   sdk: ^3.8.1

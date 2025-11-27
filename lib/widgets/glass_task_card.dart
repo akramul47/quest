@@ -116,6 +116,65 @@ class _GlassTaskCardState extends State<GlassTaskCard>
     });
   }
 
+  String _formatDateTime(DateTime? dateTime) {
+    if (dateTime == null) return '';
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
+    final dateToCheck = DateTime(dateTime.year, dateTime.month, dateTime.day);
+
+    if (dateToCheck == today) {
+      return 'Today';
+    } else if (dateToCheck == tomorrow) {
+      return 'Tomorrow';
+    } else {
+      return '${dateTime.month}/${dateTime.day}';
+    }
+  }
+
+  Widget _buildDateTimeChip(DateTime? dateTime, bool isDeadline, bool isDark) {
+    if (dateTime == null) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: isDeadline
+            ? Colors.red.withOpacity(0.1)
+            : (isDark ? Colors.white : Colors.black87).withOpacity(0.06),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: isDeadline
+              ? Colors.red.withOpacity(0.3)
+              : (isDark ? Colors.white : Colors.black87).withOpacity(0.1),
+          width: 0.5,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isDeadline ? Icons.radio_button_checked : Icons.access_time,
+            size: 10,
+            color: isDeadline
+                ? Colors.red.shade700
+                : (isDark ? Colors.white70 : Colors.black87).withOpacity(0.7),
+          ),
+          const SizedBox(width: 3),
+          Text(
+            _formatDateTime(dateTime),
+            style: GoogleFonts.inter(
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              color: isDeadline
+                  ? Colors.red.shade700
+                  : (isDark ? Colors.white70 : Colors.black87).withOpacity(0.7),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -158,8 +217,16 @@ class _GlassTaskCardState extends State<GlassTaskCard>
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Row(
+                      crossAxisAlignment: widget.todo.subtasks.isNotEmpty
+                          ? CrossAxisAlignment.start
+                          : CrossAxisAlignment.center,
                       children: [
-                        _buildCheckbox(),
+                        Padding(
+                          padding: widget.todo.subtasks.isNotEmpty
+                              ? const EdgeInsets.only(top: 3)
+                              : EdgeInsets.zero,
+                          child: _buildCheckbox(),
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: (_isEditing && !widget.isCompleted)
@@ -203,135 +270,243 @@ class _GlassTaskCardState extends State<GlassTaskCard>
                               : Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      widget.todo.task,
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 16.5,
-                                        fontWeight: FontWeight.w500,
-                                        letterSpacing: 0.3,
-                                        height: 1.5,
-                                        decoration: widget.isCompleted
-                                            ? TextDecoration.lineThrough
-                                            : null,
-                                        decorationColor: widget.isCompleted
-                                            ? (isDark
-                                                      ? Colors.grey.shade500
-                                                      : Colors.grey)
-                                                  .withOpacity(0.6)
-                                            : null,
-                                        decorationThickness: 2,
-                                        color: widget.isCompleted
-                                            ? (isDark
-                                                      ? Colors.grey.shade500
-                                                      : Colors.grey)
-                                                  .withOpacity(0.65)
-                                            : (isDark
-                                                  ? AppTheme.textDarkMode
-                                                  : const Color(0xFF1a1a1a)),
-                                        shadows: widget.isCompleted
-                                            ? null
-                                            : [
-                                                Shadow(
-                                                  color:
-                                                      (isDark
-                                                              ? Colors.white
-                                                              : Colors.black)
-                                                          .withOpacity(0.03),
-                                                  offset: const Offset(0, 1),
-                                                  blurRadius: 2,
-                                                ),
-                                              ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
+                                    // Title row with date/time and star
                                     Row(
                                       children: [
-                                        Flexible(
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 3,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              gradient: LinearGradient(
-                                                colors: [
-                                                  (isDark
-                                                          ? AppTheme
-                                                                .primaryColorDark
-                                                          : Theme.of(context)
-                                                                .colorScheme
-                                                                .primary)
-                                                      .withOpacity(0.12),
-                                                  (isDark
-                                                          ? AppTheme
-                                                                .primaryColorDark
-                                                          : Theme.of(context)
-                                                                .colorScheme
-                                                                .primary)
-                                                      .withOpacity(0.08),
-                                                ],
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(
-                                                  widget.todo.priority.icon,
-                                                  size: 13,
-                                                  color:
-                                                      (isDark
-                                                              ? AppTheme
-                                                                    .primaryColorDark
-                                                              : Theme.of(
-                                                                      context,
-                                                                    )
-                                                                    .colorScheme
-                                                                    .primary)
-                                                          .withOpacity(0.85),
-                                                ),
-                                                const SizedBox(width: 5),
-                                                Flexible(
-                                                  child: Text(
-                                                    widget
-                                                        .todo
-                                                        .priority
-                                                        .displayName,
-                                                    style: GoogleFonts.outfit(
-                                                      fontSize: 11.5,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      letterSpacing: 0.4,
-                                                      color: Theme.of(context)
-                                                          .colorScheme
-                                                          .primary
-                                                          .withOpacity(0.85),
-                                                    ),
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    maxLines: 1,
-                                                  ),
-                                                ),
-                                              ],
+                                        Expanded(
+                                          child: Text(
+                                            widget.todo.task,
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 16.5,
+                                              fontWeight: FontWeight.w400,
+                                              letterSpacing: 0.2,
+                                              height: 1.4,
+                                              decoration: widget.isCompleted
+                                                  ? TextDecoration.lineThrough
+                                                  : null,
+                                              decorationColor:
+                                                  widget.isCompleted
+                                                  ? (isDark
+                                                            ? Colors
+                                                                  .grey
+                                                                  .shade500
+                                                            : Colors.grey)
+                                                        .withOpacity(0.6)
+                                                  : null,
+                                              decorationThickness: 2,
+                                              color: widget.isCompleted
+                                                  ? (isDark
+                                                            ? Colors
+                                                                  .grey
+                                                                  .shade500
+                                                            : Colors.grey)
+                                                        .withOpacity(0.65)
+                                                  : (isDark
+                                                        ? AppTheme.textDarkMode
+                                                        : const Color(
+                                                            0xFF1a1a1a,
+                                                          )),
                                             ),
                                           ),
                                         ),
+                                        // Date/Time chip (if exists)
+                                        if (widget.todo.dateTime != null ||
+                                            widget.todo.deadline != null) ...[
+                                          const SizedBox(width: 6),
+                                          _buildDateTimeChip(
+                                            widget.todo.deadline ??
+                                                widget.todo.dateTime,
+                                            widget.todo.deadline != null,
+                                            isDark,
+                                          ),
+                                        ],
+                                        // Star icon (always show)
+                                        const SizedBox(width: 12),
+                                        Icon(
+                                          Icons.star_border,
+                                          size: 18,
+                                          color:
+                                              (isDark
+                                                      ? Colors.white
+                                                      : Colors.black87)
+                                                  .withOpacity(0.4),
+                                        ),
                                       ],
                                     ),
+                                    // Description (if exists)
+                                    if (widget.todo.description != null &&
+                                        widget
+                                            .todo
+                                            .description!
+                                            .isNotEmpty) ...[
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '- ${widget.todo.description!}',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w400,
+                                          height: 1.3,
+                                          color:
+                                              (isDark
+                                                      ? Colors.white70
+                                                      : Colors.black87)
+                                                  .withOpacity(0.6),
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                    // Subtasks (compact, no connecting lines)
+                                    if (widget.todo.subtasks.isNotEmpty) ...[
+                                      const SizedBox(height: 8),
+                                      ...widget.todo.subtasks.take(3).map((
+                                        subtask,
+                                      ) {
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 4,
+                                            left: 2,
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              InkWell(
+                                                onTap: () {
+                                                  final newSubtasks =
+                                                      List<Subtask>.from(
+                                                        widget.todo.subtasks,
+                                                      );
+                                                  final idx = newSubtasks
+                                                      .indexWhere(
+                                                        (s) =>
+                                                            s.id == subtask.id,
+                                                      );
+                                                  if (idx != -1) {
+                                                    newSubtasks[idx] = subtask
+                                                        .copyWith(
+                                                          isCompleted: !subtask
+                                                              .isCompleted,
+                                                        );
+                                                    final updatedTodo = widget
+                                                        .todo
+                                                        .copyWith(
+                                                          subtasks: newSubtasks,
+                                                        );
+                                                    widget.onEdit(
+                                                      updatedTodo,
+                                                      updatedTodo.task,
+                                                    );
+                                                  }
+                                                },
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                                child: Container(
+                                                  width: 32,
+                                                  height: 32,
+                                                  alignment: Alignment.center,
+                                                  child: Container(
+                                                    width: 16,
+                                                    height: 16,
+                                                    decoration: BoxDecoration(
+                                                      shape: BoxShape.circle,
+                                                      color: subtask.isCompleted
+                                                          ? (isDark
+                                                                ? AppTheme
+                                                                      .primaryColorDark
+                                                                : Theme.of(
+                                                                        context,
+                                                                      )
+                                                                      .colorScheme
+                                                                      .primary)
+                                                          : Colors.transparent,
+                                                      border: Border.all(
+                                                        color:
+                                                            subtask.isCompleted
+                                                            ? (isDark
+                                                                  ? AppTheme
+                                                                        .primaryColorDark
+                                                                  : Theme.of(
+                                                                          context,
+                                                                        )
+                                                                        .colorScheme
+                                                                        .primary)
+                                                            : (isDark
+                                                                      ? Colors
+                                                                            .white
+                                                                      : Colors
+                                                                            .black87)
+                                                                  .withOpacity(
+                                                                    0.3,
+                                                                  ),
+                                                        width: 1.5,
+                                                      ),
+                                                    ),
+                                                    child: subtask.isCompleted
+                                                        ? const Icon(
+                                                            Icons.check,
+                                                            color: Colors.white,
+                                                            size: 12,
+                                                          )
+                                                        : null,
+                                                  ),
+                                                ),
+                                              ),
+                                              Expanded(
+                                                child: Text(
+                                                  subtask.title,
+                                                  style: GoogleFonts.inter(
+                                                    fontSize: 13.5,
+                                                    fontWeight: FontWeight.w400,
+                                                    decoration:
+                                                        subtask.isCompleted
+                                                        ? TextDecoration
+                                                              .lineThrough
+                                                        : null,
+                                                    color:
+                                                        (isDark
+                                                                ? Colors.white70
+                                                                : Colors
+                                                                      .black87)
+                                                            .withOpacity(
+                                                              subtask.isCompleted
+                                                                  ? 0.4
+                                                                  : 0.65,
+                                                            ),
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }),
+                                      if (widget.todo.subtasks.length > 3)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 2,
+                                            left: 20,
+                                          ),
+                                          child: Text(
+                                            '+${widget.todo.subtasks.length - 3} more',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w500,
+                                              color:
+                                                  (isDark
+                                                          ? AppTheme
+                                                                .primaryColorDark
+                                                          : Theme.of(context)
+                                                                .colorScheme
+                                                                .primary)
+                                                      .withOpacity(0.7),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
                                   ],
                                 ),
                         ),
-                        const SizedBox(width: 8),
-                        // Star icon on the right - hide for completed tasks
-                        if (!widget.isCompleted)
-                          Icon(
-                            Icons.star_outline,
-                            size: 20,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withOpacity(0.6),
-                          ),
                       ],
                     ),
                   ),

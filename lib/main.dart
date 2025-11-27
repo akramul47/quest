@@ -18,7 +18,8 @@ import 'providers/window_state_provider.dart';
 
 // Platform detection helpers
 bool get isWindows => !kIsWeb && Platform.isWindows;
-bool get isDesktopPlatform => !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
+bool get isDesktopPlatform =>
+    !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
 
 // Helper function to ensure window position is within screen bounds
 Future<Offset> _getSafeWindowPosition(Offset position, Size windowSize) async {
@@ -26,33 +27,33 @@ Future<Offset> _getSafeWindowPosition(Offset position, Size windowSize) async {
     final primaryDisplay = await screenRetriever.getPrimaryDisplay();
     final screenSize = primaryDisplay.size;
     final screenPosition = primaryDisplay.visiblePosition ?? const Offset(0, 0);
-    
+
     // Calculate safe bounds (ensure at least 100px of window is visible)
     const minVisibleSize = 100.0;
-    
+
     double safeX = position.dx;
     double safeY = position.dy;
-    
+
     // Check right edge
     if (safeX + minVisibleSize > screenPosition.dx + screenSize.width) {
       safeX = screenPosition.dx + screenSize.width - minVisibleSize;
     }
-    
+
     // Check left edge
     if (safeX + windowSize.width < screenPosition.dx + minVisibleSize) {
       safeX = screenPosition.dx;
     }
-    
+
     // Check bottom edge
     if (safeY + minVisibleSize > screenPosition.dy + screenSize.height) {
       safeY = screenPosition.dy + screenSize.height - minVisibleSize;
     }
-    
+
     // Check top edge
     if (safeY < screenPosition.dy) {
       safeY = screenPosition.dy;
     }
-    
+
     // If position is completely out of bounds, center the window
     if (safeX < screenPosition.dx - windowSize.width + minVisibleSize ||
         safeX > screenPosition.dx + screenSize.width - minVisibleSize ||
@@ -61,7 +62,7 @@ Future<Offset> _getSafeWindowPosition(Offset position, Size windowSize) async {
       safeX = screenPosition.dx + (screenSize.width - windowSize.width) / 2;
       safeY = screenPosition.dy + (screenSize.height - windowSize.height) / 2;
     }
-    
+
     return Offset(safeX, safeY);
   } catch (e) {
     debugPrint('Failed to get safe window position: $e');
@@ -72,17 +73,15 @@ Future<Offset> _getSafeWindowPosition(Offset position, Size windowSize) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Note: System UI overlay will be configured dynamically based on theme in MaterialApp
   // This ensures proper status bar colors for both light and dark modes
-  
+
   // Enable edge-to-edge mode for mobile
   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-    SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.edgeToEdge,
-    );
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   }
-  
+
   // Only configure window manager on desktop platforms
   if (isDesktopPlatform) {
     try {
@@ -96,7 +95,7 @@ void main() async {
       await windowManager.waitUntilReadyToShow().then((_) async {
         // Set minimum size
         await windowManager.setMinimumSize(const Size(350, 500));
-        
+
         if (isWindows) {
           // Restore saved state or use defaults for Windows
           if (windowState != null) {
@@ -105,16 +104,21 @@ void main() async {
               windowState['height'] as double,
             );
             await windowManager.setSize(windowSize);
-            
+
             if (windowState['x'] != null && windowState['y'] != null) {
               final savedPosition = Offset(
                 windowState['x'] as double,
                 windowState['y'] as double,
               );
-              final safePosition = await _getSafeWindowPosition(savedPosition, windowSize);
+              final safePosition = await _getSafeWindowPosition(
+                savedPosition,
+                windowSize,
+              );
               await windowManager.setPosition(safePosition);
             }
-            await windowManager.setAlwaysOnTop(windowState['isAlwaysOnTop'] as bool);
+            await windowManager.setAlwaysOnTop(
+              windowState['isAlwaysOnTop'] as bool,
+            );
             if (windowState['isMaximized'] as bool) {
               await windowManager.maximize();
             }
@@ -134,13 +138,16 @@ void main() async {
               windowState['height'] as double,
             );
             await windowManager.setSize(windowSize);
-            
+
             if (windowState['x'] != null && windowState['y'] != null) {
               final savedPosition = Offset(
                 windowState['x'] as double,
                 windowState['y'] as double,
               );
-              final safePosition = await _getSafeWindowPosition(savedPosition, windowSize);
+              final safePosition = await _getSafeWindowPosition(
+                savedPosition,
+                windowSize,
+              );
               await windowManager.setPosition(safePosition);
             }
             if (windowState['isMaximized'] as bool) {
@@ -151,7 +158,7 @@ void main() async {
             await windowManager.setSize(const Size(900, 700));
           }
         }
-        
+
         // Set window to be resizable
         await windowManager.setResizable(true);
         await windowManager.show();
@@ -165,7 +172,7 @@ void main() async {
       debugPrint('Window manager initialization failed: $e');
     }
   }
-  
+
   runApp(const MyApp());
 }
 
@@ -180,7 +187,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => HabitList()),
         ChangeNotifierProvider(create: (_) => FocusProvider()..initialize()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => WindowStateProvider()..initialize()),
+        ChangeNotifierProvider(
+          create: (_) => WindowStateProvider()..initialize(),
+        ),
         Provider(create: (_) => StorageService()),
       ],
       child: Consumer<ThemeProvider>(
@@ -189,8 +198,8 @@ class MyApp extends StatelessWidget {
           final brightness = themeProvider.effectiveThemeMode == ThemeMode.dark
               ? Brightness.dark
               : themeProvider.effectiveThemeMode == ThemeMode.light
-                  ? Brightness.light
-                  : MediaQuery.platformBrightnessOf(context);
+              ? Brightness.light
+              : MediaQuery.platformBrightnessOf(context);
 
           // Update system UI overlay style for mobile based on theme
           if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
@@ -198,10 +207,18 @@ class MyApp extends StatelessWidget {
             SystemChrome.setSystemUIOverlayStyle(
               SystemUiOverlayStyle(
                 statusBarColor: Colors.transparent,
-                statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-                statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
-                systemNavigationBarColor: isDark ? const Color(0xFF000000) : Colors.white,
-                systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+                statusBarIconBrightness: isDark
+                    ? Brightness.light
+                    : Brightness.dark,
+                statusBarBrightness: isDark
+                    ? Brightness.dark
+                    : Brightness.light,
+                systemNavigationBarColor: isDark
+                    ? const Color(0xFF000000)
+                    : Colors.white,
+                systemNavigationBarIconBrightness: isDark
+                    ? Brightness.light
+                    : Brightness.dark,
                 systemNavigationBarDividerColor: Colors.transparent,
               ),
             );
@@ -343,7 +360,7 @@ class _WindowFrameState extends State<WindowFrame> with WindowListener {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -365,7 +382,7 @@ class _WindowFrameState extends State<WindowFrame> with WindowListener {
           builder: (context, constraints) {
             // Check if mobile view (width < 600px) - tablet/desktop get window controls in screens
             final isMobileView = constraints.maxWidth < 600;
-            
+
             return Column(
               children: [
                 // Show hover header only for mobile view on Windows
@@ -390,7 +407,9 @@ class _WindowFrameState extends State<WindowFrame> with WindowListener {
                           decoration: BoxDecoration(
                             color: isDark
                                 ? AppTheme.primaryColorDark.withOpacity(0.1)
-                                : Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                : Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withOpacity(0.1),
                             borderRadius: const BorderRadius.only(
                               topLeft: Radius.circular(12),
                               topRight: Radius.circular(12),
@@ -416,35 +435,47 @@ class _WindowFrameState extends State<WindowFrame> with WindowListener {
                                       fontSize: 12,
                                       color: isDark
                                           ? AppTheme.primaryColorDark
-                                          : Theme.of(context).colorScheme.primary,
+                                          : Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ),
-                              if (!_isHeaderHovered)
-                                const Spacer(),
+                              if (!_isHeaderHovered) const Spacer(),
                               // Always on top toggle button
                               Consumer<WindowStateProvider>(
                                 builder: (context, windowStateProvider, child) {
                                   return IconButton(
                                     icon: Icon(
-                                      windowStateProvider.isAlwaysOnTop ? Icons.push_pin : Icons.push_pin_outlined,
+                                      windowStateProvider.isAlwaysOnTop
+                                          ? Icons.push_pin
+                                          : Icons.push_pin_outlined,
                                       size: 18,
                                       color: windowStateProvider.isAlwaysOnTop
                                           ? (isDark
-                                              ? AppTheme.primaryColorDark
-                                              : Theme.of(context).colorScheme.primary)
+                                                ? AppTheme.primaryColorDark
+                                                : Theme.of(
+                                                    context,
+                                                  ).colorScheme.primary)
                                           : (isDark
-                                              ? AppTheme.primaryColorDark.withOpacity(0.6)
-                                              : Theme.of(context).colorScheme.primary.withOpacity(0.6)),
+                                                ? AppTheme.primaryColorDark
+                                                      .withOpacity(0.6)
+                                                : Theme.of(context)
+                                                      .colorScheme
+                                                      .primary
+                                                      .withOpacity(0.6)),
                                     ),
                                     onPressed: () async {
-                                      await windowStateProvider.toggleAlwaysOnTop();
+                                      await windowStateProvider
+                                          .toggleAlwaysOnTop();
                                       await _saveWindowState();
                                     },
                                     padding: EdgeInsets.zero,
                                     constraints: const BoxConstraints(),
-                                    tooltip: windowStateProvider.isAlwaysOnTop ? 'Unpin window' : 'Pin window on top',
+                                    tooltip: windowStateProvider.isAlwaysOnTop
+                                        ? 'Unpin window'
+                                        : 'Pin window on top',
                                   );
                                 },
                               ),
@@ -473,7 +504,9 @@ class _WindowFrameState extends State<WindowFrame> with WindowListener {
                               // Maximize/Restore button
                               IconButton(
                                 icon: Icon(
-                                  _isMaximized ? Icons.fullscreen_exit : Icons.fullscreen,
+                                  _isMaximized
+                                      ? Icons.fullscreen_exit
+                                      : Icons.fullscreen,
                                   size: 18,
                                   color: isDark
                                       ? AppTheme.primaryColorDark

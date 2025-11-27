@@ -68,6 +68,15 @@ class _SubtaskSectionState extends State<SubtaskSection> {
     widget.onSubtasksChanged(newSubtasks);
   }
 
+  void _editSubtask(Subtask subtask, String newTitle) {
+    final newSubtasks = List<Subtask>.from(widget.subtasks);
+    final index = newSubtasks.indexWhere((s) => s.id == subtask.id);
+    if (index != -1 && newTitle.trim().isNotEmpty) {
+      newSubtasks[index] = subtask.copyWith(title: newTitle.trim());
+      widget.onSubtasksChanged(newSubtasks);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -109,67 +118,151 @@ class _SubtaskSectionState extends State<SubtaskSection> {
           ),
         ),
         if (_showSubtasks) ...[
-          ...widget.subtasks.map((subtask) => _buildSubtaskItem(subtask)),
-          Container(
-            margin: const EdgeInsets.only(left: 40, top: 8),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.add_circle_outline,
-                  size: 20,
-                  color: widget.isDark
-                      ? AppTheme.primaryColorDark
-                      : Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    controller: _subtaskController,
-                    focusNode: _subtaskFocusNode,
-                    textInputAction: TextInputAction.done,
-                    style: GoogleFonts.inter(
-                      fontSize: 15,
-                      color: widget.isDark ? Colors.white70 : Colors.black87,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: 'Add a subtask',
-                      hintStyle: GoogleFonts.inter(
-                        fontSize: 15,
-                        color: (widget.isDark ? Colors.white : Colors.black87)
-                            .withOpacity(0.3),
-                      ),
-                      border: InputBorder.none,
-                    ),
-                    onSubmitted: _addSubtask,
+          ...widget.subtasks.map(
+            (subtask) => _EditableSubtaskItem(
+              subtask: subtask,
+              isDark: widget.isDark,
+              onToggle: () => _toggleSubtask(subtask),
+              onEdit: (newTitle) => _editSubtask(subtask, newTitle),
+              onRemove: () => _removeSubtask(subtask),
+            ),
+          ),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Container(
+              margin: const EdgeInsets.only(left: 40, top: 8),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.add_circle_outline,
+                    size: 20,
+                    color: widget.isDark
+                        ? AppTheme.primaryColorDark
+                        : Theme.of(context).colorScheme.primary,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _subtaskController,
+                      focusNode: _subtaskFocusNode,
+                      textInputAction: TextInputAction.done,
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        color: widget.isDark ? Colors.white70 : Colors.black87,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Add a subtask',
+                        hintStyle: GoogleFonts.inter(
+                          fontSize: 15,
+                          color: (widget.isDark ? Colors.white : Colors.black87)
+                              .withOpacity(0.3),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color:
+                                (widget.isDark ? Colors.white : Colors.black87)
+                                    .withOpacity(0.2),
+                            width: 2.0,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: widget.isDark
+                                ? AppTheme.primaryColorDark
+                                : Theme.of(context).colorScheme.primary,
+                            width: 2.0,
+                          ),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                      ),
+                      onSubmitted: _addSubtask,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
       ],
     );
   }
+}
 
-  Widget _buildSubtaskItem(Subtask subtask) {
+class _EditableSubtaskItem extends StatefulWidget {
+  final Subtask subtask;
+  final bool isDark;
+  final VoidCallback onToggle;
+  final Function(String) onEdit;
+  final VoidCallback onRemove;
+
+  const _EditableSubtaskItem({
+    Key? key,
+    required this.subtask,
+    required this.isDark,
+    required this.onToggle,
+    required this.onEdit,
+    required this.onRemove,
+  }) : super(key: key);
+
+  @override
+  State<_EditableSubtaskItem> createState() => _EditableSubtaskItemState();
+}
+
+class _EditableSubtaskItemState extends State<_EditableSubtaskItem> {
+  bool _isEditing = false;
+  late TextEditingController _controller;
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.subtask.title);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _startEditing() {
+    setState(() => _isEditing = true);
+    _focusNode.requestFocus();
+  }
+
+  void _finishEditing() {
+    if (_controller.text.trim().isNotEmpty) {
+      widget.onEdit(_controller.text);
+    }
+    setState(() => _isEditing = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(left: 40, top: 8),
       child: Row(
         children: [
           InkWell(
-            onTap: () => _toggleSubtask(subtask),
+            onTap: widget.onToggle,
             child: Container(
               width: 20,
               height: 20,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: subtask.isCompleted
+                color: widget.subtask.isCompleted
                     ? (widget.isDark
                           ? AppTheme.primaryColorDark
                           : Theme.of(context).colorScheme.primary)
                     : Colors.transparent,
                 border: Border.all(
-                  color: subtask.isCompleted
+                  color: widget.subtask.isCompleted
                       ? (widget.isDark
                             ? AppTheme.primaryColorDark
                             : Theme.of(context).colorScheme.primary)
@@ -178,23 +271,61 @@ class _SubtaskSectionState extends State<SubtaskSection> {
                   width: 2,
                 ),
               ),
-              child: subtask.isCompleted
+              child: widget.subtask.isCompleted
                   ? const Icon(Icons.check, size: 14, color: Colors.white)
                   : null,
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              subtask.title,
-              style: GoogleFonts.inter(
-                fontSize: 15,
-                color: widget.isDark ? Colors.white70 : Colors.black87,
-                decoration: subtask.isCompleted
-                    ? TextDecoration.lineThrough
-                    : null,
-              ),
-            ),
+            child: _isEditing
+                ? TextField(
+                    controller: _controller,
+                    focusNode: _focusNode,
+                    textInputAction: TextInputAction.done,
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      color: widget.isDark ? Colors.white70 : Colors.black87,
+                    ),
+                    decoration: InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: (widget.isDark ? Colors.white : Colors.black87)
+                              .withOpacity(0.2),
+                          width: 2.0,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: widget.isDark
+                              ? AppTheme.primaryColorDark
+                              : Theme.of(context).colorScheme.primary,
+                          width: 2.0,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                    ),
+                    onSubmitted: (_) => _finishEditing(),
+                    onEditingComplete: _finishEditing,
+                  )
+                : GestureDetector(
+                    onTap: _startEditing,
+                    child: Text(
+                      widget.subtask.title,
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        color: widget.isDark ? Colors.white70 : Colors.black87,
+                        decoration: widget.subtask.isCompleted
+                            ? TextDecoration.lineThrough
+                            : null,
+                      ),
+                    ),
+                  ),
           ),
           IconButton(
             icon: Icon(
@@ -202,7 +333,7 @@ class _SubtaskSectionState extends State<SubtaskSection> {
               size: 18,
               color: widget.isDark ? Colors.white54 : Colors.black54,
             ),
-            onPressed: () => _removeSubtask(subtask),
+            onPressed: widget.onRemove,
           ),
         ],
       ),

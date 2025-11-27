@@ -468,8 +468,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   context.read<TodoList>().toggleTodo(todo.id);
                   _saveTodos();
                 },
-                onEdit: (todo, newTask) {
-                  context.read<TodoList>().editTodo(todo.id, newTask);
+                onEdit: (updatedTodo, newTask) {
+                  context.read<TodoList>().updateTodo(updatedTodo);
                   _saveTodos();
                 },
                 onDelete: (todo) {
@@ -852,22 +852,26 @@ class _HomeScreenState extends State<HomeScreen> {
                                       todo: todo,
                                       isCompleted: true,
                                       onToggle: (todo) {
-                                        final todoList = context.read<TodoList>();
+                                        final todoList = context
+                                            .read<TodoList>();
                                         todoList.toggleTodo(todo.id);
                                         _saveTodos();
                                       },
                                       onEdit: (todo, newTask) {
-                                        final todoList = context.read<TodoList>();
+                                        final todoList = context
+                                            .read<TodoList>();
                                         todoList.editTodo(todo.id, newTask);
                                         _saveTodos();
                                       },
                                       onDelete: (todo) {
-                                        final todoList = context.read<TodoList>();
+                                        final todoList = context
+                                            .read<TodoList>();
                                         todoList.deleteTodo(todo.id);
                                         _saveTodos();
                                       },
                                       onArchive: (todo) {
-                                        final todoList = context.read<TodoList>();
+                                        final todoList = context
+                                            .read<TodoList>();
                                         todoList.archiveTodo(todo.id);
                                         _saveTodos();
                                       },
@@ -930,22 +934,26 @@ class _HomeScreenState extends State<HomeScreen> {
                                       todo: todo,
                                       isCompleted: true,
                                       onToggle: (todo) {
-                                        final todoList = context.read<TodoList>();
+                                        final todoList = context
+                                            .read<TodoList>();
                                         todoList.toggleTodo(todo.id);
                                         _saveTodos();
                                       },
                                       onEdit: (todo, newTask) {
-                                        final todoList = context.read<TodoList>();
+                                        final todoList = context
+                                            .read<TodoList>();
                                         todoList.editTodo(todo.id, newTask);
                                         _saveTodos();
                                       },
                                       onDelete: (todo) {
-                                        final todoList = context.read<TodoList>();
+                                        final todoList = context
+                                            .read<TodoList>();
                                         todoList.deleteTodo(todo.id);
                                         _saveTodos();
                                       },
                                       onArchive: (todo) {
-                                        final todoList = context.read<TodoList>();
+                                        final todoList = context
+                                            .read<TodoList>();
                                         todoList.archiveTodo(todo.id);
                                         _saveTodos();
                                       },
