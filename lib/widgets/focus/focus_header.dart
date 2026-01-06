@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/focus_provider.dart';
 import '../focus_settings_dialog.dart';
+import 'session_label.dart';
 
 class FocusHeader extends StatelessWidget {
   final bool isDark;
@@ -20,31 +21,60 @@ class FocusHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final focusProvider = Provider.of<FocusProvider>(context);
+
     return Padding(
       padding: EdgeInsets.all(isMobile ? 16 : 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          Text(
-            'Focus',
-            style: GoogleFonts.outfit(
-              fontSize: isMobile ? 24 : 28,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : const Color(0xFF1A1A1A),
+          // Centered session label - truly centered based on screen width
+          Center(
+            child: SessionLabel(
+              provider: focusProvider,
+              isDark: isDark,
+              isMobile: isMobile,
+              isSmall: false,
             ),
           ),
-          IconButton(
-            icon: Icon(
-              Icons.settings_outlined,
-              color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
-              size: 24,
+
+          // Settings button positioned absolutely on the right
+          Positioned(
+            right: 0,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.black.withValues(alpha: 0.05),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : Colors.black.withValues(alpha: 0.08),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                iconSize: 18,
+                icon: Icon(
+                  Icons.settings_outlined,
+                  color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
+                ),
+                onPressed: () {
+                  _showSettingsDialog(context, focusProvider);
+                },
+              ),
             ),
-            onPressed: () {
-              _showSettingsDialog(
-                context,
-                Provider.of<FocusProvider>(context, listen: false),
-              );
-            },
           ),
         ],
       ),

@@ -169,7 +169,7 @@ class _CircularTimerDisplayState extends State<CircularTimerDisplay>
                         color: widget.primaryColor,
                         boxShadow: [
                           BoxShadow(
-                            color: widget.primaryColor.withOpacity(0.6),
+                            color: widget.primaryColor.withValues(alpha: 0.6),
                             blurRadius: 10,
                           ),
                         ],
@@ -242,7 +242,7 @@ class WavyCircularProgressPainter extends CustomPainter {
         radius,
         -math.pi / 2,
         2 * math.pi,
-        color.withOpacity(isDark ? 0.08 : 0.12),
+        color.withValues(alpha: isDark ? 0.08 : 0.12),
         strokeWidth,
         true,
         useGradient: false,
@@ -280,7 +280,7 @@ class WavyCircularProgressPainter extends CustomPainter {
         radius,
         -math.pi / 2,
         2 * math.pi,
-        color.withOpacity(isDark ? 0.08 : 0.12),
+        color.withValues(alpha: isDark ? 0.08 : 0.12),
         strokeWidth,
         true,
         useGradient: false,
@@ -294,7 +294,7 @@ class WavyCircularProgressPainter extends CustomPainter {
           radius,
           -math.pi / 2,
           2 * math.pi * displayProgress * 0.95, // Cut to match main ring
-          color.withOpacity(0.25),
+          color.withValues(alpha: 0.25),
           strokeWidth + 10,
           true,
           blur: 12,
@@ -347,7 +347,7 @@ class WavyCircularProgressPainter extends CustomPainter {
 
     // Outer glow for endpoint
     final glowPaint = Paint()
-      ..color = dotColor.withOpacity(0.3)
+      ..color = dotColor.withValues(alpha: 0.3)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
     canvas.drawCircle(Offset(endX, endY), strokeWidth * 0.7, glowPaint);
 
@@ -417,8 +417,8 @@ class WavyCircularProgressPainter extends CustomPainter {
       paint.shader = SweepGradient(
         colors: [
           baseColor,
-          baseColor.withOpacity(0.85),
-          baseColor.withOpacity(0.95),
+          baseColor.withValues(alpha: 0.85),
+          baseColor.withValues(alpha: 0.95),
           baseColor,
         ],
         stops: const [0.0, 0.3, 0.7, 1.0],

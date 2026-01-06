@@ -134,23 +134,6 @@ class _FocusScreenState extends State<FocusScreen> {
 
                                       SizedBox(height: minSpacing),
 
-                                      // Session Label
-                                      AnimatedOpacity(
-                                        duration: const Duration(
-                                          milliseconds: 200,
-                                        ),
-                                        opacity:
-                                            (isDesktopPlatform && !isMobile)
-                                            ? (_isHovering ? 1.0 : 0.0)
-                                            : 1.0,
-                                        child: SessionLabel(
-                                          provider: focusProvider,
-                                          isDark: isDark,
-                                          isMobile: isMobile,
-                                          isSmall: useCompactMode,
-                                        ),
-                                      ),
-
                                       // Spacer to position timer lower on screen
                                       SizedBox(
                                         height:
@@ -158,10 +141,7 @@ class _FocusScreenState extends State<FocusScreen> {
                                                             headerHeight -
                                                             bottomControlsMinHeight) /
                                                         2.5) - // Changed from /2 to /2.5 for lower positioning
-                                                    (timerSize / 2) -
-                                                    (useCompactMode
-                                                        ? 20
-                                                        : 30)) // Reduced offset for lower placement
+                                                    (timerSize / 2))
                                                 .clamp(8.0, double.infinity),
                                       ),
 
