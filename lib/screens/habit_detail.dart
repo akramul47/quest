@@ -4,11 +4,11 @@ import 'dart:io' show Platform;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../Utils/app_theme.dart';
-import '../../Utils/responsive_layout.dart';
-import '../../models/habit.dart';
-import '../../providers/habit_provider.dart';
-import '../../widgets/window_controls_bar.dart';
+import '../Utils/app_theme.dart';
+import '../Utils/responsive_layout.dart';
+import '../models/habit.dart';
+import '../providers/habit_provider.dart';
+import '../widgets/window_controls_bar.dart';
 
 class HabitDetailScreen extends StatefulWidget {
   final String habitId;

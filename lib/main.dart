@@ -7,7 +7,7 @@ import 'package:window_manager/window_manager.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:quest/Utils/app_theme.dart';
 import 'package:quest/providers/theme_provider.dart';
-import 'package:quest/screens/main_nav/main_navigation_screen.dart';
+import 'package:quest/screens/main_navigation_screen.dart';
 import 'package:quest/services/storage_service.dart';
 import 'package:quest/services/windows_service.dart';
 import 'package:quest/services/cache/cache.dart';
