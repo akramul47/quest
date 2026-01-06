@@ -24,10 +24,26 @@ class SessionLabel extends StatelessWidget {
         ? Colors.green
         : Theme.of(context).colorScheme.primary;
 
+    // Responsive sizing based on screen constraints
+    final horizontalPadding = isSmall
+        ? (isMobile ? 14.0 : 18.0)
+        : (isMobile ? 20.0 : 24.0);
+    final verticalPadding = isSmall
+        ? (isMobile ? 6.0 : 8.0)
+        : (isMobile ? 10.0 : 12.0);
+    final iconSize = isSmall
+        ? (isMobile ? 14.0 : 16.0)
+        : (isMobile ? 16.0 : 18.0);
+    final fontSize = isSmall
+        ? (isMobile ? 12.0 : 13.0)
+        : (isMobile ? 14.0 : 15.0);
+    final iconPadding = isSmall ? 4.0 : 6.0;
+    final spacing = isSmall ? 8.0 : 12.0;
+
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: isSmall ? 16 : (isMobile ? 20 : 24),
-        vertical: isSmall ? 8 : (isMobile ? 10 : 12),
+        horizontal: horizontalPadding,
+        vertical: verticalPadding,
       ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -38,41 +54,39 @@ class SessionLabel extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(isSmall ? 18 : 24),
         border: Border.all(
           color: color.withOpacity(isDark ? 0.4 : 0.3),
-          width: 1.5,
+          width: isSmall ? 1.0 : 1.5,
         ),
-        boxShadow: isSmall
-            ? null
-            : [
-                BoxShadow(
-                  color: color.withOpacity(0.2),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.2),
+            blurRadius: isSmall ? 8 : 12,
+            offset: Offset(0, isSmall ? 2 : 4),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: EdgeInsets.all(isSmall ? 4 : 6),
+            padding: EdgeInsets.all(iconPadding),
             decoration: BoxDecoration(
               color: color.withOpacity(0.2),
               shape: BoxShape.circle,
             ),
             child: Icon(
               isBreak ? Icons.coffee_rounded : Icons.psychology_rounded,
-              size: isSmall ? 14 : (isMobile ? 16 : 18),
+              size: iconSize,
               color: color,
             ),
           ),
-          SizedBox(width: isSmall ? 8 : 12),
+          SizedBox(width: spacing),
           Text(
             provider.sessionTypeLabel,
             style: GoogleFonts.outfit(
-              fontSize: isSmall ? 13 : (isMobile ? 14 : 15),
+              fontSize: fontSize,
               fontWeight: FontWeight.w700,
               color: color,
               letterSpacing: 0.8,

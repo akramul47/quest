@@ -75,242 +75,214 @@ class _FocusScreenState extends State<FocusScreen> {
                         return LayoutBuilder(
                           builder: (context, constraints) {
                             final availableHeight = constraints.maxHeight;
+                            final availableWidth = constraints.maxWidth;
 
-                            // Determine screen height categories for granular layout adjustments
-                            final bool isShortScreen = availableHeight < 620;
-                            final bool isVeryShort = availableHeight < 480;
+                            // Define screen height categories
+                            final isVeryShort = availableHeight < 500;
+                            final isShort = availableHeight < 650;
+                            final isMedium = availableHeight < 800;
 
-                            // Calculate dynamic timer size: more responsive sizing
-                            final double timerSize =
-                                (availableHeight *
-                                        (isVeryShort
-                                            ? 0.35
-                                            : (isShortScreen ? 0.45 : 0.5)))
-                                    .clamp(140.0, isMobile ? 260.0 : 320.0);
+                            // Calculate component heights with guaranteed minimums
+                            final headerHeight = 70.0;
+                            final statisticsHeight = 140.0;
+                            final bottomControlsMinHeight = isVeryShort
+                                ? 120.0
+                                : (isShort ? 160.0 : 200.0);
+                            final minSpacing = isVeryShort
+                                ? 8.0
+                                : (isShort ? 12.0 : 16.0);
 
-                            return CustomScrollView(
-                              physics: const BouncingScrollPhysics(),
-                              slivers: [
-                                SliverFillRemaining(
-                                  hasScrollBody: false,
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: isMobile ? 24 : 40,
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        // 1. Header
-                                        FocusHeader(
+                            // Calculate available space for timer
+                            final timerAreaHeight =
+                                availableHeight -
+                                headerHeight -
+                                bottomControlsMinHeight -
+                                statisticsHeight -
+                                (minSpacing * 3);
+
+                            // Timer size: responsive based on available space
+                            // Bigger on smaller screens for better visual impact
+                            final timerSize = (timerAreaHeight * 0.85).clamp(
+                              isMobile
+                                  ? 240.0
+                                  : 220.0, // Minimum - larger on mobile
+                              isMobile ? 300.0 : 320.0, // Maximum
+                            );
+
+                            // Determine if we need compact mode
+                            final useCompactMode =
+                                isVeryShort || timerAreaHeight < 200;
+
+                            return Stack(
+                              children: [
+                                // Main scrollable content
+                                SingleChildScrollView(
+                                  padding: EdgeInsets.only(
+                                    left: isMobile ? 20 : 40,
+                                    right: isMobile ? 20 : 40,
+                                    bottom:
+                                        bottomControlsMinHeight +
+                                        20, // Space for fixed bottom controls
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      // Header
+                                      FocusHeader(
+                                        isDark: isDark,
+                                        isMobile: isMobile,
+                                      ),
+
+                                      SizedBox(height: minSpacing),
+
+                                      // Session Label
+                                      AnimatedOpacity(
+                                        duration: const Duration(
+                                          milliseconds: 200,
+                                        ),
+                                        opacity:
+                                            (isDesktopPlatform && !isMobile)
+                                            ? (_isHovering ? 1.0 : 0.0)
+                                            : 1.0,
+                                        child: SessionLabel(
+                                          provider: focusProvider,
                                           isDark: isDark,
                                           isMobile: isMobile,
+                                          isSmall: useCompactMode,
                                         ),
+                                      ),
 
-                                        // 2. Main Timer Area (Top-Middle)
-                                        if (isShortScreen)
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 16,
-                                            ),
-                                            child: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                AnimatedOpacity(
-                                                  duration: const Duration(
-                                                    milliseconds: 400,
-                                                  ),
-                                                  curve: Curves.easeOutCubic,
-                                                  opacity:
-                                                      (isDesktopPlatform &&
-                                                          !isMobile)
-                                                      ? (focusProvider.status ==
-                                                                    TimerStatus
-                                                                        .idle ||
-                                                                _isHovering
-                                                            ? 1.0
-                                                            : 0.1)
-                                                      : 1.0,
-                                                  child: SessionLabel(
-                                                    provider: focusProvider,
-                                                    isDark: isDark,
-                                                    isMobile: isMobile,
-                                                    isSmall: isShortScreen,
-                                                  ),
-                                                ),
+                                      // Spacer to position timer lower on screen
+                                      SizedBox(
+                                        height:
+                                            (((availableHeight -
+                                                            headerHeight -
+                                                            bottomControlsMinHeight) /
+                                                        2.5) - // Changed from /2 to /2.5 for lower positioning
+                                                    (timerSize / 2) -
+                                                    (useCompactMode
+                                                        ? 20
+                                                        : 30)) // Reduced offset for lower placement
+                                                .clamp(8.0, double.infinity),
+                                      ),
 
-                                                SizedBox(
-                                                  height: isShortScreen
-                                                      ? 12
-                                                      : 32,
-                                                ),
+                                      // Timer Display - centered in available space
+                                      CircularTimerDisplay(
+                                        timeText: focusProvider.formattedTime,
+                                        progress: focusProvider.progress,
+                                        isRunning:
+                                            focusProvider.status ==
+                                            TimerStatus.running,
+                                        primaryColor:
+                                            focusProvider.currentSessionType !=
+                                                SessionType.focus
+                                            ? Colors.green
+                                            : Theme.of(
+                                                context,
+                                              ).colorScheme.primary,
+                                        backgroundColor: isDark
+                                            ? const Color(0xFF1A1A1A)
+                                            : Colors.white,
+                                        size: timerSize,
+                                      ),
 
-                                                CircularTimerDisplay(
-                                                  timeText: focusProvider
-                                                      .formattedTime,
-                                                  progress:
-                                                      focusProvider.progress,
-                                                  isRunning:
-                                                      focusProvider.status ==
-                                                      TimerStatus.running,
-                                                  primaryColor:
-                                                      focusProvider
-                                                              .currentSessionType !=
-                                                          SessionType.focus
-                                                      ? Colors.green
-                                                      : Theme.of(
-                                                          context,
-                                                        ).colorScheme.primary,
-                                                  backgroundColor: isDark
-                                                      ? const Color(0xFF1A1A1A)
-                                                      : Colors.white,
-                                                  size: timerSize,
-                                                ),
+                                      // Push statistics below the fold with large spacing
+                                      SizedBox(height: availableHeight * 0.3),
+
+                                      // Statistics (scrollable area - below the fold)
+                                      FocusStatistics(
+                                        provider: focusProvider,
+                                        isDark: isDark,
+                                        isMobile: isMobile,
+                                      ),
+
+                                      const SizedBox(height: 60),
+                                    ],
+                                  ),
+                                ),
+
+                                // Fixed bottom controls
+                                Positioned(
+                                  left: 0,
+                                  right: 0,
+                                  bottom: 0,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: isDark
+                                            ? [
+                                                AppTheme
+                                                    .backgroundGradientStartDark
+                                                    .withOpacity(0.0),
+                                                AppTheme
+                                                    .backgroundGradientStartDark
+                                                    .withOpacity(0.95),
+                                                AppTheme
+                                                    .backgroundGradientStartDark,
+                                              ]
+                                            : [
+                                                AppTheme.backgroundGradientStart
+                                                    .withOpacity(0.0),
+                                                AppTheme.backgroundGradientStart
+                                                    .withOpacity(0.95),
+                                                AppTheme
+                                                    .backgroundGradientStart,
                                               ],
-                                            ),
-                                          )
-                                        else
-                                          Expanded(
-                                            flex: 3,
-                                            child: Padding(
-                                              padding: EdgeInsets.symmetric(
-                                                vertical: 0,
-                                              ),
-                                              child: Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  AnimatedOpacity(
-                                                    duration: const Duration(
-                                                      milliseconds: 400,
-                                                    ),
-                                                    curve: Curves.easeOutCubic,
-                                                    opacity:
-                                                        (isDesktopPlatform &&
-                                                            !isMobile)
-                                                        ? (focusProvider.status ==
-                                                                      TimerStatus
-                                                                          .idle ||
-                                                                  _isHovering
-                                                              ? 1.0
-                                                              : 0.1)
-                                                        : 1.0,
-                                                    child: SessionLabel(
-                                                      provider: focusProvider,
-                                                      isDark: isDark,
-                                                      isMobile: isMobile,
-                                                      isSmall: isShortScreen,
-                                                    ),
-                                                  ),
-
-                                                  SizedBox(
-                                                    height: isShortScreen
-                                                        ? 12
-                                                        : 32,
-                                                  ),
-
-                                                  CircularTimerDisplay(
-                                                    timeText: focusProvider
-                                                        .formattedTime,
-                                                    progress:
-                                                        focusProvider.progress,
-                                                    isRunning:
-                                                        focusProvider.status ==
-                                                        TimerStatus.running,
-                                                    primaryColor:
-                                                        focusProvider
-                                                                .currentSessionType !=
-                                                            SessionType.focus
-                                                        ? Colors.green
-                                                        : Theme.of(
-                                                            context,
-                                                          ).colorScheme.primary,
-                                                    backgroundColor: isDark
-                                                        ? const Color(
-                                                            0xFF1A1A1A,
-                                                          )
-                                                        : Colors.white,
-                                                    size: timerSize,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
+                                      ),
+                                    ),
+                                    padding: EdgeInsets.only(
+                                      left: isMobile ? 20 : 40,
+                                      right: isMobile ? 20 : 40,
+                                      top: 24,
+                                      bottom: isMobile ? 20 : 24,
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        // Quick duration selector
+                                        AnimatedOpacity(
+                                          duration: const Duration(
+                                            milliseconds: 200,
                                           ),
-
-                                        // Push controls to bottom if there's space
-                                        if (!isShortScreen)
-                                          const Spacer(flex: 1),
-
-                                        // 3. Bottom Controls Area (Sticky to bottom if height allows)
-                                        Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            AnimatedOpacity(
-                                              duration: const Duration(
-                                                milliseconds: 200,
-                                              ),
-                                              opacity:
-                                                  (focusProvider.status ==
-                                                          TimerStatus.idle &&
-                                                      focusProvider
-                                                              .currentSessionType ==
-                                                          SessionType.focus &&
-                                                      ((isDesktopPlatform &&
-                                                              !isMobile)
-                                                          ? _isHovering
-                                                          : true))
-                                                  ? 1.0
-                                                  : 0.0,
-                                              child: DurationSelector(
-                                                provider: focusProvider,
-                                                isDark: isDark,
-                                                isMobile: isMobile,
-                                                isSmall: isShortScreen,
-                                              ),
-                                            ),
-
-                                            SizedBox(
-                                              height: isShortScreen ? 12 : 24,
-                                            ),
-
-                                            AnimatedOpacity(
-                                              duration: const Duration(
-                                                milliseconds: 400,
-                                              ),
-                                              curve: Curves.easeOutCubic,
-                                              opacity:
-                                                  (isDesktopPlatform &&
-                                                      !isMobile)
-                                                  ? (focusProvider.status ==
-                                                                TimerStatus
-                                                                    .idle ||
-                                                            _isHovering
-                                                        ? 1.0
-                                                        : 0.05)
-                                                  : 1.0,
-                                              child: ControlButtons(
-                                                provider: focusProvider,
-                                                isDark: isDark,
-                                                isMobile: isMobile,
-                                                isSmall: isShortScreen,
-                                              ),
-                                            ),
-
-                                            // Bottom safe-ish padding
-                                            SizedBox(
-                                              height: isMobile ? 32 : 48,
-                                            ),
-                                          ],
-                                        ),
-
-                                        // 4. Statistics (Always below the fold if screen is small)
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            bottom: 40,
-                                          ),
-                                          child: FocusStatistics(
+                                          opacity:
+                                              (focusProvider.status ==
+                                                      TimerStatus.idle &&
+                                                  focusProvider
+                                                          .currentSessionType ==
+                                                      SessionType.focus &&
+                                                  ((isDesktopPlatform &&
+                                                          !isMobile)
+                                                      ? _isHovering
+                                                      : true))
+                                              ? 1.0
+                                              : 0.0,
+                                          child: DurationSelector(
                                             provider: focusProvider,
                                             isDark: isDark,
                                             isMobile: isMobile,
+                                            isSmall: useCompactMode,
+                                          ),
+                                        ),
+
+                                        SizedBox(
+                                          height: useCompactMode ? 12 : 16,
+                                        ),
+
+                                        // Control buttons
+                                        AnimatedOpacity(
+                                          duration: const Duration(
+                                            milliseconds: 200,
+                                          ),
+                                          opacity:
+                                              (isDesktopPlatform && !isMobile)
+                                              ? (_isHovering ? 1.0 : 0.0)
+                                              : 1.0,
+                                          child: ControlButtons(
+                                            provider: focusProvider,
+                                            isDark: isDark,
+                                            isMobile: isMobile,
+                                            isSmall: useCompactMode,
                                           ),
                                         ),
                                       ],

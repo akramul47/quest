@@ -18,23 +18,25 @@ class DurationSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fontSize = isSmall ? 12.0 : 14.0;
+    final spacing = isSmall ? (isMobile ? 6.0 : 8.0) : (isMobile ? 8.0 : 12.0);
+    final titleSpacing = isSmall ? 10.0 : 16.0;
+
     return Column(
       children: [
-        if (!isSmall) ...[
-          Text(
-            'Quick Start',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-              letterSpacing: 0.5,
-            ),
+        Text(
+          'Quick Start',
+          style: GoogleFonts.inter(
+            fontSize: fontSize,
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+            letterSpacing: 0.5,
           ),
-          const SizedBox(height: 16),
-        ],
+        ),
+        SizedBox(height: titleSpacing),
         Wrap(
-          spacing: isSmall ? 6 : (isMobile ? 8 : 12),
-          runSpacing: isSmall ? 6 : 8,
+          spacing: spacing,
+          runSpacing: spacing,
           alignment: WrapAlignment.center,
           children: [
             DurationChip(
@@ -86,29 +88,37 @@ class DurationChip extends StatelessWidget {
     final isSelected = provider.settings.focusDuration == minutes;
     final primaryColor = Theme.of(context).colorScheme.primary;
 
+    final horizontalPadding = isSmall ? (isMobile ? 14.0 : 16.0) : 20.0;
+    final verticalPadding = isSmall ? (isMobile ? 8.0 : 10.0) : 12.0;
+    final fontSize = isSmall ? 12.0 : 14.0;
+    final borderRadius = isSmall ? 12.0 : 16.0;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: () => provider.setFocusDuration(minutes),
-        borderRadius: BorderRadius.circular(isSmall ? 12 : 16),
+        borderRadius: BorderRadius.circular(borderRadius),
         child: Container(
           padding: EdgeInsets.symmetric(
-            horizontal: isSmall ? 14 : 20,
-            vertical: isSmall ? 8 : 12,
+            horizontal: horizontalPadding,
+            vertical: verticalPadding,
           ),
           decoration: BoxDecoration(
             color: isSelected
                 ? primaryColor.withOpacity(isDark ? 0.2 : 0.1)
                 : (isDark ? Colors.grey.shade800 : Colors.grey.shade100),
-            borderRadius: BorderRadius.circular(isSmall ? 12 : 16),
+            borderRadius: BorderRadius.circular(borderRadius),
             border: isSelected
-                ? Border.all(color: primaryColor.withOpacity(0.5), width: 1.5)
+                ? Border.all(
+                    color: primaryColor.withOpacity(0.5),
+                    width: isSmall ? 1.0 : 1.5,
+                  )
                 : null,
           ),
           child: Text(
             '$minutes min',
             style: GoogleFonts.inter(
-              fontSize: isSmall ? 13 : 14,
+              fontSize: fontSize,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
               color: isSelected
                   ? primaryColor

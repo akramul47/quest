@@ -201,34 +201,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) {
-            final provider = TodoList();
-            provider.initialize();
-            return provider;
-          },
-        ),
-        ChangeNotifierProvider(
-          create: (_) {
-            final provider = HabitList();
-            provider.initialize();
-            return provider;
-          },
-        ),
-        ChangeNotifierProvider(
-          create: (_) {
-            final provider = FocusProvider();
-            provider.initialize();
-            return provider;
-          },
-        ),
+        ChangeNotifierProvider(create: (_) => TodoList()..initialize()),
+        ChangeNotifierProvider(create: (_) => HabitList()..initialize()),
+        ChangeNotifierProvider(create: (_) => FocusProvider()..initialize()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(
-          create: (_) {
-            final provider = WindowStateProvider();
-            provider.initialize();
-            return provider;
-          },
+          create: (_) => WindowStateProvider()..initialize(),
         ),
         Provider(create: (_) => StorageService()),
         Provider(create: (_) => CacheRepository()),

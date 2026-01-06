@@ -117,30 +117,6 @@ class _CircularTimerDisplayState extends State<CircularTimerDisplay>
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Glow effect behind the ring
-          if (widget.isRunning)
-            AnimatedBuilder(
-              animation: _pulseController,
-              builder: (context, child) {
-                return Container(
-                  width: widget.size * 0.85,
-                  height: widget.size * 0.85,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: widget.primaryColor.withOpacity(
-                          0.15 + (0.1 * _pulseController.value),
-                        ),
-                        blurRadius: 20 + (10 * _pulseController.value),
-                        spreadRadius: 5 + (5 * _pulseController.value),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-
           // Wavy progress ring with smooth animation
           AnimatedBuilder(
             animation: Listenable.merge([
@@ -169,9 +145,7 @@ class _CircularTimerDisplayState extends State<CircularTimerDisplay>
           // Time text - always centered with animated digits
           AnimatedTimerText(
             timeText: widget.timeText,
-            color: widget.isRunning
-                ? (isDark ? Colors.white : widget.primaryColor)
-                : (isDark ? Colors.grey.shade300 : Colors.black87),
+            color: widget.primaryColor,
             fontSize: widget.size * 0.2,
             isRunning: widget.isRunning,
           ),
@@ -179,7 +153,9 @@ class _CircularTimerDisplayState extends State<CircularTimerDisplay>
           // Pulsing indicator dot below timer - positioned absolutely
           if (widget.isRunning)
             Positioned(
-              bottom: widget.size * 0.32,
+              bottom:
+                  widget.size *
+                  0.32, // Position below center with more distance
               child: AnimatedBuilder(
                 animation: _pulseController,
                 builder: (context, child) {
@@ -354,8 +330,9 @@ class WavyCircularProgressPainter extends CustomPainter {
         -math.pi / 2 + (2 * math.pi * displayProgress * 0.95);
 
     // Calculate wave offset at endpoint to align dot perfectly with wavy edge
+    // Use radius-based scaling to match the main wavy ring
     final waveFreq = 12;
-    final waveAmplitude = strokeWidth * 0.3;
+    final waveAmplitude = radius * 0.035; // Match the scaling in _drawWavyRing
     final waveOffset =
         math.sin(actualEndAngle * waveFreq + wavePhase) * waveAmplitude;
     final adjustedRadius = radius + waveOffset;
@@ -393,7 +370,9 @@ class WavyCircularProgressPainter extends CustomPainter {
   }) {
     final path = Path();
     final waveCount = 12; // Number of waves around the circle
-    final waveAmplitude = width * 0.3; // Height of waves
+    // Scale wave amplitude with radius for consistent visual impact on all screen sizes
+    final waveAmplitude =
+        radius * 0.035; // Proportional to radius instead of stroke width
     // Cut the path earlier for main progress ring to avoid stuttering endpoint
     final adjustedSweep = useGradient ? sweepAngle * 0.95 : sweepAngle;
     final angleStep = adjustedSweep / (waveCount * 10);
