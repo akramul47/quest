@@ -13,26 +13,41 @@ class WindowStateProvider extends ChangeNotifier {
   /// Initialize the provider by checking current window state
   Future<void> initialize() async {
     if (!kIsWeb && Platform.isWindows) {
-      _isAlwaysOnTop = await windowManager.isAlwaysOnTop();
-      notifyListeners();
+      try {
+        _isAlwaysOnTop = await windowManager.isAlwaysOnTop() ?? false;
+        notifyListeners();
+      } catch (e) {
+        debugPrint('Failed to initialize window state: $e');
+        _isAlwaysOnTop = false;
+      }
     }
   }
 
   /// Toggle the always-on-top state
   Future<void> toggleAlwaysOnTop() async {
     if (!kIsWeb && Platform.isWindows) {
-      _isAlwaysOnTop = !_isAlwaysOnTop;
-      await windowManager.setAlwaysOnTop(_isAlwaysOnTop);
-      notifyListeners();
+      try {
+        _isAlwaysOnTop = !_isAlwaysOnTop;
+        await windowManager.setAlwaysOnTop(_isAlwaysOnTop);
+        notifyListeners();
+      } catch (e) {
+        debugPrint('Failed to toggle always on top: $e');
+        // Revert the change if it failed
+        _isAlwaysOnTop = !_isAlwaysOnTop;
+      }
     }
   }
 
   /// Set the always-on-top state explicitly
   Future<void> setAlwaysOnTop(bool value) async {
     if (!kIsWeb && Platform.isWindows) {
-      _isAlwaysOnTop = value;
-      await windowManager.setAlwaysOnTop(_isAlwaysOnTop);
-      notifyListeners();
+      try {
+        _isAlwaysOnTop = value;
+        await windowManager.setAlwaysOnTop(_isAlwaysOnTop);
+        notifyListeners();
+      } catch (e) {
+        debugPrint('Failed to set always on top: $e');
+      }
     }
   }
 }

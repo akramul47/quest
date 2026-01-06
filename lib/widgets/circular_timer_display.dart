@@ -34,33 +34,33 @@ class _CircularTimerDisplayState extends State<CircularTimerDisplay>
   @override
   void initState() {
     super.initState();
-    
+
     // Pulse animation for glow effect
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2000),
     );
-    
+
     // Wave animation - continuous flowing motion
     _waveController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 3000),
     );
-    
+
     // Initial decrease animation - fast shrink from full to start
     _initialDecreaseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
       value: 1.0, // Start complete
     );
-    
+
     // Expand animation - smooth fill from start to current progress
     _expandController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2000),
       value: 1.0, // Start fully visible when idle
     );
-    
+
     if (widget.isRunning) {
       _pulseController.repeat(reverse: true);
       _waveController.repeat();
@@ -74,11 +74,11 @@ class _CircularTimerDisplayState extends State<CircularTimerDisplay>
       }
     }
   }
-  
+
   @override
   void didUpdateWidget(CircularTimerDisplay oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     // Control animations based on running state
     if (widget.isRunning != oldWidget.isRunning) {
       if (widget.isRunning) {
@@ -110,16 +110,44 @@ class _CircularTimerDisplayState extends State<CircularTimerDisplay>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return SizedBox(
       width: widget.size,
       height: widget.size,
       child: Stack(
         alignment: Alignment.center,
         children: [
+          // Glow effect behind the ring
+          if (widget.isRunning)
+            AnimatedBuilder(
+              animation: _pulseController,
+              builder: (context, child) {
+                return Container(
+                  width: widget.size * 0.85,
+                  height: widget.size * 0.85,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: widget.primaryColor.withOpacity(
+                          0.15 + (0.1 * _pulseController.value),
+                        ),
+                        blurRadius: 20 + (10 * _pulseController.value),
+                        spreadRadius: 5 + (5 * _pulseController.value),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+
           // Wavy progress ring with smooth animation
           AnimatedBuilder(
-            animation: Listenable.merge([_waveController, _expandController, _initialDecreaseController]),
+            animation: Listenable.merge([
+              _waveController,
+              _expandController,
+              _initialDecreaseController,
+            ]),
             builder: (context, child) {
               return CustomPaint(
                 size: Size(widget.size, widget.size),
@@ -137,19 +165,21 @@ class _CircularTimerDisplayState extends State<CircularTimerDisplay>
               );
             },
           ),
-          
+
           // Time text - always centered with animated digits
           AnimatedTimerText(
             timeText: widget.timeText,
-            color: widget.primaryColor,
+            color: widget.isRunning
+                ? (isDark ? Colors.white : widget.primaryColor)
+                : (isDark ? Colors.grey.shade300 : Colors.black87),
             fontSize: widget.size * 0.2,
             isRunning: widget.isRunning,
           ),
-          
+
           // Pulsing indicator dot below timer - positioned absolutely
           if (widget.isRunning)
             Positioned(
-              bottom: widget.size * 0.32, // Position below center with more distance
+              bottom: widget.size * 0.32,
               child: AnimatedBuilder(
                 animation: _pulseController,
                 builder: (context, child) {
@@ -206,7 +236,7 @@ class WavyCircularProgressPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width / 2) - strokeWidth - 10;
-    
+
     // When not running or at full progress, show complete circle
     if (!isRunning && progress >= 0.99) {
       // Draw complete full wavy ring
@@ -221,14 +251,14 @@ class WavyCircularProgressPainter extends CustomPainter {
         true,
         useGradient: false,
       );
-      
+
       return;
     }
-    
+
     // During initial decrease animation (fast shrink from full to start)
     if (initialDecreaseProgress > 0 && initialDecreaseProgress < 1.0) {
       final decreaseDisplayProgress = initialDecreaseProgress;
-      
+
       // Draw background wavy ring (low opacity) to show the complete path
       _drawWavyRing(
         canvas,
@@ -241,7 +271,7 @@ class WavyCircularProgressPainter extends CustomPainter {
         true,
         useGradient: false,
       );
-      
+
       _drawWavyRing(
         canvas,
         center,
@@ -253,19 +283,19 @@ class WavyCircularProgressPainter extends CustomPainter {
         true,
         useGradient: true,
       );
-      
+
       // Draw endpoint dot during decrease
       _drawEndpointDot(canvas, center, radius, decreaseDisplayProgress * 0.95);
       return;
     }
-    
+
     // Calculate display progress with smooth expansion animation
     // When expanding from start (expandProgress < 1), grow from 0 to current progress
     // This creates a fill-up effect from the start point
     final displayProgress = expandProgress < 1.0
         ? progress * expandProgress
         : progress;
-    
+
     if (displayProgress > 0) {
       // Draw background wavy ring (low opacity) to show the complete path
       _drawWavyRing(
@@ -279,7 +309,7 @@ class WavyCircularProgressPainter extends CustomPainter {
         true,
         useGradient: false,
       );
-      
+
       // Outer glow layer for running state - cut to match main ring
       if (isRunning) {
         _drawWavyRing(
@@ -294,7 +324,7 @@ class WavyCircularProgressPainter extends CustomPainter {
           blur: 12,
         );
       }
-      
+
       // Main wavy progress ring with gradient
       _drawWavyRing(
         canvas,
@@ -307,36 +337,43 @@ class WavyCircularProgressPainter extends CustomPainter {
         true,
         useGradient: true,
       );
-      
+
       // Draw endpoint dot
       _drawEndpointDot(canvas, center, radius, displayProgress);
     }
   }
 
-  void _drawEndpointDot(Canvas canvas, Offset center, double radius, double displayProgress) {
+  void _drawEndpointDot(
+    Canvas canvas,
+    Offset center,
+    double radius,
+    double displayProgress,
+  ) {
     // Calculate endpoint position - match the actual end of the wavy path
-    final actualEndAngle = -math.pi / 2 + (2 * math.pi * displayProgress * 0.95);
-    
+    final actualEndAngle =
+        -math.pi / 2 + (2 * math.pi * displayProgress * 0.95);
+
     // Calculate wave offset at endpoint to align dot perfectly with wavy edge
     final waveFreq = 12;
     final waveAmplitude = strokeWidth * 0.3;
-    final waveOffset = math.sin(actualEndAngle * waveFreq + wavePhase) * waveAmplitude;
+    final waveOffset =
+        math.sin(actualEndAngle * waveFreq + wavePhase) * waveAmplitude;
     final adjustedRadius = radius + waveOffset;
-    
+
     final endX = center.dx + adjustedRadius * math.cos(actualEndAngle);
     final endY = center.dy + adjustedRadius * math.sin(actualEndAngle);
-    
+
     // Endpoint dot color - slightly darker/lighter than main color for contrast
-    final dotColor = isDark 
-        ? Color.lerp(color, Colors.white, 0.2)! 
+    final dotColor = isDark
+        ? Color.lerp(color, Colors.white, 0.2)!
         : Color.lerp(color, Colors.black, 0.15)!;
-    
+
     // Outer glow for endpoint
     final glowPaint = Paint()
       ..color = dotColor.withOpacity(0.3)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
     canvas.drawCircle(Offset(endX, endY), strokeWidth * 0.7, glowPaint);
-    
+
     // Solid endpoint dot - bigger and more visible
     final dotPaint = Paint()..color = dotColor;
     canvas.drawCircle(Offset(endX, endY), strokeWidth * 0.55, dotPaint);
@@ -360,23 +397,23 @@ class WavyCircularProgressPainter extends CustomPainter {
     // Cut the path earlier for main progress ring to avoid stuttering endpoint
     final adjustedSweep = useGradient ? sweepAngle * 0.95 : sweepAngle;
     final angleStep = adjustedSweep / (waveCount * 10);
-    
+
     bool isFirst = true;
-    
+
     for (double angle = 0; angle <= adjustedSweep; angle += angleStep) {
       final currentAngle = startAngle + angle;
-      
+
       // Calculate wave offset - wave animation phase is based on absolute angle
       // so waves stay in place while animating in/out
       final waveFreq = waveCount;
-      final waveOffset = isProgress 
+      final waveOffset = isProgress
           ? math.sin(currentAngle * waveFreq + wavePhase) * waveAmplitude
           : math.sin(currentAngle * waveFreq) * waveAmplitude * 0.5;
-      
+
       final adjustedRadius = radius + waveOffset;
       final x = center.dx + adjustedRadius * math.cos(currentAngle);
       final y = center.dy + adjustedRadius * math.sin(currentAngle);
-      
+
       if (isFirst) {
         path.moveTo(x, y);
         isFirst = false;
@@ -384,18 +421,18 @@ class WavyCircularProgressPainter extends CustomPainter {
         path.lineTo(x, y);
       }
     }
-    
+
     // Create paint with optional gradient
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = width
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
-    
+
     if (blur > 0) {
       paint.maskFilter = MaskFilter.blur(BlurStyle.normal, blur);
     }
-    
+
     if (useGradient && isProgress) {
       final rect = Rect.fromCircle(center: center, radius: radius);
       paint.shader = SweepGradient(
@@ -412,7 +449,7 @@ class WavyCircularProgressPainter extends CustomPainter {
     } else {
       paint.color = baseColor;
     }
-    
+
     canvas.drawPath(path, paint);
   }
 

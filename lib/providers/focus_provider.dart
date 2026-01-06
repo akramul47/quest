@@ -19,6 +19,7 @@ class FocusProvider extends ChangeNotifier {
   Timer? _timer;
   List<FocusSession> _todaySessions = [];
   bool _showCelebration = false;
+  bool _disposed = false;
 
   // Getters
   TimerStatus get status => _status;
@@ -37,7 +38,9 @@ class FocusProvider extends ChangeNotifier {
     // Add smooth interpolation for sub-second progress
     if (_status == TimerStatus.running && _lastTickTime != null) {
       final now = DateTime.now();
-      final millisSinceLastTick = now.difference(_lastTickTime!).inMilliseconds;
+      final millisSinceLastTick = now
+          .difference(_lastTickTime ?? now)
+          .inMilliseconds;
       final subSecondProgress = millisSinceLastTick / 1000.0;
       final smoothRemaining = _remainingSeconds - subSecondProgress;
       return (smoothRemaining / totalSeconds).clamp(0.0, 1.0);
@@ -86,7 +89,7 @@ class FocusProvider extends ChangeNotifier {
     // Update every 100ms for smooth animation, but only decrement seconds when needed
     _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       final now = DateTime.now();
-      final elapsed = now.difference(_lastTickTime!).inSeconds;
+      final elapsed = now.difference(_lastTickTime ?? now).inSeconds;
 
       if (elapsed >= 1) {
         if (_remainingSeconds > 0) {
@@ -96,10 +99,14 @@ class FocusProvider extends ChangeNotifier {
           _onTimerComplete();
         }
       }
-      notifyListeners(); // Notify every 100ms for smooth progress animation
+      if (!_disposed) {
+        notifyListeners(); // Notify every 100ms for smooth progress animation
+      }
     });
 
-    notifyListeners();
+    if (!_disposed) {
+      notifyListeners();
+    }
   }
 
   void pauseTimer() {
@@ -178,8 +185,10 @@ class FocusProvider extends ChangeNotifier {
 
       // Hide celebration after 3 seconds
       Future.delayed(const Duration(seconds: 3), () {
-        _showCelebration = false;
-        notifyListeners();
+        if (!_disposed) {
+          _showCelebration = false;
+          notifyListeners();
+        }
       });
     }
 
@@ -187,6 +196,8 @@ class FocusProvider extends ChangeNotifier {
 
     // Auto-start next session
     Future.delayed(const Duration(seconds: 1), () {
+      if (_disposed) return; // Don't continue if disposed
+
       if (_currentSessionType == SessionType.focus) {
         _startBreak();
       } else {
@@ -197,7 +208,9 @@ class FocusProvider extends ChangeNotifier {
           startTimer();
         } else {
           _status = TimerStatus.idle;
-          notifyListeners();
+          if (!_disposed) {
+            notifyListeners();
+          }
         }
       }
     });
@@ -292,7 +305,9 @@ class FocusProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     _timer?.cancel();
+    _timer = null;
     super.dispose();
   }
 }

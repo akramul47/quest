@@ -76,14 +76,17 @@ class _FocusScreenState extends State<FocusScreen> {
                           builder: (context, constraints) {
                             final availableHeight = constraints.maxHeight;
 
-                            // Determine "short screen" mode for heights less than 650px
-                            final bool isShortScreen = availableHeight < 650;
+                            // Determine screen height categories for granular layout adjustments
+                            final bool isShortScreen = availableHeight < 620;
+                            final bool isVeryShort = availableHeight < 480;
 
-                            // Calculate dynamic timer size: 40% of height, clamped between 160 and 280
+                            // Calculate dynamic timer size: more responsive sizing
                             final double timerSize =
                                 (availableHeight *
-                                        (isShortScreen ? 0.35 : 0.45))
-                                    .clamp(160.0, isMobile ? 250.0 : 300.0);
+                                        (isVeryShort
+                                            ? 0.35
+                                            : (isShortScreen ? 0.45 : 0.5)))
+                                    .clamp(140.0, isMobile ? 260.0 : 320.0);
 
                             return CustomScrollView(
                               physics: const BouncingScrollPhysics(),
@@ -92,7 +95,7 @@ class _FocusScreenState extends State<FocusScreen> {
                                   hasScrollBody: false,
                                   child: Padding(
                                     padding: EdgeInsets.symmetric(
-                                      horizontal: isMobile ? 20 : 40,
+                                      horizontal: isMobile ? 24 : 40,
                                     ),
                                     child: Column(
                                       children: [
@@ -103,11 +106,10 @@ class _FocusScreenState extends State<FocusScreen> {
                                         ),
 
                                         // 2. Main Timer Area (Top-Middle)
-                                        Expanded(
-                                          flex: isShortScreen ? 0 : 3,
-                                          child: Padding(
-                                            padding: EdgeInsets.symmetric(
-                                              vertical: isShortScreen ? 16 : 0,
+                                        if (isShortScreen)
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 16,
                                             ),
                                             child: Column(
                                               mainAxisAlignment:
@@ -115,14 +117,18 @@ class _FocusScreenState extends State<FocusScreen> {
                                               children: [
                                                 AnimatedOpacity(
                                                   duration: const Duration(
-                                                    milliseconds: 200,
+                                                    milliseconds: 400,
                                                   ),
+                                                  curve: Curves.easeOutCubic,
                                                   opacity:
                                                       (isDesktopPlatform &&
                                                           !isMobile)
-                                                      ? (_isHovering
+                                                      ? (focusProvider.status ==
+                                                                    TimerStatus
+                                                                        .idle ||
+                                                                _isHovering
                                                             ? 1.0
-                                                            : 0.0)
+                                                            : 0.1)
                                                       : 1.0,
                                                   child: SessionLabel(
                                                     provider: focusProvider,
@@ -161,8 +167,74 @@ class _FocusScreenState extends State<FocusScreen> {
                                                 ),
                                               ],
                                             ),
+                                          )
+                                        else
+                                          Expanded(
+                                            flex: 3,
+                                            child: Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                vertical: 0,
+                                              ),
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  AnimatedOpacity(
+                                                    duration: const Duration(
+                                                      milliseconds: 400,
+                                                    ),
+                                                    curve: Curves.easeOutCubic,
+                                                    opacity:
+                                                        (isDesktopPlatform &&
+                                                            !isMobile)
+                                                        ? (focusProvider.status ==
+                                                                      TimerStatus
+                                                                          .idle ||
+                                                                  _isHovering
+                                                              ? 1.0
+                                                              : 0.1)
+                                                        : 1.0,
+                                                    child: SessionLabel(
+                                                      provider: focusProvider,
+                                                      isDark: isDark,
+                                                      isMobile: isMobile,
+                                                      isSmall: isShortScreen,
+                                                    ),
+                                                  ),
+
+                                                  SizedBox(
+                                                    height: isShortScreen
+                                                        ? 12
+                                                        : 32,
+                                                  ),
+
+                                                  CircularTimerDisplay(
+                                                    timeText: focusProvider
+                                                        .formattedTime,
+                                                    progress:
+                                                        focusProvider.progress,
+                                                    isRunning:
+                                                        focusProvider.status ==
+                                                        TimerStatus.running,
+                                                    primaryColor:
+                                                        focusProvider
+                                                                .currentSessionType !=
+                                                            SessionType.focus
+                                                        ? Colors.green
+                                                        : Theme.of(
+                                                            context,
+                                                          ).colorScheme.primary,
+                                                    backgroundColor: isDark
+                                                        ? const Color(
+                                                            0xFF1A1A1A,
+                                                          )
+                                                        : Colors.white,
+                                                    size: timerSize,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
                                           ),
-                                        ),
 
                                         // Push controls to bottom if there's space
                                         if (!isShortScreen)
@@ -202,12 +274,18 @@ class _FocusScreenState extends State<FocusScreen> {
 
                                             AnimatedOpacity(
                                               duration: const Duration(
-                                                milliseconds: 200,
+                                                milliseconds: 400,
                                               ),
+                                              curve: Curves.easeOutCubic,
                                               opacity:
                                                   (isDesktopPlatform &&
                                                       !isMobile)
-                                                  ? (_isHovering ? 1.0 : 0.0)
+                                                  ? (focusProvider.status ==
+                                                                TimerStatus
+                                                                    .idle ||
+                                                            _isHovering
+                                                        ? 1.0
+                                                        : 0.05)
                                                   : 1.0,
                                               child: ControlButtons(
                                                 provider: focusProvider,
