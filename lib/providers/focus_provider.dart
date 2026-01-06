@@ -1,21 +1,21 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/timer_state.dart';
-import '../services/storage_service.dart';
+import '../services/cache/daos/focus_session_dao.dart';
 
 class FocusProvider extends ChangeNotifier {
-  final StorageService _storageService = StorageService();
-  
+  final FocusSessionDao _focusSessionDao = FocusSessionDao();
+
   TimerStatus _status = TimerStatus.idle;
   SessionType _currentSessionType = SessionType.focus;
   TimerSettings _settings = const TimerSettings();
-  
+
   int _remainingSeconds = 25 * 60; // Default 25 minutes
   int _completedFocusSessions = 0;
   int _totalFocusTimeToday = 0; // in seconds
   DateTime? _sessionStartTime;
   DateTime? _lastTickTime;
-  
+
   Timer? _timer;
   List<FocusSession> _todaySessions = [];
   bool _showCelebration = false;
@@ -29,11 +29,11 @@ class FocusProvider extends ChangeNotifier {
   int get totalFocusTimeToday => _totalFocusTimeToday;
   List<FocusSession> get todaySessions => _todaySessions;
   bool get showCelebration => _showCelebration;
-  
+
   double get progress {
     final totalSeconds = _getCurrentSessionDuration() * 60;
     if (totalSeconds <= 0) return 0;
-    
+
     // Add smooth interpolation for sub-second progress
     if (_status == TimerStatus.running && _lastTickTime != null) {
       final now = DateTime.now();
@@ -42,7 +42,7 @@ class FocusProvider extends ChangeNotifier {
       final smoothRemaining = _remainingSeconds - subSecondProgress;
       return (smoothRemaining / totalSeconds).clamp(0.0, 1.0);
     }
-    
+
     return (_remainingSeconds / totalSeconds).clamp(0.0, 1.0);
   }
 
@@ -79,15 +79,15 @@ class FocusProvider extends ChangeNotifier {
       _sessionStartTime = DateTime.now();
     }
     _lastTickTime = DateTime.now();
-    
+
     _status = TimerStatus.running;
     _timer?.cancel();
-    
+
     // Update every 100ms for smooth animation, but only decrement seconds when needed
     _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       final now = DateTime.now();
       final elapsed = now.difference(_lastTickTime!).inSeconds;
-      
+
       if (elapsed >= 1) {
         if (_remainingSeconds > 0) {
           _remainingSeconds--;
@@ -98,7 +98,7 @@ class FocusProvider extends ChangeNotifier {
       }
       notifyListeners(); // Notify every 100ms for smooth progress animation
     });
-    
+
     notifyListeners();
   }
 
@@ -118,24 +118,28 @@ class FocusProvider extends ChangeNotifier {
 
   void skipToBreak() {
     // Count as completed session if setting is enabled
-    if (_settings.countSkippedSessions && _currentSessionType == SessionType.focus) {
+    if (_settings.countSkippedSessions &&
+        _currentSessionType == SessionType.focus) {
       _completedFocusSessions++;
-      final elapsedMinutes = (_getCurrentSessionDuration() * 60 - _remainingSeconds) ~/ 60;
+      final elapsedMinutes =
+          (_getCurrentSessionDuration() * 60 - _remainingSeconds) ~/ 60;
       if (elapsedMinutes > 0) {
         _totalFocusTimeToday += elapsedMinutes * 60;
       }
-      
-      _todaySessions.add(FocusSession(
+
+      final session = FocusSession(
         startTime: _sessionStartTime ?? DateTime.now(),
         endTime: DateTime.now(),
         durationMinutes: elapsedMinutes,
         type: SessionType.focus,
         completed: false, // Skipped, not completed
-      ));
-      
+      );
+      _todaySessions.add(session);
+      _saveSession(session);
+
       _saveFocusData();
     }
-    
+
     stopTimer();
     _startBreak();
   }
@@ -149,36 +153,38 @@ class FocusProvider extends ChangeNotifier {
   void _onTimerComplete() {
     _timer?.cancel();
     _status = TimerStatus.completed;
-    
+
     // Record session
     if (_currentSessionType == SessionType.focus) {
       _completedFocusSessions++;
       _totalFocusTimeToday += _settings.focusDuration * 60;
-      
-      _todaySessions.add(FocusSession(
+
+      final session = FocusSession(
         startTime: _sessionStartTime ?? DateTime.now(),
         endTime: DateTime.now(),
         durationMinutes: _settings.focusDuration,
         type: SessionType.focus,
         completed: true,
-      ));
-      
+      );
+      _todaySessions.add(session);
+      _saveSession(session);
+
       // Save session data
       _saveFocusData();
-      
+
       // Show celebration animation
       _showCelebration = true;
       notifyListeners();
-      
+
       // Hide celebration after 3 seconds
       Future.delayed(const Duration(seconds: 3), () {
         _showCelebration = false;
         notifyListeners();
       });
     }
-    
+
     notifyListeners();
-    
+
     // Auto-start next session
     Future.delayed(const Duration(seconds: 1), () {
       if (_currentSessionType == SessionType.focus) {
@@ -199,15 +205,15 @@ class FocusProvider extends ChangeNotifier {
 
   void _startBreak() {
     // Determine if it's time for a long break
-    if (_completedFocusSessions > 0 && 
+    if (_completedFocusSessions > 0 &&
         _completedFocusSessions % _settings.sessionsUntilLongBreak == 0) {
       _currentSessionType = SessionType.longBreak;
     } else {
       _currentSessionType = SessionType.shortBreak;
     }
-    
+
     _resetTimer();
-    
+
     if (_settings.autoStartBreaks) {
       startTimer();
     }
@@ -222,11 +228,11 @@ class FocusProvider extends ChangeNotifier {
     if (wasRunning) {
       pauseTimer();
     }
-    
+
     _settings = newSettings;
     _resetTimer();
     _saveSettings();
-    
+
     if (wasRunning) {
       startTimer();
     } else {
@@ -248,27 +254,35 @@ class FocusProvider extends ChangeNotifier {
 
   // Persistence methods
   Future<void> loadSettings() async {
-    _settings = await _storageService.loadFocusSettings();
+    _settings = await _focusSessionDao.loadSettings();
     _resetTimer();
     notifyListeners();
   }
 
   Future<void> _saveSettings() async {
-    await _storageService.saveFocusSettings(_settings);
+    await _focusSessionDao.saveSettings(_settings);
   }
 
   Future<void> loadSessionData() async {
-    final data = await _storageService.loadFocusSessionData();
+    final data = await _focusSessionDao.loadFocusSessionData();
     _completedFocusSessions = data['sessions'] ?? 0;
     _totalFocusTimeToday = data['totalTime'] ?? 0;
+
+    // Also load today's sessions from database
+    _todaySessions = await _focusSessionDao.getToday();
     notifyListeners();
   }
 
   Future<void> _saveFocusData() async {
-    await _storageService.saveFocusSessionData(
+    await _focusSessionDao.saveFocusSessionData(
       completedSessions: _completedFocusSessions,
       totalTime: _totalFocusTimeToday,
     );
+  }
+
+  /// Save a completed focus session to the database
+  Future<void> _saveSession(FocusSession session) async {
+    await _focusSessionDao.insert(session);
   }
 
   Future<void> initialize() async {

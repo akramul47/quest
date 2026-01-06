@@ -1,11 +1,19 @@
 import 'package:flutter/foundation.dart';
 import '../models/habit.dart';
+import '../services/cache/daos/habit_dao.dart';
 
-/// Provider for managing the list of habits with persistence
+/// Provider for managing the list of habits with SQLite persistence.
+///
+/// All mutations are automatically persisted to the database.
 class HabitList extends ChangeNotifier {
+  final HabitDao _habitDao = HabitDao();
   List<Habit> _habits = [];
+  bool _isLoading = false;
+  bool _isInitialized = false;
 
   List<Habit> get habits => _habits;
+  bool get isLoading => _isLoading;
+  bool get isInitialized => _isInitialized;
 
   /// Get active (non-archived) habits
   List<Habit> get activeHabits =>
@@ -22,66 +30,100 @@ class HabitList extends ChangeNotifier {
     return active;
   }
 
-  /// Set habits (used when loading from storage)
+  /// Initialize by loading habits from database
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      _habits = await _habitDao.getAll();
+      _isInitialized = true;
+    } catch (e) {
+      debugPrint('Failed to load habits: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Set habits (used for import/migration)
   void setHabits(List<Habit> habits) {
     _habits = habits;
     notifyListeners();
   }
 
   /// Add a new habit
-  void addHabit(Habit habit) {
+  Future<void> addHabit(Habit habit) async {
     _habits.add(habit);
     notifyListeners();
+
+    await _habitDao.insert(habit);
   }
 
   /// Update an existing habit
-  void updateHabit(String id, Habit updatedHabit) {
+  Future<void> updateHabit(String id, Habit updatedHabit) async {
     final index = _habits.indexWhere((h) => h.id == id);
     if (index != -1) {
       _habits[index] = updatedHabit;
       notifyListeners();
+
+      await _habitDao.update(updatedHabit);
     }
   }
 
   /// Delete a habit permanently
-  void deleteHabit(String id) {
+  Future<void> deleteHabit(String id) async {
     _habits.removeWhere((h) => h.id == id);
     notifyListeners();
+
+    await _habitDao.delete(id);
   }
 
   /// Archive a habit (soft delete)
-  void archiveHabit(String id) {
+  Future<void> archiveHabit(String id) async {
     final index = _habits.indexWhere((h) => h.id == id);
     if (index != -1) {
       _habits[index] = _habits[index].copyWith(isArchived: true);
       notifyListeners();
+
+      await _habitDao.archive(id);
     }
   }
 
   /// Unarchive a habit
-  void unarchiveHabit(String id) {
+  Future<void> unarchiveHabit(String id) async {
     final index = _habits.indexWhere((h) => h.id == id);
     if (index != -1) {
       _habits[index] = _habits[index].copyWith(isArchived: false);
       notifyListeners();
+
+      await _habitDao.unarchive(id);
     }
   }
 
   /// Toggle a boolean habit for a specific date
-  void toggleHabitDay(String id, DateTime date) {
+  Future<void> toggleHabitDay(String id, DateTime date) async {
     final index = _habits.indexWhere((h) => h.id == id);
     if (index != -1) {
       _habits[index].toggleDay(date);
       notifyListeners();
+
+      // Persist the updated history entry
+      final value = _habits[index].getValueForDate(date);
+      await _habitDao.recordEntry(id, date, value);
     }
   }
 
   /// Record a measurable value for a habit on a specific date
-  void recordHabitValue(String id, DateTime date, double value) {
+  Future<void> recordHabitValue(String id, DateTime date, double value) async {
     final index = _habits.indexWhere((h) => h.id == id);
     if (index != -1) {
       _habits[index].recordValue(date, value);
       notifyListeners();
+
+      await _habitDao.recordEntry(id, date, value);
     }
   }
 
@@ -171,8 +213,9 @@ class HabitList extends ChangeNotifier {
     final active = activeHabits;
     if (active.isEmpty) return null;
 
-    return active.reduce((a, b) =>
-        a.getCurrentStreak() > b.getCurrentStreak() ? a : b);
+    return active.reduce(
+      (a, b) => a.getCurrentStreak() > b.getCurrentStreak() ? a : b,
+    );
   }
 
   /// Export habits to JSON
@@ -181,14 +224,24 @@ class HabitList extends ChangeNotifier {
   }
 
   /// Import habits from JSON
-  void fromJson(List<dynamic> json) {
+  Future<void> fromJson(List<dynamic> json) async {
     _habits = json.map((item) => Habit.fromJson(item)).toList();
     notifyListeners();
+
+    await _habitDao.batchInsert(_habits);
   }
 
   /// Clear all habits (with confirmation in UI)
-  void clearAllHabits() {
+  Future<void> clearAllHabits() async {
     _habits.clear();
+    notifyListeners();
+
+    await _habitDao.clearAll();
+  }
+
+  /// Reload habits from database
+  Future<void> refresh() async {
+    _habits = await _habitDao.getAll();
     notifyListeners();
   }
 }

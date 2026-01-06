@@ -25,6 +25,10 @@ dependencies:
   package_info_plus: ^8.0.0
   visibility_detector: ^0.4.0+2
   screen_retriever: ^0.1.6
+  sqflite: ^2.4.1
+  sqflite_common_ffi: ^2.3.4+4
+  path: ^1.9.1
+  synchronized: ^3.3.0+3
 
 dev_dependencies:
   flutter_test:

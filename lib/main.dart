@@ -10,6 +10,7 @@ import 'package:quest/providers/theme_provider.dart';
 import 'package:quest/screens/main_navigation_screen.dart';
 import 'package:quest/services/storage_service.dart';
 import 'package:quest/services/windows_service.dart';
+import 'package:quest/services/cache/cache.dart';
 
 import 'models/todo_list.dart';
 import 'providers/habit_provider.dart';
@@ -71,8 +72,25 @@ Future<Offset> _getSafeWindowPosition(Offset position, Size windowSize) async {
   }
 }
 
+/// Initialize SQLite database and run migration from SharedPreferences if needed
+Future<void> _initializeDatabase() async {
+  try {
+    // Initialize the database
+    await DatabaseHelper.instance.initDatabase();
+
+    // Run migration from SharedPreferences if needed
+    final migrationService = MigrationService();
+    await migrationService.migrateIfNeeded();
+  } catch (e) {
+    debugPrint('Database initialization failed: $e');
+  }
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize SQLite database
+  await _initializeDatabase();
 
   // Note: System UI overlay will be configured dynamically based on theme in MaterialApp
   // This ensures proper status bar colors for both light and dark modes
@@ -183,14 +201,15 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => TodoList()),
-        ChangeNotifierProvider(create: (_) => HabitList()),
+        ChangeNotifierProvider(create: (_) => TodoList()..initialize()),
+        ChangeNotifierProvider(create: (_) => HabitList()..initialize()),
         ChangeNotifierProvider(create: (_) => FocusProvider()..initialize()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(
           create: (_) => WindowStateProvider()..initialize(),
         ),
         Provider(create: (_) => StorageService()),
+        Provider(create: (_) => CacheRepository()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
