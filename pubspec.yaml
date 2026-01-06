@@ -29,6 +29,7 @@ dependencies:
   sqflite_common_ffi: ^2.3.4+4
   path: ^1.9.1
   synchronized: ^3.3.0+3
+  file_picker: ^8.1.6
 
 dev_dependencies:
   flutter_test:
