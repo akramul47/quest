@@ -4,12 +4,13 @@
 class WindowManager {
   static final WindowManager instance = WindowManager._();
   WindowManager._();
-  
+
   Future<void> ensureInitialized() async {}
   Future<void> waitUntilReadyToShow() async {}
   Future<void> setMinimumSize(dynamic size) async {}
   Future<void> setSize(dynamic size) async {}
   Future<void> setAlwaysOnTop(bool alwaysOnTop) async {}
+  Future<bool> isAlwaysOnTop() async => false;
   Future<void> setTitleBarStyle(dynamic style) async {}
   Future<void> setBackgroundColor(dynamic color) async {}
   Future<void> setResizable(bool resizable) async {}

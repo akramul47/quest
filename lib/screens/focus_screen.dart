@@ -12,7 +12,6 @@ import '../widgets/completion_celebration.dart';
 import '../widgets/window_controls_bar.dart';
 
 import '../widgets/focus/focus_header.dart';
-import '../widgets/focus/session_label.dart';
 import '../widgets/focus/control_buttons.dart';
 import '../widgets/focus/duration_selector.dart';
 import '../widgets/focus/focus_statistics.dart';
@@ -75,12 +74,10 @@ class _FocusScreenState extends State<FocusScreen> {
                         return LayoutBuilder(
                           builder: (context, constraints) {
                             final availableHeight = constraints.maxHeight;
-                            final availableWidth = constraints.maxWidth;
 
                             // Define screen height categories
                             final isVeryShort = availableHeight < 500;
                             final isShort = availableHeight < 650;
-                            final isMedium = availableHeight < 800;
 
                             // Calculate component heights with guaranteed minimums
                             final headerHeight = 70.0;
@@ -194,18 +191,18 @@ class _FocusScreenState extends State<FocusScreen> {
                                             ? [
                                                 AppTheme
                                                     .backgroundGradientStartDark
-                                                    .withOpacity(0.0),
+                                                    .withValues(alpha: 0.0),
                                                 AppTheme
                                                     .backgroundGradientStartDark
-                                                    .withOpacity(0.95),
+                                                    .withValues(alpha: 0.95),
                                                 AppTheme
                                                     .backgroundGradientStartDark,
                                               ]
                                             : [
                                                 AppTheme.backgroundGradientStart
-                                                    .withOpacity(0.0),
+                                                    .withValues(alpha: 0.0),
                                                 AppTheme.backgroundGradientStart
-                                                    .withOpacity(0.95),
+                                                    .withValues(alpha: 0.95),
                                                 AppTheme
                                                     .backgroundGradientStart,
                                               ],
