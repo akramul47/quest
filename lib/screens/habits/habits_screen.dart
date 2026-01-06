@@ -4,13 +4,13 @@ import 'dart:io' show Platform;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../Utils/app_theme.dart';
-import '../Utils/responsive_layout.dart';
-import '../models/habit.dart';
-import '../providers/habit_provider.dart';
-import '../services/storage_service.dart';
-import '../widgets/habit_row.dart';
-import '../widgets/window_controls_bar.dart';
+import '../../Utils/app_theme.dart';
+import '../../Utils/responsive_layout.dart';
+import '../../models/habit.dart';
+import '../../providers/habit_provider.dart';
+import '../../services/storage_service.dart';
+import '../../widgets/habit_row.dart';
+import '../../widgets/window_controls_bar.dart';
 import 'habit_detail.dart';
 
 class HabitsScreen extends StatefulWidget {

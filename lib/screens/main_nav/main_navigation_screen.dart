@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../Utils/responsive_layout.dart';
-import 'home_screen.dart';
-import 'habits_screen.dart';
-import 'focus_screen.dart';
-import 'quest_screen.dart';
+import '../../Utils/responsive_layout.dart';
+import '../todo/home_screen.dart';
+import '../habits/habits_screen.dart';
+import '../focus/focus_screen.dart';
+import '../quest_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({Key? key}) : super(key: key);

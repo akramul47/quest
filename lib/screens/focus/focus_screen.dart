@@ -3,15 +3,15 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import '../Utils/app_theme.dart';
-import '../Utils/responsive_layout.dart';
-import '../providers/focus_provider.dart';
-import '../models/timer_state.dart';
-import '../widgets/circular_timer_display.dart';
-import '../widgets/focus_settings_dialog.dart';
-import '../widgets/confetti_overlay.dart';
-import '../widgets/completion_celebration.dart';
-import '../widgets/window_controls_bar.dart';
+import '../../Utils/app_theme.dart';
+import '../../Utils/responsive_layout.dart';
+import '../../providers/focus_provider.dart';
+import '../../models/timer_state.dart';
+import '../../widgets/circular_timer_display.dart';
+import '../../widgets/focus_settings_dialog.dart';
+import '../../widgets/confetti_overlay.dart';
+import '../../widgets/completion_celebration.dart';
+import '../../widgets/window_controls_bar.dart';
 
 class FocusScreen extends StatefulWidget {
   const FocusScreen({Key? key}) : super(key: key);
