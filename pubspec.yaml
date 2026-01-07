@@ -1,4 +1,4 @@
-﻿name: quest
+name: quest
 description: "Your life, organized by intent."
 publish_to: 'none'
 
@@ -19,7 +19,7 @@ dependencies:
   window_manager: ^0.3.7
   glass_kit: ^3.0.0
   tray_manager: ^0.2.0
-  google_fonts: ^5.1.0
+  google_fonts: ^6.1.0
   uuid: ^4.5.1
   confetti: ^0.7.0
   package_info_plus: ^8.0.0
@@ -30,6 +30,7 @@ dependencies:
   path: ^1.9.1
   synchronized: ^3.3.0+3
   file_picker: ^8.1.6
+  universal_html: ^2.2.4
   # Backend integration
   dio: ^5.4.0
   socket_io_client: ^2.0.3+1

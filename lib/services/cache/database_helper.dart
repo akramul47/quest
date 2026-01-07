@@ -42,9 +42,17 @@ class DatabaseHelper {
   Future<void> initDatabase() async {
     if (_isInitialized) return;
 
+    // Web platform doesn't support sqflite - skip initialization
+    if (kIsWeb) {
+      print(
+        'Database initialization skipped on web platform. Use SharedPreferences or IndexedDB instead.',
+      );
+      _isInitialized = true;
+      return;
+    }
+
     // Platform-specific initialization
-    if (!kIsWeb &&
-        (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       // Desktop platforms use FFI
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;

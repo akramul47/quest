@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
+import 'dart:typed_data';
+import 'package:universal_html/html.dart' as html;
 import '../../Utils/app_theme.dart';
 import '../../Utils/responsive_layout.dart';
 import '../../services/cache/cache_repository.dart';
+import '../../services/cache/database_helper.dart';
 import '../../models/todo_list.dart';
 import '../../providers/habit_provider.dart';
 
@@ -263,6 +267,17 @@ class DataManagementCard extends StatelessWidget {
     CacheRepository cacheRepo,
     bool isDark,
   ) async {
+    // Check if database is initialized
+    if (!DatabaseHelper.instance.isInitialized) {
+      await _showErrorDialog(
+        context,
+        'Export Not Available',
+        'Export/import is not supported on web platform. Database features are only available on desktop and mobile platforms.',
+        isDark,
+      );
+      return;
+    }
+
     try {
       showDialog(
         context: context,
@@ -299,11 +314,32 @@ class DataManagementCard extends StatelessWidget {
 
       final packageInfo = await PackageInfo.fromPlatform();
       final appVersion = '${packageInfo.version}+${packageInfo.buildNumber}';
-      final file = await cacheRepo.exportToFile(appVersion: appVersion);
 
-      if (context.mounted) Navigator.pop(context);
-      if (context.mounted) {
-        await _showExportSuccessDialog(context, file.path, isDark);
+      if (kIsWeb) {
+        // Web: Export to bytes and download
+        final bytes = await cacheRepo.exportToBytes(appVersion: appVersion);
+        final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
+        final fileName = 'quest_backup_$timestamp.json';
+
+        // Trigger download in browser
+        final blob = html.Blob([bytes]);
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        html.AnchorElement(href: url)
+          ..setAttribute('download', fileName)
+          ..click();
+        html.Url.revokeObjectUrl(url);
+
+        if (context.mounted) Navigator.pop(context);
+        if (context.mounted) {
+          await _showExportSuccessDialog(context, 'Downloads folder', isDark);
+        }
+      } else {
+        // Desktop/Mobile: Export to file
+        final file = await cacheRepo.exportToFile(appVersion: appVersion);
+        if (context.mounted) Navigator.pop(context);
+        if (context.mounted) {
+          await _showExportSuccessDialog(context, file.path, isDark);
+        }
       }
     } catch (e) {
       if (context.mounted) Navigator.pop(context);
@@ -325,26 +361,54 @@ class DataManagementCard extends StatelessWidget {
     HabitList habitList,
     bool isDark,
   ) async {
+    // Check if database is initialized
+    if (!DatabaseHelper.instance.isInitialized) {
+      await _showErrorDialog(
+        context,
+        'Import Not Available',
+        'Export/import is not supported on web platform. Database features are only available on desktop and mobile platforms.',
+        isDark,
+      );
+      return;
+    }
+
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
         dialogTitle: 'Select Quest Backup File',
+        withData: kIsWeb, // Load bytes on web
       );
 
       if (result == null || result.files.isEmpty) return;
 
-      final filePath = result.files.first.path;
-      if (filePath == null) {
-        if (context.mounted) {
-          await _showErrorDialog(
-            context,
-            'Import Failed',
-            'Could not access the selected file',
-            isDark,
-          );
+      final platformFile = result.files.first;
+
+      // Validate file selection
+      if (kIsWeb) {
+        if (platformFile.bytes == null) {
+          if (context.mounted) {
+            await _showErrorDialog(
+              context,
+              'Import Failed',
+              'Could not read the selected file',
+              isDark,
+            );
+          }
+          return;
         }
-        return;
+      } else {
+        if (platformFile.path == null) {
+          if (context.mounted) {
+            await _showErrorDialog(
+              context,
+              'Import Failed',
+              'Could not access the selected file',
+              isDark,
+            );
+          }
+          return;
+        }
       }
 
       if (!context.mounted) return;
@@ -385,10 +449,20 @@ class DataManagementCard extends StatelessWidget {
         ),
       );
 
-      final result2 = await cacheRepo.importFromFile(
-        filePath,
-        replace: importMode == 'replace',
-      );
+      final ImportResult result2;
+      if (kIsWeb) {
+        // Web: Import from bytes
+        result2 = await cacheRepo.importFromBytes(
+          platformFile.bytes!,
+          replace: importMode == 'replace',
+        );
+      } else {
+        // Desktop/Mobile: Import from file path
+        result2 = await cacheRepo.importFromFile(
+          platformFile.path!,
+          replace: importMode == 'replace',
+        );
+      }
 
       if (context.mounted) Navigator.pop(context);
 
@@ -417,7 +491,7 @@ class DataManagementCard extends StatelessWidget {
         await _showErrorDialog(
           context,
           'Import Failed',
-          'Failed to import data: $e',
+          'Failed to import data: \$e',
           isDark,
         );
       }

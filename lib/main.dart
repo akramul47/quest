@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:screen_retriever/screen_retriever.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:quest/Utils/app_theme.dart';
 import 'package:quest/providers/theme_provider.dart';
 import 'package:quest/screens/main_navigation_screen.dart';
@@ -88,6 +89,10 @@ Future<void> _initializeDatabase() async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Configure Google Fonts to handle missing AssetManifest.json
+  // This allows fonts to be loaded from HTTP when assets are unavailable
+  GoogleFonts.config.allowRuntimeFetching = true;
 
   // Initialize SQLite database
   await _initializeDatabase();

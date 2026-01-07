@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path_provider/path_provider.dart';
 
 import '../../models/habit.dart';
@@ -9,6 +11,7 @@ import '../../models/todo.dart';
 import 'daos/focus_session_dao.dart';
 import 'daos/habit_dao.dart';
 import 'daos/todo_dao.dart';
+import 'database_helper.dart';
 
 /// High-level cache repository for export/import operations.
 ///
@@ -32,6 +35,13 @@ class CacheRepository {
   /// - `exportedAt`: Export timestamp
   /// - `appVersion`: App version for compatibility checking
   Future<Map<String, dynamic>> exportAllData({String? appVersion}) async {
+    // Check if database is initialized (not supported on web)
+    if (!DatabaseHelper.instance.isInitialized) {
+      throw StateError(
+        'Database not initialized. Export/import is not supported on web platform.',
+      );
+    }
+
     final todos = await _todoDao.getAll();
     final habits = await _habitDao.getAll();
     final focusSessions = await _focusSessionDao.getAll();
@@ -57,6 +67,15 @@ class CacheRepository {
     Map<String, dynamic> data, {
     bool replace = false,
   }) async {
+    // Check if database is initialized (not supported on web)
+    if (!DatabaseHelper.instance.isInitialized) {
+      return ImportResult(
+        success: false,
+        error:
+            'Database not initialized. Import/export is not supported on web platform.',
+      );
+    }
+
     int todosImported = 0;
     int habitsImported = 0;
     int sessionsImported = 0;
@@ -121,11 +140,17 @@ class CacheRepository {
     }
   }
 
-  /// Export all data to a JSON file
+  /// Export all data to a JSON file or bytes
   ///
   /// [fileName] - Name of the export file (without extension)
-  /// Returns the File object of the created export file
+  /// Returns the File object of the created export file (desktop) or throws on web
   Future<File> exportToFile({String? fileName, String? appVersion}) async {
+    if (kIsWeb) {
+      throw UnsupportedError(
+        'File export not supported on web. Use exportToBytes() instead.',
+      );
+    }
+
     final data = await exportAllData(appVersion: appVersion);
     final jsonString = const JsonEncoder.withIndent('  ').convert(data);
 
@@ -143,11 +168,28 @@ class CacheRepository {
     return file;
   }
 
-  /// Import data from a JSON file
+  /// Export all data to bytes (web-compatible)
+  ///
+  /// Returns Uint8List containing the JSON data
+  Future<Uint8List> exportToBytes({String? appVersion}) async {
+    final data = await exportAllData(appVersion: appVersion);
+    final jsonString = const JsonEncoder.withIndent('  ').convert(data);
+    return Uint8List.fromList(utf8.encode(jsonString));
+  }
+
+  /// Import data from a JSON file (desktop only)
   Future<ImportResult> importFromFile(
     String filePath, {
     bool replace = false,
   }) async {
+    if (kIsWeb) {
+      return ImportResult(
+        success: false,
+        error:
+            'File import not supported on web. Use importFromBytes() instead.',
+      );
+    }
+
     try {
       final file = File(filePath);
       if (!await file.exists()) {
@@ -160,6 +202,21 @@ class CacheRepository {
       return importData(data, replace: replace);
     } catch (e) {
       return ImportResult(success: false, error: 'Failed to read file: $e');
+    }
+  }
+
+  /// Import data from bytes (web-compatible)
+  Future<ImportResult> importFromBytes(
+    Uint8List bytes, {
+    bool replace = false,
+  }) async {
+    try {
+      final jsonString = utf8.decode(bytes);
+      final data = jsonDecode(jsonString) as Map<String, dynamic>;
+
+      return importData(data, replace: replace);
+    } catch (e) {
+      return ImportResult(success: false, error: 'Failed to parse data: $e');
     }
   }
 
