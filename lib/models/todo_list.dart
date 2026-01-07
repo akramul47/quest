@@ -154,12 +154,23 @@ class TodoList extends ChangeNotifier {
   Future<void> updateTodo(Todo updatedTodo) async {
     final todoIndex = _todos.indexWhere((todo) => todo.id == updatedTodo.id);
     if (todoIndex != -1) {
+      // Update existing todo
       _todos[todoIndex] = updatedTodo;
       notifyListeners();
 
       await _todoDao.update(updatedTodo);
     } else {
-      // If not found, add it (for new tasks)
+      // Double-check for duplicates before adding (belt-and-suspenders approach)
+      final existingIndex = _todos.indexWhere((t) => t.id == updatedTodo.id);
+      if (existingIndex != -1) {
+        // Already exists, just update instead
+        _todos[existingIndex] = updatedTodo;
+        notifyListeners();
+        await _todoDao.update(updatedTodo);
+        return;
+      }
+
+      // Truly new task - add it
       _todos.add(updatedTodo);
       notifyListeners();
 

@@ -43,9 +43,15 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
   final FocusNode _titleFocusNode = FocusNode();
   final FocusNode _descriptionFocusNode = FocusNode();
 
+  // Prevent duplicate saves
+  bool _isSaving = false;
+
   @override
   void initState() {
     super.initState();
+    // Generate stable ID for new tasks upfront to prevent duplicates
+    _newTaskId = DateTime.now().millisecondsSinceEpoch.toString();
+
     _titleController = TextEditingController(text: widget.todo?.task ?? '');
     _descriptionController = TextEditingController(
       text: widget.todo?.description ?? '',
@@ -93,11 +99,23 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
     super.dispose();
   }
 
+  // Stable ID for new tasks - generated once
+  late final String _newTaskId;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+  }
+
   void _autoSaveTodo() {
     if (_titleController.text.trim().isEmpty) return;
+    if (_isSaving) return;
+
+    // For new tasks, use the stable ID; for existing tasks, use existing ID
+    final taskId = widget.todo?.id ?? _newTaskId;
 
     final todo = Todo(
-      id: widget.todo?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      id: taskId,
       task: _titleController.text.trim(),
       description: _descriptionController.text.trim().isNotEmpty
           ? _descriptionController.text.trim()
@@ -116,6 +134,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
   }
 
   void _saveTodo() {
+    if (_isSaving) return;
+
     if (_titleController.text.trim().isEmpty) {
       final deviceType = ResponsiveLayout.getDeviceType(context);
       final isMobile = deviceType == DeviceType.mobile;
@@ -134,6 +154,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
       );
       return;
     }
+
+    _isSaving = true;
     _autoSaveTodo();
     Navigator.pop(context);
   }
@@ -178,22 +200,37 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
                 onPressed: () => Navigator.pop(context),
               ),
               actions: [
-                IconButton(
-                  icon: Icon(
-                    Icons.star_outline,
-                    color: isDark
-                        ? AppTheme.primaryColorDark
-                        : Theme.of(context).colorScheme.primary,
+                // For new tasks, show a save/check button
+                if (isNewTask)
+                  IconButton(
+                    icon: Icon(
+                      Icons.check,
+                      color: isDark
+                          ? AppTheme.primaryColorDark
+                          : Theme.of(context).colorScheme.primary,
+                    ),
+                    onPressed: _saveTodo,
+                    tooltip: 'Save and close',
                   ),
-                  onPressed: () {},
-                ),
-                IconButton(
-                  icon: Icon(
-                    Icons.more_vert,
-                    color: isDark ? Colors.white : Colors.black87,
+                // For existing tasks, show star and more options
+                if (!isNewTask) ...[
+                  IconButton(
+                    icon: Icon(
+                      Icons.star_outline,
+                      color: isDark
+                          ? AppTheme.primaryColorDark
+                          : Theme.of(context).colorScheme.primary,
+                    ),
+                    onPressed: () {},
                   ),
-                  onPressed: () {},
-                ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.more_vert,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                    onPressed: () {},
+                  ),
+                ],
               ],
             )
           : null,
@@ -287,6 +324,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
                                   ),
                                   maxLines: null,
                                   onSubmitted: (_) {
+                                    // Save task and move to description field (The Why section)
                                     _autoSaveTodo();
                                     _descriptionFocusNode.requestFocus();
                                   },
@@ -463,23 +501,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
                           ),
                         ),
                       ),
-                    // FAB for new tasks on tablet/desktop
-                    if (isNewTask && !isMobile)
-                      Positioned(
-                        bottom: 20,
-                        right: 20,
-                        child: FadeTransition(
-                          opacity: _opacityAnimation,
-                          child: FloatingActionButton(
-                            onPressed: _saveTodo,
-                            backgroundColor: isDark
-                                ? AppTheme.primaryColorDark
-                                : Theme.of(context).colorScheme.primary,
-                            elevation: 4,
-                            child: const Icon(Icons.save, color: Colors.white),
-                          ),
-                        ),
-                      ),
+                    // No save FAB - tasks are saved on Enter/done keyboard action
                   ],
                 ),
               ),
@@ -487,20 +509,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
           ),
         ],
       ),
-      // FAB only for mobile on new tasks
-      floatingActionButton: isNewTask && isMobile
-          ? FadeTransition(
-              opacity: _opacityAnimation,
-              child: FloatingActionButton(
-                onPressed: _saveTodo,
-                backgroundColor: isDark
-                    ? AppTheme.primaryColorDark
-                    : Theme.of(context).colorScheme.primary,
-                elevation: 4,
-                child: const Icon(Icons.save, color: Colors.white),
-              ),
-            )
-          : null,
+      // No save FAB - tasks are saved on Enter/done keyboard action
     );
   }
 }
