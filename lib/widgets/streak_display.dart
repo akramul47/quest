@@ -84,38 +84,51 @@ class StreakDisplayWidget extends StatelessWidget {
   }
 
   Widget _buildStreakCounter(BuildContext context, int streak, bool isFrozen) {
+    const double iconSize = 48;
+    const double fontSize = 36;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 35.0),
-              child: _buildIcon(isFrozen, 65),
+            // Fire icon positioned at the top
+            SizedBox(
+              width: iconSize,
+              height: iconSize,
+              child: _buildIcon(isFrozen, iconSize),
             ),
-            const SizedBox(width: 8),
-            Container(
-              height: 65, // Match icon height
-              alignment:
-                  Alignment.bottomCenter, // Fine-tune padding from bottom
+            const SizedBox(width: 6),
+            // Streak number positioned lower with top padding
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
               child: Text(
                 '$streak',
                 style: GoogleFonts.outfit(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 32,
+                  fontWeight: FontWeight.w700,
+                  fontSize: fontSize,
                   height: 1.0,
+                  letterSpacing: -0.5,
                 ),
               ),
             ),
           ],
         ),
-        Text(
-          isFrozen ? 'Streak Frozen' : 'Day Streak',
-          style: GoogleFonts.outfit(
-            fontSize: 12,
-            color: Theme.of(context).colorScheme.onSurface.withAlpha(153),
+        const SizedBox(height: 4),
+        // Label positioned below the icon-number row
+        Padding(
+          padding: const EdgeInsets.only(left: 4),
+          child: Text(
+            isFrozen ? 'Streak Frozen' : 'Day Streak',
+            style: GoogleFonts.outfit(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).colorScheme.onSurface.withAlpha(153),
+              letterSpacing: 0.3,
+            ),
           ),
         ),
       ],
