@@ -12,7 +12,7 @@ import '../database_helper.dart';
 class HabitDao {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
-  Database get _db => _dbHelper.database;
+  Database? get _db => _dbHelper.database;
 
   /// Insert a new habit
   Future<void> insert(Habit habit) async {
@@ -65,18 +65,24 @@ class HabitDao {
 
   /// Delete a habit and its entries (cascade)
   Future<void> delete(String id) async {
-    await _db.delete('habits', where: 'id = ?', whereArgs: [id]);
+    final db = _db;
+    if (db == null) return;
+    await db.delete('habits', where: 'id = ?', whereArgs: [id]);
   }
 
   /// Get all habits (including archived)
   Future<List<Habit>> getAll() async {
-    final habits = await _db.query('habits', orderBy: 'created_at DESC');
+    final db = _db;
+    if (db == null) return [];
+    final habits = await db.query('habits', orderBy: 'created_at DESC');
     return Future.wait(habits.map((map) => _mapToHabit(map)).toList());
   }
 
   /// Get active (non-archived) habits
   Future<List<Habit>> getActive() async {
-    final habits = await _db.query(
+    final db = _db;
+    if (db == null) return [];
+    final habits = await db.query(
       'habits',
       where: 'is_archived = 0',
       orderBy: 'created_at DESC',
@@ -86,7 +92,9 @@ class HabitDao {
 
   /// Get archived habits
   Future<List<Habit>> getArchived() async {
-    final habits = await _db.query(
+    final db = _db;
+    if (db == null) return [];
+    final habits = await db.query(
       'habits',
       where: 'is_archived = 1',
       orderBy: 'created_at DESC',
@@ -96,16 +104,20 @@ class HabitDao {
 
   /// Get a single habit by ID
   Future<Habit?> getById(String id) async {
-    final results = await _db.query('habits', where: 'id = ?', whereArgs: [id]);
+    final db = _db;
+    if (db == null) return null;
+    final results = await db.query('habits', where: 'id = ?', whereArgs: [id]);
     if (results.isEmpty) return null;
     return _mapToHabit(results.first);
   }
 
   /// Record a habit entry for a specific date
   Future<void> recordEntry(String habitId, DateTime date, dynamic value) async {
+    final db = _db;
+    if (db == null) return;
     final dateKey = _dateToKey(date);
 
-    await _db.insert('habit_entries', {
+    await db.insert('habit_entries', {
       'habit_id': habitId,
       'date': dateKey,
       'value': jsonEncode(value),
@@ -113,7 +125,7 @@ class HabitDao {
     }, conflictAlgorithm: ConflictAlgorithm.replace);
 
     // Update habit's last_modified and sync_status
-    await _db.update(
+    await db.update(
       'habits',
       {'last_modified': DateTime.now().toIso8601String(), 'sync_status': 0},
       where: 'id = ?',
@@ -123,7 +135,9 @@ class HabitDao {
 
   /// Get history for a specific habit
   Future<Map<String, dynamic>> getHistory(String habitId) async {
-    final entries = await _db.query(
+    final db = _db;
+    if (db == null) return {};
+    final entries = await db.query(
       'habit_entries',
       where: 'habit_id = ?',
       whereArgs: [habitId],
@@ -138,7 +152,9 @@ class HabitDao {
 
   /// Archive a habit
   Future<void> archive(String id) async {
-    await _db.update(
+    final db = _db;
+    if (db == null) return;
+    await db.update(
       'habits',
       {
         'is_archived': 1,
@@ -152,7 +168,9 @@ class HabitDao {
 
   /// Unarchive a habit
   Future<void> unarchive(String id) async {
-    await _db.update(
+    final db = _db;
+    if (db == null) return;
+    await db.update(
       'habits',
       {
         'is_archived': 0,
@@ -188,13 +206,17 @@ class HabitDao {
 
   /// Get habits pending sync
   Future<List<Habit>> getPendingSync() async {
-    final habits = await _db.query('habits', where: 'sync_status = 0');
+    final db = _db;
+    if (db == null) return [];
+    final habits = await db.query('habits', where: 'sync_status = 0');
     return Future.wait(habits.map((map) => _mapToHabit(map)).toList());
   }
 
   /// Mark habit as synced
   Future<void> markSynced(String id, String serverId) async {
-    await _db.update(
+    final db = _db;
+    if (db == null) return;
+    await db.update(
       'habits',
       {'server_id': serverId, 'sync_status': 1},
       where: 'id = ?',
@@ -204,7 +226,9 @@ class HabitDao {
 
   /// Clear all habits (for testing or reset)
   Future<void> clearAll() async {
-    await _db.delete('habits');
+    final db = _db;
+    if (db == null) return;
+    await db.delete('habits');
   }
 
   // Helper: Convert Habit to database map

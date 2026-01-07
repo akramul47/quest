@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import '../../../models/streak.dart';
@@ -14,13 +13,15 @@ import '../database_schema.dart';
 class StreakDao {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
+  Database? get _db => _dbHelper.database;
+
   // ============== Global Streak ==============
 
   /// Get the current global streak state
   Future<GlobalStreak?> getStreak() async {
-    if (kIsWeb) return null;
+    final db = _db;
+    if (db == null) return null;
 
-    final db = _dbHelper.database;
     final results = await db.query('streak', where: 'id = 1');
 
     if (results.isEmpty) {
@@ -32,9 +33,9 @@ class StreakDao {
 
   /// Create or update the global streak
   Future<void> saveStreak(GlobalStreak streak) async {
-    if (kIsWeb) return;
+    final db = _db;
+    if (db == null) return;
 
-    final db = _dbHelper.database;
     final data = _streakToMap(streak);
 
     await db.insert(
@@ -58,9 +59,9 @@ class StreakDao {
 
   /// Get activity for a specific date
   Future<DailyActivity?> getDailyActivity(DateTime date) async {
-    if (kIsWeb) return null;
+    final db = _db;
+    if (db == null) return null;
 
-    final db = _dbHelper.database;
     final dateKey = _dateToKey(date);
     final results = await db.query(
       'daily_activity',
@@ -85,9 +86,9 @@ class StreakDao {
     DateTime start,
     DateTime end,
   ) async {
-    if (kIsWeb) return [];
+    final db = _db;
+    if (db == null) return [];
 
-    final db = _dbHelper.database;
     final startKey = _dateToKey(start);
     final endKey = _dateToKey(end);
 
@@ -103,9 +104,9 @@ class StreakDao {
 
   /// Record or update daily activity
   Future<void> saveDailyActivity(DailyActivity activity) async {
-    if (kIsWeb) return;
+    final db = _db;
+    if (db == null) return;
 
-    final db = _dbHelper.database;
     final data = _activityToMap(activity);
 
     await db.insert(
@@ -144,9 +145,9 @@ class StreakDao {
 
   /// Get all restore tokens
   Future<List<StreakRestoreToken>> getAllTokens() async {
-    if (kIsWeb) return [];
+    final db = _db;
+    if (db == null) return [];
 
-    final db = _dbHelper.database;
     final results = await db.query(
       'restore_tokens',
       orderBy: 'generated_at DESC',
@@ -157,9 +158,9 @@ class StreakDao {
 
   /// Get available (unused, non-expired) tokens
   Future<List<StreakRestoreToken>> getAvailableTokens() async {
-    if (kIsWeb) return [];
+    final db = _db;
+    if (db == null) return [];
 
-    final db = _dbHelper.database;
     final now = DateTime.now().toIso8601String();
 
     final results = await db.query(
@@ -180,17 +181,17 @@ class StreakDao {
 
   /// Add a new restore token
   Future<void> addToken(StreakRestoreToken token) async {
-    if (kIsWeb) return;
+    final db = _db;
+    if (db == null) return;
 
-    final db = _dbHelper.database;
     await db.insert('restore_tokens', _tokenToMap(token));
   }
 
   /// Mark a token as used
   Future<void> useToken(String tokenId) async {
-    if (kIsWeb) return;
+    final db = _db;
+    if (db == null) return;
 
-    final db = _dbHelper.database;
     final now = DateTime.now();
 
     await db.update(
@@ -208,9 +209,9 @@ class StreakDao {
 
   /// Delete expired tokens (cleanup)
   Future<int> deleteExpiredTokens() async {
-    if (kIsWeb) return 0;
+    final db = _db;
+    if (db == null) return 0;
 
-    final db = _dbHelper.database;
     final now = DateTime.now().toIso8601String();
 
     return await db.delete(
@@ -224,9 +225,8 @@ class StreakDao {
 
   /// Get pending sync items for streak
   Future<Map<String, dynamic>> getPendingSyncItems() async {
-    if (kIsWeb) return {};
-
-    final db = _dbHelper.database;
+    final db = _db;
+    if (db == null) return {};
 
     final streak = await db.query(
       'streak',
@@ -255,9 +255,9 @@ class StreakDao {
 
   /// Mark streak as synced
   Future<void> markStreakSynced() async {
-    if (kIsWeb) return;
+    final db = _db;
+    if (db == null) return;
 
-    final db = _dbHelper.database;
     await db.update('streak', {
       'sync_status': SyncStatus.synced,
     }, where: 'id = 1');

@@ -11,11 +11,13 @@ import '../database_helper.dart';
 class FocusSessionDao {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
-  Database get _db => _dbHelper.database;
+  Database? get _db => _dbHelper.database;
 
   /// Insert a new focus session
   Future<void> insert(FocusSession session) async {
-    await _db.insert(
+    final db = _db;
+    if (db == null) return; // Web platform - no database
+    await db.insert(
       'focus_sessions',
       _sessionToMap(session),
       conflictAlgorithm: ConflictAlgorithm.replace,
@@ -27,7 +29,9 @@ class FocusSessionDao {
     DateTime start,
     DateTime end,
   ) async {
-    final results = await _db.query(
+    final db = _db;
+    if (db == null) return []; // Web platform
+    final results = await db.query(
       'focus_sessions',
       where: 'start_time >= ? AND start_time <= ?',
       whereArgs: [start.toIso8601String(), end.toIso8601String()],
@@ -69,7 +73,9 @@ class FocusSessionDao {
 
   /// Get all sessions (for export)
   Future<List<FocusSession>> getAll() async {
-    final results = await _db.query(
+    final db = _db;
+    if (db == null) return []; // Web platform
+    final results = await db.query(
       'focus_sessions',
       orderBy: 'start_time DESC',
     );
@@ -78,12 +84,16 @@ class FocusSessionDao {
 
   /// Get sessions pending sync
   Future<List<Map<String, dynamic>>> getPendingSync() async {
-    return _db.query('focus_sessions', where: 'sync_status = 0');
+    final db = _db;
+    if (db == null) return []; // Web platform
+    return db.query('focus_sessions', where: 'sync_status = 0');
   }
 
   /// Mark session as synced
   Future<void> markSynced(int id, String serverId) async {
-    await _db.update(
+    final db = _db;
+    if (db == null) return; // Web platform
+    await db.update(
       'focus_sessions',
       {'server_id': serverId, 'sync_status': 1},
       where: 'id = ?',
@@ -93,7 +103,9 @@ class FocusSessionDao {
 
   /// Clear all sessions (for testing or reset)
   Future<void> clearAll() async {
-    await _db.delete('focus_sessions');
+    final db = _db;
+    if (db == null) return; // Web platform
+    await db.delete('focus_sessions');
   }
 
   /// Batch insert sessions
@@ -115,7 +127,9 @@ class FocusSessionDao {
 
   /// Save timer settings
   Future<void> saveSettings(TimerSettings settings) async {
-    await _db.insert('settings', {
+    final db = _db;
+    if (db == null) return; // Web platform
+    await db.insert('settings', {
       'key': 'timer_settings',
       'value': jsonEncode(settings.toJson()),
       'updated_at': DateTime.now().toIso8601String(),
@@ -124,7 +138,11 @@ class FocusSessionDao {
 
   /// Load timer settings
   Future<TimerSettings> loadSettings() async {
-    final results = await _db.query(
+    final db = _db;
+    if (db == null)
+      return const TimerSettings(); // Web platform - return defaults
+
+    final results = await db.query(
       'settings',
       where: 'key = ?',
       whereArgs: ['timer_settings'],
@@ -143,9 +161,11 @@ class FocusSessionDao {
     required int completedSessions,
     required int totalTime,
   }) async {
+    final db = _db;
+    if (db == null) return; // Web platform
     final today = DateTime.now().toIso8601String().substring(0, 10);
 
-    await _db.insert('settings', {
+    await db.insert('settings', {
       'key': 'focus_data_$today',
       'value': jsonEncode({
         'sessions': completedSessions,
@@ -157,9 +177,11 @@ class FocusSessionDao {
 
   /// Load focus session data
   Future<Map<String, int>> loadFocusSessionData() async {
+    final db = _db;
+    if (db == null) return {'sessions': 0, 'totalTime': 0}; // Web platform
     final today = DateTime.now().toIso8601String().substring(0, 10);
 
-    final results = await _db.query(
+    final results = await db.query(
       'settings',
       where: 'key = ?',
       whereArgs: ['focus_data_$today'],

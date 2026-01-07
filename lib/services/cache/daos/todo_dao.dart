@@ -9,7 +9,7 @@ import '../database_helper.dart';
 class TodoDao {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
-  Database get _db => _dbHelper.database;
+  Database? get _db => _dbHelper.database;
 
   /// Insert a new todo with its subtasks
   Future<void> insert(Todo todo) async {
@@ -55,18 +55,24 @@ class TodoDao {
 
   /// Delete a todo and its subtasks (cascade)
   Future<void> delete(String id) async {
-    await _db.delete('todos', where: 'id = ?', whereArgs: [id]);
+    final db = _db;
+    if (db == null) return;
+    await db.delete('todos', where: 'id = ?', whereArgs: [id]);
   }
 
   /// Get all todos (including archived)
   Future<List<Todo>> getAll() async {
-    final todos = await _db.query('todos', orderBy: 'created_at DESC');
+    final db = _db;
+    if (db == null) return [];
+    final todos = await db.query('todos', orderBy: 'created_at DESC');
     return Future.wait(todos.map((map) => _mapToTodo(map)).toList());
   }
 
   /// Get active (non-archived, non-completed) todos
   Future<List<Todo>> getActive() async {
-    final todos = await _db.query(
+    final db = _db;
+    if (db == null) return [];
+    final todos = await db.query(
       'todos',
       where: 'is_archived = 0',
       orderBy: 'created_at DESC',
@@ -76,7 +82,9 @@ class TodoDao {
 
   /// Get archived todos
   Future<List<Todo>> getArchived() async {
-    final todos = await _db.query(
+    final db = _db;
+    if (db == null) return [];
+    final todos = await db.query(
       'todos',
       where: 'is_archived = 1',
       orderBy: 'created_at DESC',
@@ -86,7 +94,9 @@ class TodoDao {
 
   /// Get completed todos
   Future<List<Todo>> getCompleted() async {
-    final todos = await _db.query(
+    final db = _db;
+    if (db == null) return [];
+    final todos = await db.query(
       'todos',
       where: 'is_completed = 1 AND is_archived = 0',
       orderBy: 'completed_at DESC',
@@ -96,14 +106,18 @@ class TodoDao {
 
   /// Get a single todo by ID
   Future<Todo?> getById(String id) async {
-    final results = await _db.query('todos', where: 'id = ?', whereArgs: [id]);
+    final db = _db;
+    if (db == null) return null;
+    final results = await db.query('todos', where: 'id = ?', whereArgs: [id]);
     if (results.isEmpty) return null;
     return _mapToTodo(results.first);
   }
 
   /// Archive a todo
   Future<void> archive(String id) async {
-    await _db.update(
+    final db = _db;
+    if (db == null) return;
+    await db.update(
       'todos',
       {
         'is_archived': 1,
@@ -117,7 +131,9 @@ class TodoDao {
 
   /// Unarchive a todo
   Future<void> unarchive(String id) async {
-    await _db.update(
+    final db = _db;
+    if (db == null) return;
+    await db.update(
       'todos',
       {
         'is_archived': 0,
@@ -152,13 +168,17 @@ class TodoDao {
 
   /// Get todos pending sync
   Future<List<Todo>> getPendingSync() async {
-    final todos = await _db.query('todos', where: 'sync_status = 0');
+    final db = _db;
+    if (db == null) return [];
+    final todos = await db.query('todos', where: 'sync_status = 0');
     return Future.wait(todos.map((map) => _mapToTodo(map)).toList());
   }
 
   /// Mark todo as synced
   Future<void> markSynced(String id, String serverId) async {
-    await _db.update(
+    final db = _db;
+    if (db == null) return;
+    await db.update(
       'todos',
       {'server_id': serverId, 'sync_status': 1},
       where: 'id = ?',
@@ -168,7 +188,9 @@ class TodoDao {
 
   /// Clear all todos (for testing or reset)
   Future<void> clearAll() async {
-    await _db.delete('todos');
+    final db = _db;
+    if (db == null) return;
+    await db.delete('todos');
   }
 
   // Helper: Convert Todo to database map
@@ -206,13 +228,16 @@ class TodoDao {
 
   // Helper: Convert database map to Todo (with subtasks)
   Future<Todo> _mapToTodo(Map<String, dynamic> map) async {
+    final db = _db;
     // Fetch subtasks for this todo
-    final subtaskMaps = await _db.query(
-      'subtasks',
-      where: 'todo_id = ?',
-      whereArgs: [map['id']],
-      orderBy: 'sort_order ASC',
-    );
+    final subtaskMaps = db == null
+        ? <Map<String, dynamic>>[]
+        : await db.query(
+            'subtasks',
+            where: 'todo_id = ?',
+            whereArgs: [map['id']],
+            orderBy: 'sort_order ASC',
+          );
 
     final subtasks = subtaskMaps
         .map(

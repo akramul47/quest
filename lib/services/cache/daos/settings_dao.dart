@@ -10,11 +10,13 @@ import '../database_helper.dart';
 class SettingsDao {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
-  Database get _db => _dbHelper.database;
+  Database? get _db => _dbHelper.database;
 
   /// Get a string setting
   Future<String?> getString(String key) async {
-    final results = await _db.query(
+    final db = _db;
+    if (db == null) return null;
+    final results = await db.query(
       'settings',
       where: 'key = ?',
       whereArgs: [key],
@@ -26,7 +28,9 @@ class SettingsDao {
 
   /// Set a string setting
   Future<void> setString(String key, String value) async {
-    await _db.insert('settings', {
+    final db = _db;
+    if (db == null) return;
+    await db.insert('settings', {
       'key': key,
       'value': value,
       'updated_at': DateTime.now().toIso8601String(),
@@ -95,12 +99,16 @@ class SettingsDao {
 
   /// Delete a setting
   Future<void> delete(String key) async {
-    await _db.delete('settings', where: 'key = ?', whereArgs: [key]);
+    final db = _db;
+    if (db == null) return;
+    await db.delete('settings', where: 'key = ?', whereArgs: [key]);
   }
 
   /// Get all settings
   Future<Map<String, String>> getAll() async {
-    final results = await _db.query('settings');
+    final db = _db;
+    if (db == null) return {};
+    final results = await db.query('settings');
     return {
       for (final row in results) row['key'] as String: row['value'] as String,
     };
@@ -108,7 +116,9 @@ class SettingsDao {
 
   /// Get all settings with a prefix
   Future<Map<String, String>> getWithPrefix(String prefix) async {
-    final results = await _db.query(
+    final db = _db;
+    if (db == null) return {};
+    final results = await db.query(
       'settings',
       where: 'key LIKE ?',
       whereArgs: ['$prefix%'],
@@ -120,12 +130,16 @@ class SettingsDao {
 
   /// Clear all settings
   Future<void> clearAll() async {
-    await _db.delete('settings');
+    final db = _db;
+    if (db == null) return;
+    await db.delete('settings');
   }
 
   /// Clear settings with a prefix
   Future<void> clearWithPrefix(String prefix) async {
-    await _db.delete('settings', where: 'key LIKE ?', whereArgs: ['$prefix%']);
+    final db = _db;
+    if (db == null) return;
+    await db.delete('settings', where: 'key LIKE ?', whereArgs: ['$prefix%']);
   }
 }
 

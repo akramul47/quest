@@ -28,13 +28,22 @@ class DatabaseHelper {
   /// Returns true if database is initialized
   bool get isInitialized => _isInitialized;
 
-  /// Get the database instance. Throws if not initialized.
-  Database get database {
+  /// Returns true if running on web (no SQLite support)
+  bool get isWebPlatform => kIsWeb;
+
+  /// Get the database instance. Returns null on web. Throws if not initialized on other platforms.
+  Database? get database {
+    if (kIsWeb) {
+      return null; // Web doesn't support SQLite
+    }
     if (_database == null) {
       throw StateError('Database not initialized. Call initDatabase() first.');
     }
-    return _database!;
+    return _database;
   }
+
+  /// Safe database getter that won't throw - returns null if not available
+  Database? get databaseOrNull => _database;
 
   /// Initialize the database with platform-specific setup.
   ///
@@ -143,12 +152,20 @@ class DatabaseHelper {
 
   /// Execute a transaction with automatic rollback on error
   Future<T> transaction<T>(Future<T> Function(Transaction txn) action) async {
-    return database.transaction(action);
+    final db = database;
+    if (db == null) {
+      throw UnsupportedError('Transactions not supported on web platform');
+    }
+    return db.transaction(action);
   }
 
   /// Execute a batch operation
   Future<List<Object?>> batch(void Function(Batch batch) operations) async {
-    final batch = database.batch();
+    final db = database;
+    if (db == null) {
+      throw UnsupportedError('Batch operations not supported on web platform');
+    }
+    final batch = db.batch();
     operations(batch);
     return batch.commit();
   }
