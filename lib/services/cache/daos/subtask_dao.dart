@@ -69,15 +69,25 @@ class SubtaskDao {
 
   /// Batch insert multiple subtasks
   Future<void> batchInsert(List<Subtask> subtasks, String todoId) async {
-    await _dbHelper.batch((batch) {
+    final db = _db;
+    if (db == null) return;
+
+    try {
+      await _dbHelper.batch((batch) {
+        for (var i = 0; i < subtasks.length; i++) {
+          batch.insert(
+            'subtasks',
+            _subtaskToMap(subtasks[i], todoId, i),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
+      });
+    } on UnsupportedError {
+      // Web platform - fallback to sequential inserts
       for (var i = 0; i < subtasks.length; i++) {
-        batch.insert(
-          'subtasks',
-          _subtaskToMap(subtasks[i], todoId, i),
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+        await insert(subtasks[i], todoId, i);
       }
-    });
+    }
   }
 
   /// Toggle subtask completion status
@@ -106,16 +116,28 @@ class SubtaskDao {
     final db = _db;
     if (db == null) return;
 
-    await _dbHelper.transaction((txn) async {
+    try {
+      await _dbHelper.transaction((txn) async {
+        for (var i = 0; i < subtaskIds.length; i++) {
+          await txn.update(
+            'subtasks',
+            {'sort_order': i},
+            where: 'id = ? AND todo_id = ?',
+            whereArgs: [subtaskIds[i], todoId],
+          );
+        }
+      });
+    } on UnsupportedError {
+      // Web platform - fallback to sequential updates
       for (var i = 0; i < subtaskIds.length; i++) {
-        await txn.update(
+        await db.update(
           'subtasks',
           {'sort_order': i},
           where: 'id = ? AND todo_id = ?',
           whereArgs: [subtaskIds[i], todoId],
         );
       }
-    });
+    }
   }
 
   /// Clear all subtasks (for testing or reset)

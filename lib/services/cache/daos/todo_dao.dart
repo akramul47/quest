@@ -13,44 +13,90 @@ class TodoDao {
 
   /// Insert a new todo with its subtasks
   Future<void> insert(Todo todo) async {
-    await _dbHelper.transaction((txn) async {
-      await txn.insert(
+    final db = _db;
+    if (db == null) return;
+
+    try {
+      await _dbHelper.transaction((txn) async {
+        await txn.insert(
+          'todos',
+          _todoToMap(todo),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+
+        // Insert subtasks
+        for (var i = 0; i < todo.subtasks.length; i++) {
+          await txn.insert(
+            'subtasks',
+            _subtaskToMap(todo.subtasks[i], todo.id, i),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
+      });
+    } on UnsupportedError {
+      // Web platform - fallback to direct operations
+      await db.insert(
         'todos',
         _todoToMap(todo),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
 
-      // Insert subtasks
       for (var i = 0; i < todo.subtasks.length; i++) {
-        await txn.insert(
+        await db.insert(
           'subtasks',
           _subtaskToMap(todo.subtasks[i], todo.id, i),
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
       }
-    });
+    }
   }
 
   /// Update an existing todo
   Future<void> update(Todo todo) async {
-    await _dbHelper.transaction((txn) async {
-      await txn.update(
+    final db = _db;
+    if (db == null) return;
+
+    try {
+      await _dbHelper.transaction((txn) async {
+        await txn.update(
+          'todos',
+          _todoToMap(todo),
+          where: 'id = ?',
+          whereArgs: [todo.id],
+        );
+
+        // Delete existing subtasks and re-insert
+        await txn.delete(
+          'subtasks',
+          where: 'todo_id = ?',
+          whereArgs: [todo.id],
+        );
+
+        for (var i = 0; i < todo.subtasks.length; i++) {
+          await txn.insert(
+            'subtasks',
+            _subtaskToMap(todo.subtasks[i], todo.id, i),
+          );
+        }
+      });
+    } on UnsupportedError {
+      // Web platform - fallback to direct operations
+      await db.update(
         'todos',
         _todoToMap(todo),
         where: 'id = ?',
         whereArgs: [todo.id],
       );
 
-      // Delete existing subtasks and re-insert
-      await txn.delete('subtasks', where: 'todo_id = ?', whereArgs: [todo.id]);
+      await db.delete('subtasks', where: 'todo_id = ?', whereArgs: [todo.id]);
 
       for (var i = 0; i < todo.subtasks.length; i++) {
-        await txn.insert(
+        await db.insert(
           'subtasks',
           _subtaskToMap(todo.subtasks[i], todo.id, i),
         );
       }
-    });
+    }
   }
 
   /// Delete a todo and its subtasks (cascade)
@@ -147,23 +193,33 @@ class TodoDao {
 
   /// Batch insert multiple todos
   Future<void> batchInsert(List<Todo> todos) async {
-    await _dbHelper.batch((batch) {
-      for (final todo in todos) {
-        batch.insert(
-          'todos',
-          _todoToMap(todo),
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+    final db = _db;
+    if (db == null) return;
 
-        for (var i = 0; i < todo.subtasks.length; i++) {
+    try {
+      await _dbHelper.batch((batch) {
+        for (final todo in todos) {
           batch.insert(
-            'subtasks',
-            _subtaskToMap(todo.subtasks[i], todo.id, i),
+            'todos',
+            _todoToMap(todo),
             conflictAlgorithm: ConflictAlgorithm.replace,
           );
+
+          for (var i = 0; i < todo.subtasks.length; i++) {
+            batch.insert(
+              'subtasks',
+              _subtaskToMap(todo.subtasks[i], todo.id, i),
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
+          }
         }
+      });
+    } on UnsupportedError {
+      // Web platform - fallback to sequential inserts
+      for (final todo in todos) {
+        await insert(todo);
       }
-    });
+    }
   }
 
   /// Get todos pending sync

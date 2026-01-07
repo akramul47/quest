@@ -16,51 +16,100 @@ class HabitDao {
 
   /// Insert a new habit
   Future<void> insert(Habit habit) async {
-    await _dbHelper.transaction((txn) async {
-      await txn.insert(
+    final db = _db;
+    if (db == null) return;
+
+    try {
+      await _dbHelper.transaction((txn) async {
+        await txn.insert(
+          'habits',
+          _habitToMap(habit),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+
+        // Insert history entries
+        for (final entry in habit.history.entries) {
+          await txn.insert('habit_entries', {
+            'habit_id': habit.id,
+            'date': entry.key,
+            'value': jsonEncode(entry.value),
+            'created_at': DateTime.now().toIso8601String(),
+          }, conflictAlgorithm: ConflictAlgorithm.replace);
+        }
+      });
+    } on UnsupportedError {
+      // Web platform - fallback to direct operations
+      await db.insert(
         'habits',
         _habitToMap(habit),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
 
-      // Insert history entries
       for (final entry in habit.history.entries) {
-        await txn.insert('habit_entries', {
+        await db.insert('habit_entries', {
           'habit_id': habit.id,
           'date': entry.key,
           'value': jsonEncode(entry.value),
           'created_at': DateTime.now().toIso8601String(),
         }, conflictAlgorithm: ConflictAlgorithm.replace);
       }
-    });
+    }
   }
 
   /// Update an existing habit
   Future<void> update(Habit habit) async {
-    await _dbHelper.transaction((txn) async {
-      await txn.update(
+    final db = _db;
+    if (db == null) return;
+
+    try {
+      await _dbHelper.transaction((txn) async {
+        await txn.update(
+          'habits',
+          _habitToMap(habit),
+          where: 'id = ?',
+          whereArgs: [habit.id],
+        );
+
+        // Delete existing entries and re-insert
+        await txn.delete(
+          'habit_entries',
+          where: 'habit_id = ?',
+          whereArgs: [habit.id],
+        );
+
+        for (final entry in habit.history.entries) {
+          await txn.insert('habit_entries', {
+            'habit_id': habit.id,
+            'date': entry.key,
+            'value': jsonEncode(entry.value),
+            'created_at': DateTime.now().toIso8601String(),
+          });
+        }
+      });
+    } on UnsupportedError {
+      // Web platform - fallback to direct operations
+      await db.update(
         'habits',
         _habitToMap(habit),
         where: 'id = ?',
         whereArgs: [habit.id],
       );
 
-      // Delete existing entries and re-insert
-      await txn.delete(
+      await db.delete(
         'habit_entries',
         where: 'habit_id = ?',
         whereArgs: [habit.id],
       );
 
       for (final entry in habit.history.entries) {
-        await txn.insert('habit_entries', {
+        await db.insert('habit_entries', {
           'habit_id': habit.id,
           'date': entry.key,
           'value': jsonEncode(entry.value),
           'created_at': DateTime.now().toIso8601String(),
         });
       }
-    });
+    }
   }
 
   /// Delete a habit and its entries (cascade)
@@ -184,24 +233,34 @@ class HabitDao {
 
   /// Batch insert multiple habits
   Future<void> batchInsert(List<Habit> habits) async {
-    await _dbHelper.batch((batch) {
-      for (final habit in habits) {
-        batch.insert(
-          'habits',
-          _habitToMap(habit),
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+    final db = _db;
+    if (db == null) return;
 
-        for (final entry in habit.history.entries) {
-          batch.insert('habit_entries', {
-            'habit_id': habit.id,
-            'date': entry.key,
-            'value': jsonEncode(entry.value),
-            'created_at': DateTime.now().toIso8601String(),
-          }, conflictAlgorithm: ConflictAlgorithm.replace);
+    try {
+      await _dbHelper.batch((batch) {
+        for (final habit in habits) {
+          batch.insert(
+            'habits',
+            _habitToMap(habit),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+
+          for (final entry in habit.history.entries) {
+            batch.insert('habit_entries', {
+              'habit_id': habit.id,
+              'date': entry.key,
+              'value': jsonEncode(entry.value),
+              'created_at': DateTime.now().toIso8601String(),
+            }, conflictAlgorithm: ConflictAlgorithm.replace);
+          }
         }
+      });
+    } on UnsupportedError {
+      // Web platform - fallback to sequential inserts
+      for (final habit in habits) {
+        await insert(habit);
       }
-    });
+    }
   }
 
   /// Get habits pending sync
