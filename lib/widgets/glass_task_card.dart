@@ -116,6 +116,38 @@ class _GlassTaskCardState extends State<GlassTaskCard>
     });
   }
 
+  /// Plays the full completion animation sequence for marking a task as done
+  void _playCompletionAnimation() async {
+    // Haptic feedback
+    HapticFeedback.mediumImpact();
+
+    // 1. Start confetti explosion
+    _confettiController.play();
+
+    // 2. Checkbox bounce animation
+    _checkboxAnimationController?.forward().then((_) {
+      _checkboxAnimationController?.reverse();
+    });
+
+    // 3. Show and animate success overlay
+    setState(() {
+      _showSuccessOverlay = true;
+    });
+    _successAnimationController?.forward();
+
+    // Wait for success overlay to reach peak (400ms)
+    await Future.delayed(const Duration(milliseconds: 400));
+
+    // 4. Start card fade out
+    _cardFadeController?.forward();
+
+    // Wait for card to fade out (600ms)
+    await Future.delayed(const Duration(milliseconds: 600));
+
+    // 5. Move task to completed section
+    widget.onToggle(widget.todo);
+  }
+
   String _formatDateTime(DateTime? dateTime) {
     if (dateTime == null) return '';
     final now = DateTime.now();
@@ -189,11 +221,24 @@ class _GlassTaskCardState extends State<GlassTaskCard>
         context,
         DismissDirection.endToStart,
       ),
-      onDismissed: (direction) {
-        if (direction == DismissDirection.endToStart) {
-          widget.onDelete(widget.todo);
+      confirmDismiss: (direction) async {
+        if (direction == DismissDirection.startToEnd) {
+          // Swipe right: Mark task as done
+          if (!widget.isCompleted) {
+            // Return false first to snap the card back to position,
+            // then play animations after the card is back in place
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _playCompletionAnimation();
+            });
+          } else {
+            HapticFeedback.lightImpact();
+            widget.onToggle(widget.todo);
+          }
+          return false;
         } else {
+          // Swipe left: Archive the task
           widget.onArchive(widget.todo);
+          return true;
         }
       },
       child: Stack(
@@ -669,21 +714,22 @@ class _GlassTaskCardState extends State<GlassTaskCard>
     BuildContext context,
     DismissDirection direction,
   ) {
-    final isDeleteAction = direction == DismissDirection.endToStart;
+    // Swipe right (startToEnd) = Done action, Swipe left (endToStart) = Archive action
+    final isDoneAction = direction == DismissDirection.startToEnd;
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: isDeleteAction
-              ? [Colors.red.shade400, Colors.red.shade600]
+          colors: isDoneAction
+              ? [Colors.blue.shade400, Colors.blue.shade600]
               : [Colors.orange.shade400, Colors.orange.shade600],
         ),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: (isDeleteAction ? Colors.red : Colors.orange).withOpacity(
+            color: (isDoneAction ? Colors.blue : Colors.orange).withOpacity(
               0.3,
             ),
             blurRadius: 8,
@@ -691,19 +737,19 @@ class _GlassTaskCardState extends State<GlassTaskCard>
           ),
         ],
       ),
-      alignment: isDeleteAction ? Alignment.centerRight : Alignment.centerLeft,
+      alignment: isDoneAction ? Alignment.centerLeft : Alignment.centerRight,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            isDeleteAction ? Icons.delete : Icons.archive,
+            isDoneAction ? Icons.check_circle : Icons.archive,
             color: Colors.white,
             size: 22,
           ),
           const SizedBox(width: 8),
           Text(
-            isDeleteAction ? 'Delete' : 'Archive',
+            isDoneAction ? 'Done' : 'Archive',
             style: GoogleFonts.outfit(
               color: Colors.white,
               fontWeight: FontWeight.w600,
