@@ -4,10 +4,17 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import '../services/streak_service.dart';
 
-class StreakDisplayWidget extends StatelessWidget {
+class StreakDisplayWidget extends StatefulWidget {
   final bool compact;
 
   const StreakDisplayWidget({super.key, this.compact = false});
+
+  @override
+  State<StreakDisplayWidget> createState() => _StreakDisplayWidgetState();
+}
+
+class _StreakDisplayWidgetState extends State<StreakDisplayWidget> {
+  bool _isHovering = false;
 
   @override
   Widget build(BuildContext context) {
@@ -18,11 +25,35 @@ class StreakDisplayWidget extends StatelessWidget {
         final freezeDays = streakService.freezeDaysAvailable;
         final restoreTokens = streakService.restoreTokens;
 
-        if (compact) {
+        if (widget.compact) {
           return _buildCompact(context, streak, isFrozen);
         }
 
-        return Container(
+        return _buildFullDisplay(
+          context,
+          streak,
+          isFrozen,
+          freezeDays,
+          restoreTokens,
+        );
+      },
+    );
+  }
+
+  Widget _buildFullDisplay(
+    BuildContext context,
+    int streak,
+    bool isFrozen,
+    int freezeDays,
+    int restoreTokens,
+  ) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovering = true),
+      onExit: (_) => setState(() => _isHovering = false),
+      child: GestureDetector(
+        onTap: () {}, // Make widget hit-testable
+        child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface.withAlpha(128),
@@ -51,34 +82,42 @@ class StreakDisplayWidget extends StatelessWidget {
               ],
             ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
   Widget _buildCompact(BuildContext context, int streak, bool isFrozen) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withAlpha(128),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withAlpha(26),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildIcon(isFrozen, 20),
-          const SizedBox(width: 4),
-          Text(
-            '$streak',
-            style: GoogleFonts.outfit(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovering = true),
+      onExit: (_) => setState(() => _isHovering = false),
+      child: GestureDetector(
+        onTap: () {}, // Make widget hit-testable
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface.withAlpha(128),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outline.withAlpha(26),
             ),
           ),
-        ],
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildIcon(isFrozen, 20),
+              const SizedBox(width: 4),
+              Text(
+                '$streak',
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -139,7 +178,7 @@ class StreakDisplayWidget extends StatelessWidget {
     if (isFrozen) {
       return Icon(Icons.ac_unit, color: Colors.blue, size: size);
     }
-    return _StreakIcon(size: size);
+    return _StreakIcon(size: size, isHovering: _isHovering);
   }
 
   Widget _buildFreezeStatus(BuildContext context, int count) {
@@ -187,8 +226,9 @@ class StreakDisplayWidget extends StatelessWidget {
 
 class _StreakIcon extends StatefulWidget {
   final double size;
+  final bool isHovering;
 
-  const _StreakIcon({required this.size});
+  const _StreakIcon({required this.size, required this.isHovering});
 
   @override
   State<_StreakIcon> createState() => _StreakIconState();
@@ -198,7 +238,6 @@ class _StreakIconState extends State<_StreakIcon>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   int _loopCount = 0;
-  bool _isHovering = false;
 
   @override
   void initState() {
@@ -208,7 +247,7 @@ class _StreakIconState extends State<_StreakIcon>
       if (status == AnimationStatus.completed) {
         _loopCount++;
         // Continue looping if hovering, otherwise stop after 2 loops
-        if (_isHovering || _loopCount < 2) {
+        if (widget.isHovering || _loopCount < 2) {
           _controller.reset();
           _controller.forward();
         }
@@ -217,59 +256,62 @@ class _StreakIconState extends State<_StreakIcon>
   }
 
   @override
+  void didUpdateWidget(_StreakIcon oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    print(
+      'didUpdateWidget called: old=${oldWidget.isHovering}, new=${widget.isHovering}',
+    );
+
+    if (widget.isHovering && !oldWidget.isHovering) {
+      // Started hovering - restart animation
+      print('Started hovering - restarting animation');
+      _loopCount = 0;
+      if (_controller.duration != null) {
+        _controller.reset();
+        _controller.forward();
+      }
+    } else if (!widget.isHovering && oldWidget.isHovering) {
+      // Stopped hovering
+      print('Stopped hovering');
+    }
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
 
-  void _handleHover(bool isHovering) {
-    setState(() {
-      _isHovering = isHovering;
-    });
-    if (isHovering) {
-      // Reset loop count to ensure it plays efficiently on hover
-      _loopCount = 0;
-      if (!_controller.isAnimating && _controller.duration != null) {
-        _controller.reset();
-        _controller.forward();
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => _handleHover(true),
-      onExit: (_) => _handleHover(false),
-      child: SizedBox(
-        width: widget.size,
-        height: widget.size,
-        child: Lottie.asset(
-          'assets/animations/streak_fire.json',
-          controller: _controller,
-          fit: BoxFit.contain,
-          frameBuilder: (context, child, composition) {
-            if (composition == null) {
-              return Icon(
-                Icons.local_fire_department,
-                color: Colors.orange,
-                size: widget.size,
-              );
-            }
-            return child;
-          },
-          onLoaded: (composition) {
-            _controller.duration = composition.duration;
-            _controller.forward();
-          },
-          errorBuilder: (context, error, stackTrace) {
+    return SizedBox(
+      width: widget.size,
+      height: widget.size,
+      child: Lottie.asset(
+        'assets/animations/streak_fire.json',
+        controller: _controller,
+        fit: BoxFit.contain,
+        frameBuilder: (context, child, composition) {
+          if (composition == null) {
             return Icon(
               Icons.local_fire_department,
               color: Colors.orange,
               size: widget.size,
             );
-          },
-        ),
+          }
+          return child;
+        },
+        onLoaded: (composition) {
+          _controller.duration = composition.duration;
+          _controller.forward();
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return Icon(
+            Icons.local_fire_department,
+            color: Colors.orange,
+            size: widget.size,
+          );
+        },
       ),
     );
   }
