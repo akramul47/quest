@@ -23,7 +23,7 @@ class StreakDisplayWidget extends StatelessWidget {
         }
 
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface.withAlpha(128),
             borderRadius: BorderRadius.circular(16),
@@ -89,15 +89,24 @@ class StreakDisplayWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            _buildIcon(isFrozen, 40),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 35.0),
+              child: _buildIcon(isFrozen, 65),
+            ),
             const SizedBox(width: 8),
-            Text(
-              '$streak',
-              style: GoogleFonts.outfit(
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
-                height: 1,
+            Container(
+              height: 65, // Match icon height
+              alignment:
+                  Alignment.bottomCenter, // Fine-tune padding from bottom
+              child: Text(
+                '$streak',
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 32,
+                  height: 1.0,
+                ),
               ),
             ),
           ],
@@ -222,9 +231,20 @@ class _StreakIconState extends State<_StreakIcon>
       child: SizedBox(
         width: widget.size,
         height: widget.size,
-        child: Lottie.network(
-          'https://assets5.lottiefiles.com/packages/lf20_benndk0q.json',
+        child: Lottie.asset(
+          'assets/animations/streak_fire.json',
           controller: _controller,
+          fit: BoxFit.contain,
+          frameBuilder: (context, child, composition) {
+            if (composition == null) {
+              return Icon(
+                Icons.local_fire_department,
+                color: Colors.orange,
+                size: widget.size,
+              );
+            }
+            return child;
+          },
           onLoaded: (composition) {
             _controller.duration = composition.duration;
             _controller.forward();
