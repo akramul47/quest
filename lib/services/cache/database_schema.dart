@@ -5,7 +5,7 @@
 library;
 
 /// Current database version - increment when schema changes
-const int kDatabaseVersion = 1;
+const int kDatabaseVersion = 2;
 
 /// Database name
 const String kDatabaseName = 'quest_cache.db';
@@ -110,6 +110,50 @@ const String createSyncMetadataTable = '''
   )
 ''';
 
+/// Streak system tables
+const String createStreakTable = '''
+  CREATE TABLE IF NOT EXISTS streak (
+    id INTEGER PRIMARY KEY DEFAULT 1,
+    current_streak INTEGER NOT NULL DEFAULT 0,
+    longest_streak INTEGER NOT NULL DEFAULT 0,
+    last_active_date TEXT,
+    streak_start_date TEXT,
+    freeze_days_used INTEGER NOT NULL DEFAULT 0,
+    freeze_days_available INTEGER NOT NULL DEFAULT 2,
+    restore_tokens INTEGER NOT NULL DEFAULT 0,
+    is_frozen_today INTEGER NOT NULL DEFAULT 0,
+    server_id TEXT,
+    last_modified TEXT NOT NULL,
+    sync_status INTEGER NOT NULL DEFAULT 0
+  )
+''';
+
+const String createDailyActivityTable = '''
+  CREATE TABLE IF NOT EXISTS daily_activity (
+    date TEXT PRIMARY KEY,
+    completed_todo INTEGER NOT NULL DEFAULT 0,
+    logged_habit INTEGER NOT NULL DEFAULT 0,
+    tracked_focus INTEGER NOT NULL DEFAULT 0,
+    is_active INTEGER NOT NULL DEFAULT 0,
+    is_freeze_day INTEGER NOT NULL DEFAULT 0,
+    last_modified TEXT NOT NULL,
+    sync_status INTEGER NOT NULL DEFAULT 0
+  )
+''';
+
+const String createRestoreTokensTable = '''
+  CREATE TABLE IF NOT EXISTS restore_tokens (
+    id TEXT PRIMARY KEY,
+    generated_at TEXT NOT NULL,
+    expires_at TEXT,
+    is_used INTEGER NOT NULL DEFAULT 0,
+    used_at TEXT,
+    server_id TEXT,
+    last_modified TEXT NOT NULL,
+    sync_status INTEGER NOT NULL DEFAULT 0
+  )
+''';
+
 /// Create indexes for better query performance
 const List<String> createIndexes = [
   'CREATE INDEX IF NOT EXISTS idx_todos_archived ON todos (is_archived)',
@@ -122,6 +166,9 @@ const List<String> createIndexes = [
   'CREATE INDEX IF NOT EXISTS idx_habit_entries_date ON habit_entries (date)',
   'CREATE INDEX IF NOT EXISTS idx_focus_sessions_start ON focus_sessions (start_time)',
   'CREATE INDEX IF NOT EXISTS idx_focus_sessions_sync ON focus_sessions (sync_status)',
+  // Streak indexes
+  'CREATE INDEX IF NOT EXISTS idx_daily_activity_date ON daily_activity (date)',
+  'CREATE INDEX IF NOT EXISTS idx_restore_tokens_used ON restore_tokens (is_used)',
 ];
 
 /// All table creation statements in order
@@ -133,4 +180,20 @@ const List<String> allCreateTableStatements = [
   createFocusSessionsTable,
   createSettingsTable,
   createSyncMetadataTable,
+  // Streak tables
+  createStreakTable,
+  createDailyActivityTable,
+  createRestoreTokensTable,
 ];
+
+/// Migration statements for version upgrades
+const Map<int, List<String>> migrationStatements = {
+  // Version 1 -> 2: Add streak tables
+  2: [
+    createStreakTable,
+    createDailyActivityTable,
+    createRestoreTokensTable,
+    'CREATE INDEX IF NOT EXISTS idx_daily_activity_date ON daily_activity (date)',
+    'CREATE INDEX IF NOT EXISTS idx_restore_tokens_used ON restore_tokens (is_used)',
+  ],
+};

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/timer_state.dart';
 import '../services/cache/daos/focus_session_dao.dart';
+import '../services/streak_service.dart';
 
 class FocusProvider extends ChangeNotifier {
   final FocusSessionDao _focusSessionDao = FocusSessionDao();
@@ -150,7 +151,7 @@ class FocusProvider extends ChangeNotifier {
     _resetTimer();
   }
 
-  void _onTimerComplete() {
+  Future<void> _onTimerComplete() async {
     _timer?.cancel();
     _status = TimerStatus.completed;
 
@@ -171,6 +172,9 @@ class FocusProvider extends ChangeNotifier {
 
       // Save session data
       _saveFocusData();
+
+      // Record streak
+      await StreakService.instance.recordFocusSession();
 
       // Show celebration animation
       _showCelebration = true;

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/habit.dart';
 import '../services/cache/daos/habit_dao.dart';
+import '../services/streak_service.dart';
 
 /// Provider for managing the list of habits with SQLite persistence.
 ///
@@ -113,6 +114,11 @@ class HabitList extends ChangeNotifier {
       // Persist the updated history entry
       final value = _habits[index].getValueForDate(date);
       await _habitDao.recordEntry(id, date, value);
+
+      // Record streak if completed
+      if (_habits[index].isCompletedOn(date)) {
+        await StreakService.instance.recordHabitLogged();
+      }
     }
   }
 
@@ -124,6 +130,11 @@ class HabitList extends ChangeNotifier {
       notifyListeners();
 
       await _habitDao.recordEntry(id, date, value);
+
+      // Record streak if completed
+      if (_habits[index].isCompletedOn(date)) {
+        await StreakService.instance.recordHabitLogged();
+      }
     }
   }
 

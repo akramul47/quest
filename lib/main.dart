@@ -12,6 +12,7 @@ import 'package:quest/screens/main_navigation_screen.dart';
 import 'package:quest/services/storage_service.dart';
 import 'package:quest/services/windows_service.dart';
 import 'package:quest/services/cache/cache.dart';
+import 'services/streak_service.dart';
 
 import 'models/todo_list.dart';
 import 'providers/habit_provider.dart';
@@ -96,6 +97,9 @@ void main() async {
 
   // Initialize SQLite database
   await _initializeDatabase();
+
+  // Initialize StreakService
+  await StreakService.instance.init();
 
   // Note: System UI overlay will be configured dynamically based on theme in MaterialApp
   // This ensures proper status bar colors for both light and dark modes
@@ -209,6 +213,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => TodoList()..initialize()),
         ChangeNotifierProvider(create: (_) => HabitList()..initialize()),
         ChangeNotifierProvider(create: (_) => FocusProvider()..initialize()),
+        ChangeNotifierProvider.value(value: StreakService.instance),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(
           create: (_) => WindowStateProvider()..initialize(),

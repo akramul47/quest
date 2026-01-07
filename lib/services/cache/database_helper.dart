@@ -111,11 +111,15 @@ class DatabaseHelper {
 
   /// Handle database migrations
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // Migration logic for future schema changes
-    // Example:
-    // if (oldVersion < 2) {
-    //   await db.execute('ALTER TABLE todos ADD COLUMN new_field TEXT');
-    // }
+    // Run migrations sequentially for each version
+    for (int version = oldVersion + 1; version <= newVersion; version++) {
+      final statements = migrationStatements[version];
+      if (statements != null) {
+        for (final sql in statements) {
+          await db.execute(sql);
+        }
+      }
+    }
   }
 
   /// Close the database connection

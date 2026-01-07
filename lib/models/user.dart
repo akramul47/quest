@@ -17,6 +17,16 @@ class User {
   final DateTime createdAt;
   final DateTime? lastLoginAt;
 
+  // Location fields for weather widget
+  final double? latitude;
+  final double? longitude;
+  final bool locationEnabled;
+  final String? timezone;
+
+  // Streak fields (synced from streak service)
+  final int currentStreak;
+  final int longestStreak;
+
   const User({
     required this.id,
     required this.email,
@@ -29,6 +39,14 @@ class User {
     this.enabledFeatures = const [],
     required this.createdAt,
     this.lastLoginAt,
+    // Location
+    this.latitude,
+    this.longitude,
+    this.locationEnabled = false,
+    this.timezone,
+    // Streak
+    this.currentStreak = 0,
+    this.longestStreak = 0,
   });
 
   /// Get display avatar (custom if set, otherwise Google, otherwise null)
@@ -54,6 +72,10 @@ class User {
   /// Check if premium is active (not expired)
   bool get hasPremiumAccess => isPremium && !_isPremiumExpired;
 
+  /// Check if location is set and enabled
+  bool get hasLocation =>
+      locationEnabled && latitude != null && longitude != null;
+
   User copyWith({
     String? name,
     String? avatarUrl,
@@ -62,6 +84,12 @@ class User {
     DateTime? premiumExpiresAt,
     List<String>? enabledFeatures,
     DateTime? lastLoginAt,
+    double? latitude,
+    double? longitude,
+    bool? locationEnabled,
+    String? timezone,
+    int? currentStreak,
+    int? longestStreak,
   }) {
     return User(
       id: id,
@@ -75,6 +103,12 @@ class User {
       enabledFeatures: enabledFeatures ?? this.enabledFeatures,
       createdAt: createdAt,
       lastLoginAt: lastLoginAt ?? this.lastLoginAt,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      locationEnabled: locationEnabled ?? this.locationEnabled,
+      timezone: timezone ?? this.timezone,
+      currentStreak: currentStreak ?? this.currentStreak,
+      longestStreak: longestStreak ?? this.longestStreak,
     );
   }
 
@@ -91,6 +125,14 @@ class User {
       'enabledFeatures': enabledFeatures,
       'createdAt': createdAt.toIso8601String(),
       'lastLoginAt': lastLoginAt?.toIso8601String(),
+      // Location
+      'latitude': latitude,
+      'longitude': longitude,
+      'locationEnabled': locationEnabled,
+      'timezone': timezone,
+      // Streak
+      'currentStreak': currentStreak,
+      'longestStreak': longestStreak,
     };
   }
 
@@ -118,6 +160,14 @@ class User {
       lastLoginAt: json['lastLoginAt'] != null
           ? DateTime.parse(json['lastLoginAt'] as String)
           : null,
+      // Location
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+      locationEnabled: json['locationEnabled'] as bool? ?? false,
+      timezone: json['timezone'] as String?,
+      // Streak
+      currentStreak: json['currentStreak'] as int? ?? 0,
+      longestStreak: json['longestStreak'] as int? ?? 0,
     );
   }
 
@@ -131,6 +181,9 @@ class User {
       isPremium: false,
       enabledFeatures: [],
       createdAt: DateTime.now(),
+      locationEnabled: false,
+      currentStreak: 0,
+      longestStreak: 0,
     );
   }
 }

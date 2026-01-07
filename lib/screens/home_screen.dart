@@ -11,6 +11,7 @@ import '../services/storage_service.dart';
 import '../widgets/add_task_field.dart';
 import '../widgets/profile_avatar.dart';
 import '../widgets/window_controls_bar.dart';
+import '../widgets/streak_display.dart';
 import 'archives_screen.dart';
 import 'settings_screen.dart';
 import 'task_detail_screen.dart';
@@ -551,6 +552,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const Spacer(),
+        // Streak Display
+        const StreakDisplayWidget(compact: true),
+        const SizedBox(width: 16),
         IconButton(
           icon: const Icon(Icons.archive_outlined),
           iconSize: ResponsiveLayout.responsiveValue<double>(

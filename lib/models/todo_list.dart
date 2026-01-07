@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'todo.dart';
 import '../services/cache/daos/todo_dao.dart';
+import '../services/streak_service.dart';
 
 /// TodoList provider that manages todos with SQLite persistence.
 ///
@@ -89,6 +90,8 @@ class TodoList extends ChangeNotifier {
   Future<void> toggleTodo(String id) async {
     final todoIndex = _todos.indexWhere((todo) => todo.id == id);
     if (todoIndex != -1) {
+      final wasCompleted = _todos[todoIndex].isCompleted;
+
       _todos[todoIndex] = _todos[todoIndex].copyWith(
         isCompleted: !_todos[todoIndex].isCompleted,
         completedAt: _todos[todoIndex].isCompleted ? null : DateTime.now(),
@@ -96,6 +99,11 @@ class TodoList extends ChangeNotifier {
       notifyListeners();
 
       await _todoDao.update(_todos[todoIndex]);
+
+      // Record streak if completed
+      if (!wasCompleted && _todos[todoIndex].isCompleted) {
+        await StreakService.instance.recordTodoCompleted();
+      }
     }
   }
 
