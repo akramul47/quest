@@ -15,9 +15,13 @@ class AppTheme {
 
   // Primary theme colors
   static const primaryColor = Color(0xFF6366F1); // Indigo
-  static const primaryColorDark = Color(0xFF818CF8); // Lighter indigo for dark mode
+  static const primaryColorDark = Color(
+    0xFF818CF8,
+  ); // Lighter indigo for dark mode
   static const secondaryColor = Color(0xFFEC4899); // Pink
-  static const secondaryColorDark = Color(0xFFF472B6); // Lighter pink for dark mode
+  static const secondaryColorDark = Color(
+    0xFFF472B6,
+  ); // Lighter pink for dark mode
 
   // Text colors - Light mode
   static const textDark = Color(0xFF1F2937);
@@ -35,21 +39,27 @@ class AppTheme {
 
   // Background gradient colors - Dark mode (AMOLED Black with subtle gradient)
   static const backgroundGradientStartDark = Color(0xFF000000); // Pure black
-  static const backgroundGradientEndDark = Color(0xFF0A0A0A); // Near black with subtle tone
+  static const backgroundGradientEndDark = Color(
+    0xFF0A0A0A,
+  ); // Near black with subtle tone
 
   // Crystal Gold tier colors
   static const crystalGoldPrimary = Color(0xFFFFD700); // Gold
   static const crystalGoldSecondary = Color(0xFFFFA500); // Orange gold
   static const crystalGoldGlow = Color(0xFFFFE55C); // Light gold glow
 
+  // Streak colors (fire theme)
+  static const fireOrange = Color(0xFFFF8C42);
+  static const fireOrangeDark = Color(0xFFFF6B00);
+  static const warmBrown = Color(0xFF1A0A00);
+  static const mutedOrange = Color(0xFFB86B3F);
+  static const inactiveGray = Color(0xFF3D3D3D);
+
   // Glass effect decorations - Light mode
   static BoxDecoration glassEffect = BoxDecoration(
     color: glassBackground,
     borderRadius: BorderRadius.circular(16),
-    border: Border.all(
-      color: Colors.white.withOpacity(0.2),
-      width: 1.5,
-    ),
+    border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
     boxShadow: [
       BoxShadow(
         color: Colors.black.withOpacity(0.1),
@@ -63,10 +73,7 @@ class AppTheme {
   static BoxDecoration glassEffectDark = BoxDecoration(
     color: glassBackgroundDark,
     borderRadius: BorderRadius.circular(16),
-    border: Border.all(
-      color: Colors.white.withOpacity(0.1),
-      width: 1.5,
-    ),
+    border: Border.all(color: Colors.white.withOpacity(0.1), width: 1.5),
     boxShadow: [
       BoxShadow(
         color: Colors.black.withOpacity(0.3),
@@ -79,29 +86,17 @@ class AppTheme {
   static BoxDecoration taskCardEffect = BoxDecoration(
     color: taskCardBackground,
     borderRadius: BorderRadius.circular(12),
-    border: Border.all(
-      color: Colors.white.withOpacity(0.2),
-    ),
+    border: Border.all(color: Colors.white.withOpacity(0.2)),
     boxShadow: [
-      BoxShadow(
-        color: Colors.black.withOpacity(0.05),
-        blurRadius: 8,
-      ),
+      BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8),
     ],
   );
 
   static BoxDecoration taskCardEffectDark = BoxDecoration(
     color: taskCardBackgroundDark,
     borderRadius: BorderRadius.circular(12),
-    border: Border.all(
-      color: Colors.white.withOpacity(0.1),
-    ),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black.withOpacity(0.2),
-        blurRadius: 8,
-      ),
-    ],
+    border: Border.all(color: Colors.white.withOpacity(0.1)),
+    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8)],
   );
 
   // Text styles
@@ -177,7 +172,7 @@ class AppTheme {
         ),
         labelLarge: GoogleFonts.inter(
           fontSize: 16,
-          fontWeight: FontWeight.w200,  // Change if necesary
+          fontWeight: FontWeight.w200, // Change if necesary
           color: textDark,
         ),
       ),
@@ -197,23 +192,16 @@ class AppTheme {
           fontWeight: FontWeight.bold,
           color: textDark,
         ),
-        iconTheme: const IconThemeData(
-          color: textDark,
-        ),
+        iconTheme: const IconThemeData(color: textDark),
       ),
 
       // Icon theme
-      iconTheme: const IconThemeData(
-        color: textDark,
-        size: 24,
-      ),
+      iconTheme: const IconThemeData(color: textDark, size: 24),
 
       // Card theme
       cardTheme: CardThemeData(
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         color: glassBackground,
       ),
 
@@ -223,21 +211,15 @@ class AppTheme {
         fillColor: Colors.transparent,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Colors.grey.withOpacity(0.2),
-          ),
+          borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Colors.grey.withOpacity(0.2),
-          ),
+          borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: primaryColor,
-          ),
+          borderSide: const BorderSide(color: primaryColor),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -250,21 +232,15 @@ class AppTheme {
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
         elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
 
       // Snackbar theme
       snackBarTheme: SnackBarThemeData(
         backgroundColor: Colors.black87,
-        contentTextStyle: GoogleFonts.inter(
-          color: Colors.white,
-        ),
+        contentTextStyle: GoogleFonts.inter(color: Colors.white),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
 
       // Checkbox theme
@@ -275,9 +251,7 @@ class AppTheme {
           }
           return Colors.transparent;
         }),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
 
       // Divider theme
@@ -359,23 +333,16 @@ class AppTheme {
           fontWeight: FontWeight.bold,
           color: textDarkMode,
         ),
-        iconTheme: const IconThemeData(
-          color: textDarkMode,
-        ),
+        iconTheme: const IconThemeData(color: textDarkMode),
       ),
 
       // Icon theme
-      iconTheme: const IconThemeData(
-        color: textDarkMode,
-        size: 24,
-      ),
+      iconTheme: const IconThemeData(color: textDarkMode, size: 24),
 
       // Card theme
       cardTheme: CardThemeData(
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         color: glassBackgroundDark,
       ),
 
@@ -385,21 +352,15 @@ class AppTheme {
         fillColor: Colors.transparent,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Colors.white.withOpacity(0.1),
-          ),
+          borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Colors.white.withOpacity(0.1),
-          ),
+          borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: primaryColorDark,
-          ),
+          borderSide: const BorderSide(color: primaryColorDark),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -412,21 +373,15 @@ class AppTheme {
         backgroundColor: primaryColorDark,
         foregroundColor: Colors.black,
         elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
 
       // Snackbar theme
       snackBarTheme: SnackBarThemeData(
         backgroundColor: const Color(0xFF1F1F1F),
-        contentTextStyle: GoogleFonts.inter(
-          color: Colors.white,
-        ),
+        contentTextStyle: GoogleFonts.inter(color: Colors.white),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
 
       // Checkbox theme
@@ -437,9 +392,7 @@ class AppTheme {
           }
           return Colors.transparent;
         }),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
 
       // Divider theme
@@ -465,25 +418,16 @@ class TaskAnimations {
       position: Tween<Offset>(
         begin: const Offset(1.0, 0.0),
         end: Offset.zero,
-      ).animate(CurvedAnimation(
-        parent: animation,
-        curve: defaultCurve,
-      )),
+      ).animate(CurvedAnimation(parent: animation, curve: defaultCurve)),
       child: child,
     );
   }
 
   static Widget fadeScale(Animation<double> animation, Widget child) {
     return ScaleTransition(
-      scale: CurvedAnimation(
-        parent: animation,
-        curve: Curves.easeOutCubic,
-      ),
+      scale: CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
       child: FadeTransition(
-        opacity: CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeInOut,
-        ),
+        opacity: CurvedAnimation(parent: animation, curve: Curves.easeInOut),
         child: child,
       ),
     );
