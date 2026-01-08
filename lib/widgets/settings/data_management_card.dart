@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
-import 'dart:typed_data';
 import 'package:universal_html/html.dart' as html;
 import '../../Utils/app_theme.dart';
 import '../../Utils/responsive_layout.dart';

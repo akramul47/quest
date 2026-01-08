@@ -316,7 +316,10 @@ class _WindowFrameState extends State<WindowFrame> with WindowListener {
       final size = await windowManager.getSize();
       final position = await windowManager.getPosition();
       final storageService = StorageService();
+
+      if (!mounted) return;
       final windowStateProvider = context.read<WindowStateProvider>();
+
       await storageService.saveWindowState(
         width: size.width,
         height: size.height,
@@ -396,12 +399,12 @@ class _WindowFrameState extends State<WindowFrame> with WindowListener {
       child: Container(
         decoration: BoxDecoration(
           color: isDark
-              ? const Color(0xFF000000).withOpacity(0.98)
-              : Theme.of(context).colorScheme.background.withOpacity(0.95),
+              ? const Color(0xFF000000).withValues(alpha: 0.98)
+              : Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.5 : 0.1),
+              color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.1),
               blurRadius: 10,
               spreadRadius: 2,
             ),
@@ -435,10 +438,12 @@ class _WindowFrameState extends State<WindowFrame> with WindowListener {
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           decoration: BoxDecoration(
                             color: isDark
-                                ? AppTheme.primaryColorDark.withOpacity(0.1)
+                                ? AppTheme.primaryColorDark.withValues(
+                                    alpha: 0.1,
+                                  )
                                 : Theme.of(
                                     context,
-                                  ).colorScheme.primary.withOpacity(0.1),
+                                  ).colorScheme.primary.withValues(alpha: 0.1),
                             borderRadius: const BorderRadius.only(
                               topLeft: Radius.circular(12),
                               topRight: Radius.circular(12),
@@ -489,11 +494,11 @@ class _WindowFrameState extends State<WindowFrame> with WindowListener {
                                                   ).colorScheme.primary)
                                           : (isDark
                                                 ? AppTheme.primaryColorDark
-                                                      .withOpacity(0.6)
+                                                      .withValues(alpha: 0.6)
                                                 : Theme.of(context)
                                                       .colorScheme
                                                       .primary
-                                                      .withOpacity(0.6)),
+                                                      .withValues(alpha: 0.6)),
                                     ),
                                     onPressed: () async {
                                       await windowStateProvider

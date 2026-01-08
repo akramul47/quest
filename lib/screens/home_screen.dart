@@ -13,7 +13,6 @@ import '../widgets/profile_avatar.dart';
 import '../widgets/window_controls_bar.dart';
 import '../widgets/streak_display.dart';
 import 'archives_screen.dart';
-import 'settings_screen.dart';
 import 'task_detail_screen.dart';
 import '../utils/page_transitions.dart';
 
@@ -161,30 +160,30 @@ class _HomeScreenState extends State<HomeScreen> {
                         end: Alignment.bottomRight,
                         colors: isDark
                             ? [
-                                Colors.white.withOpacity(0.05),
-                                Colors.white.withOpacity(0.02),
+                                Colors.white.withValues(alpha: 0.05),
+                                Colors.white.withValues(alpha: 0.02),
                               ]
                             : [
-                                Colors.white.withOpacity(0.7),
-                                Colors.white.withOpacity(0.4),
+                                Colors.white.withValues(alpha: 0.7),
+                                Colors.white.withValues(alpha: 0.4),
                               ],
                       ),
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
                         color: isDark
-                            ? Colors.white.withOpacity(0.1)
+                            ? Colors.white.withValues(alpha: 0.1)
                             : Theme.of(
                                 context,
-                              ).colorScheme.primary.withOpacity(0.08),
+                              ).colorScheme.primary.withValues(alpha: 0.08),
                         width: 1,
                       ),
                       boxShadow: [
                         BoxShadow(
                           color: isDark
-                              ? Colors.black.withOpacity(0.3)
+                              ? Colors.black.withValues(alpha: 0.3)
                               : Theme.of(
                                   context,
-                                ).colorScheme.primary.withOpacity(0.05),
+                                ).colorScheme.primary.withValues(alpha: 0.05),
                           blurRadius: 20,
                           offset: const Offset(0, 4),
                         ),
@@ -202,10 +201,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             border: Border(
                               bottom: BorderSide(
                                 color: isDark
-                                    ? Colors.white.withOpacity(0.1)
+                                    ? Colors.white.withValues(alpha: 0.1)
                                     : Theme.of(
                                         context,
-                                      ).colorScheme.primary.withOpacity(0.1),
+                                      ).colorScheme.primary.withValues(alpha: 0.1),
                                 width: 1.5,
                               ),
                             ),
@@ -222,13 +221,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                               : Theme.of(
                                                   context,
                                                 ).colorScheme.primary)
-                                          .withOpacity(0.15),
+                                          .withValues(alpha: 0.15),
                                       (isDark
                                               ? AppTheme.primaryColorDark
                                               : Theme.of(
                                                   context,
                                                 ).colorScheme.primary)
-                                          .withOpacity(0.08),
+                                          .withValues(alpha: 0.08),
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(10),
@@ -325,22 +324,22 @@ class _HomeScreenState extends State<HomeScreen> {
                       colors: isDark
                           ? [
                               Colors.transparent,
-                              AppTheme.primaryColorDark.withOpacity(0.12),
-                              AppTheme.primaryColorDark.withOpacity(0.25),
-                              AppTheme.primaryColorDark.withOpacity(0.12),
+                              AppTheme.primaryColorDark.withValues(alpha: 0.12),
+                              AppTheme.primaryColorDark.withValues(alpha: 0.25),
+                              AppTheme.primaryColorDark.withValues(alpha: 0.12),
                               Colors.transparent,
                             ]
                           : [
                               Colors.transparent,
                               Theme.of(
                                 context,
-                              ).colorScheme.primary.withOpacity(0.12),
+                              ).colorScheme.primary.withValues(alpha: 0.12),
                               Theme.of(
                                 context,
-                              ).colorScheme.primary.withOpacity(0.25),
+                              ).colorScheme.primary.withValues(alpha: 0.25),
                               Theme.of(
                                 context,
-                              ).colorScheme.primary.withOpacity(0.12),
+                              ).colorScheme.primary.withValues(alpha: 0.12),
                               Colors.transparent,
                             ],
                       stops: const [0.0, 0.15, 0.5, 0.85, 1.0],
@@ -349,10 +348,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     boxShadow: [
                       BoxShadow(
                         color: isDark
-                            ? AppTheme.primaryColorDark.withOpacity(0.15)
+                            ? AppTheme.primaryColorDark.withValues(alpha: 0.15)
                             : Theme.of(
                                 context,
-                              ).colorScheme.primary.withOpacity(0.15),
+                              ).colorScheme.primary.withValues(alpha: 0.15),
                         blurRadius: 8,
                         spreadRadius: 1,
                       ),
@@ -368,30 +367,30 @@ class _HomeScreenState extends State<HomeScreen> {
                         end: Alignment.bottomRight,
                         colors: isDark
                             ? [
-                                Colors.white.withOpacity(0.05),
-                                Colors.white.withOpacity(0.02),
+                                Colors.white.withValues(alpha: 0.05),
+                                Colors.white.withValues(alpha: 0.02),
                               ]
                             : [
-                                Colors.white.withOpacity(0.7),
-                                Colors.white.withOpacity(0.4),
+                                Colors.white.withValues(alpha: 0.7),
+                                Colors.white.withValues(alpha: 0.4),
                               ],
                       ),
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
                         color: isDark
-                            ? Colors.white.withOpacity(0.1)
+                            ? Colors.white.withValues(alpha: 0.1)
                             : Theme.of(
                                 context,
-                              ).colorScheme.primary.withOpacity(0.08),
+                              ).colorScheme.primary.withValues(alpha: 0.08),
                         width: 1,
                       ),
                       boxShadow: [
                         BoxShadow(
                           color: isDark
-                              ? Colors.black.withOpacity(0.3)
+                              ? Colors.black.withValues(alpha: 0.3)
                               : Theme.of(
                                   context,
-                                ).colorScheme.primary.withOpacity(0.05),
+                                ).colorScheme.primary.withValues(alpha: 0.05),
                           blurRadius: 20,
                           offset: const Offset(0, 4),
                         ),
@@ -409,10 +408,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             border: Border(
                               bottom: BorderSide(
                                 color: isDark
-                                    ? Colors.white.withOpacity(0.1)
+                                    ? Colors.white.withValues(alpha: 0.1)
                                     : Theme.of(
                                         context,
-                                      ).colorScheme.primary.withOpacity(0.1),
+                                      ).colorScheme.primary.withValues(alpha: 0.1),
                                 width: 1.5,
                               ),
                             ),
@@ -429,13 +428,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                               : Theme.of(
                                                   context,
                                                 ).colorScheme.primary)
-                                          .withOpacity(0.15),
+                                          .withValues(alpha: 0.15),
                                       (isDark
                                               ? AppTheme.primaryColorDark
                                               : Theme.of(
                                                   context,
                                                 ).colorScheme.primary)
-                                          .withOpacity(0.08),
+                                          .withValues(alpha: 0.08),
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(10),
@@ -594,15 +593,15 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showProfilePanel(BuildContext context) {
     showDialog(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.2),
+      barrierColor: Colors.black.withValues(alpha: 0.2),
       barrierDismissible: true,
       builder: (BuildContext context) {
-        return Stack(
+        return const Stack(
           children: [
             Positioned(
               top: 60, // Position below the header
               right: 20, // Align with right edge
-              child: const Material(
+              child: Material(
                 color: Colors.transparent,
                 child: ProfilePanel(),
               ),
