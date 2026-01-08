@@ -24,8 +24,8 @@ class CheckInButton extends StatelessWidget {
           backgroundColor: isDark ? AppTheme.fireOrange : AppTheme.primaryColor,
           foregroundColor: isDark ? Colors.black : Colors.white,
           disabledBackgroundColor: isDark
-              ? AppTheme.fireOrange.withOpacity(0.3)
-              : AppTheme.primaryColor.withOpacity(0.3),
+              ? AppTheme.fireOrange.withValues(alpha: 0.3)
+              : AppTheme.primaryColor.withValues(alpha: 0.3),
           disabledForegroundColor: isDark ? Colors.black54 : Colors.white70,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(

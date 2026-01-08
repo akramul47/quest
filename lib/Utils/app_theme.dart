@@ -59,10 +59,10 @@ class AppTheme {
   static BoxDecoration glassEffect = BoxDecoration(
     color: glassBackground,
     borderRadius: BorderRadius.circular(16),
-    border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+    border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1.5),
     boxShadow: [
       BoxShadow(
-        color: Colors.black.withOpacity(0.1),
+        color: Colors.black.withValues(alpha: 0.1),
         blurRadius: 16,
         offset: const Offset(0, 4),
       ),
@@ -73,10 +73,10 @@ class AppTheme {
   static BoxDecoration glassEffectDark = BoxDecoration(
     color: glassBackgroundDark,
     borderRadius: BorderRadius.circular(16),
-    border: Border.all(color: Colors.white.withOpacity(0.1), width: 1.5),
+    border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1.5),
     boxShadow: [
       BoxShadow(
-        color: Colors.black.withOpacity(0.3),
+        color: Colors.black.withValues(alpha: 0.3),
         blurRadius: 16,
         offset: const Offset(0, 4),
       ),
@@ -86,17 +86,17 @@ class AppTheme {
   static BoxDecoration taskCardEffect = BoxDecoration(
     color: taskCardBackground,
     borderRadius: BorderRadius.circular(12),
-    border: Border.all(color: Colors.white.withOpacity(0.2)),
+    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
     boxShadow: [
-      BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8),
+      BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8),
     ],
   );
 
   static BoxDecoration taskCardEffectDark = BoxDecoration(
     color: taskCardBackgroundDark,
     borderRadius: BorderRadius.circular(12),
-    border: Border.all(color: Colors.white.withOpacity(0.1)),
-    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8)],
+    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 8)],
   );
 
   // Text styles
@@ -211,11 +211,11 @@ class AppTheme {
         fillColor: Colors.transparent,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+          borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+          borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -256,7 +256,7 @@ class AppTheme {
 
       // Divider theme
       dividerTheme: DividerThemeData(
-        color: Colors.grey.withOpacity(0.2),
+        color: Colors.grey.withValues(alpha: 0.2),
         thickness: 1,
         space: 24,
       ),
@@ -352,11 +352,11 @@ class AppTheme {
         fillColor: Colors.transparent,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -397,7 +397,7 @@ class AppTheme {
 
       // Divider theme
       dividerTheme: DividerThemeData(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         thickness: 1,
         space: 24,
       ),

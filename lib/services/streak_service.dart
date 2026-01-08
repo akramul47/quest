@@ -461,8 +461,10 @@ class StreakService extends ChangeNotifier {
   }
 
   /// Dispose resources
+  @override
   void dispose() {
     _midnightTimer?.cancel();
     _socketService.unsubscribe(SocketChannels.sync, _onSyncEvent);
+    super.dispose();
   }
 }
