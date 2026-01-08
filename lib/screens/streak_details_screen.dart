@@ -258,8 +258,9 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen>
 
   Widget _buildWeekCalendar(StreakService streakService, bool isDark) {
     final now = DateTime.now();
-    final weekStart = now.subtract(Duration(days: now.weekday - 1));
-    final days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    // Start from Sunday (weekday 7 becomes 0, so subtract weekday % 7)
+    final weekStart = now.subtract(Duration(days: now.weekday % 7));
+    final days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -614,22 +615,26 @@ class _MandalaPatternPainter extends CustomPainter {
     // Define technicolor palette - vibrant and colorful
     final colors = isDark
         ? [
-            const Color(0xFFFF6B00).withAlpha(120), // Orange
-            const Color(0xFFFF8C42).withAlpha(110), // Light orange
-            const Color(0xFFFFA500).withAlpha(100), // Gold
-            const Color(0xFFFFD700).withAlpha(95), // Yellow
-            const Color(0xFFFF69B4).withAlpha(90), // Pink
-            const Color(0xFFDA70D6).withAlpha(85), // Orchid
-            const Color(0xFFFF1493).withAlpha(80), // Deep pink
+            const Color(0xFFFF3366).withAlpha(180), // Neon coral
+            const Color(0xFF00FF88).withAlpha(170), // Electric mint
+            const Color(0xFFFF6B00).withAlpha(160), // Vivid orange
+            const Color(0xFF00BFFF).withAlpha(150), // Electric blue
+            const Color(0xFFFF00FF).withAlpha(145), // Magenta
+            const Color(0xFFFFD700).withAlpha(140), // Bright gold
+            const Color(0xFF7B68EE).withAlpha(135), // Aurora purple
+            const Color(0xFF00FFCC).withAlpha(130), // Tropical teal
+            const Color(0xFFFF1493).withAlpha(125), // Deep pink
           ]
         : [
-            const Color(0xFF6366F1).withAlpha(120), // Indigo
-            const Color(0xFF8B5CF6).withAlpha(110), // Purple
-            const Color(0xFFEC4899).withAlpha(105), // Pink
-            const Color(0xFFF59E0B).withAlpha(100), // Amber
-            const Color(0xFF10B981).withAlpha(95), // Emerald
-            const Color(0xFF06B6D4).withAlpha(90), // Cyan
-            const Color(0xFFF97316).withAlpha(85), // Orange
+            const Color(0xFF00D084).withAlpha(180), // Emerald green
+            const Color(0xFF6366F1).withAlpha(170), // Vivid indigo
+            const Color(0xFFFF6B6B).withAlpha(160), // Coral red
+            const Color(0xFF00CED1).withAlpha(150), // Turquoise
+            const Color(0xFFDA70D6).withAlpha(145), // Orchid
+            const Color(0xFFFFA500).withAlpha(140), // Tangerine
+            const Color(0xFF9370DB).withAlpha(135), // Medium purple
+            const Color(0xFF20B2AA).withAlpha(130), // Light sea green
+            const Color(0xFFFF69B4).withAlpha(125), // Hot pink
           ];
 
     // Scale mandala to fit the container
