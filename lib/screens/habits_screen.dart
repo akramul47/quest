@@ -15,7 +15,7 @@ import 'habit_detail.dart';
 import '../widgets/habits/habit_date_header.dart';
 import '../widgets/habits/habit_empty_state.dart';
 import '../widgets/habits/habit_value_input_dialog.dart';
-import '../widgets/habits/add_habit_screen.dart';
+import 'add_habit_screen.dart';
 
 class HabitsScreen extends StatefulWidget {
   const HabitsScreen({Key? key}) : super(key: key);
