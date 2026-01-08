@@ -519,14 +519,25 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen>
 
   void _showCheckInInfo(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final snackBarWidth = screenWidth > 480 ? 400.0 : screenWidth - 32;
+    final horizontalMargin = (screenWidth - snackBarWidth) / 2;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           'Complete a task, log a habit, or finish a focus session to check in!',
           style: GoogleFonts.outfit(),
+          textAlign: TextAlign.center,
         ),
         backgroundColor: isDark ? _warmBrown : AppTheme.primaryColor,
         behavior: SnackBarBehavior.floating,
+        width: snackBarWidth,
+        margin: EdgeInsets.only(
+          bottom: 16,
+          left: horizontalMargin,
+          right: horizontalMargin,
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
@@ -535,14 +546,25 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen>
   Future<void> _freezeToday(StreakService streakService) async {
     final success = await streakService.freezeToday();
     if (mounted) {
+      final screenWidth = MediaQuery.of(context).size.width;
+      final snackBarWidth = screenWidth > 480 ? 400.0 : screenWidth - 32;
+      final horizontalMargin = (screenWidth - snackBarWidth) / 2;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             success ? 'Streak frozen for today! ❄️' : 'Could not freeze today',
             style: GoogleFonts.outfit(),
+            textAlign: TextAlign.center,
           ),
           backgroundColor: success ? Colors.blue : Colors.red,
           behavior: SnackBarBehavior.floating,
+          width: snackBarWidth,
+          margin: EdgeInsets.only(
+            bottom: 16,
+            left: horizontalMargin,
+            right: horizontalMargin,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -554,14 +576,25 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen>
   Future<void> _restoreStreak(StreakService streakService) async {
     final success = await streakService.useRestoreToken();
     if (mounted) {
+      final screenWidth = MediaQuery.of(context).size.width;
+      final snackBarWidth = screenWidth > 480 ? 400.0 : screenWidth - 32;
+      final horizontalMargin = (screenWidth - snackBarWidth) / 2;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             success ? 'Streak restored! 🔥' : 'Could not restore streak',
             style: GoogleFonts.outfit(),
+            textAlign: TextAlign.center,
           ),
           backgroundColor: success ? Colors.purple : Colors.red,
           behavior: SnackBarBehavior.floating,
+          width: snackBarWidth,
+          margin: EdgeInsets.only(
+            bottom: 16,
+            left: horizontalMargin,
+            right: horizontalMargin,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
