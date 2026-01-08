@@ -12,6 +12,7 @@ class HabitRow extends StatefulWidget {
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onArchive;
+  final VoidCallback? onLongPress;
   final ScrollController? scrollController;
 
   const HabitRow({
@@ -22,6 +23,7 @@ class HabitRow extends StatefulWidget {
     this.onTap,
     this.onEdit,
     this.onArchive,
+    this.onLongPress,
     this.scrollController,
   }) : super(key: key);
 
@@ -85,6 +87,7 @@ class _HabitRowState extends State<HabitRow>
           color: Colors.transparent,
           child: InkWell(
             onTap: widget.onTap,
+            onLongPress: widget.onLongPress,
             borderRadius: BorderRadius.circular(16),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -145,18 +148,43 @@ class _HabitRowState extends State<HabitRow>
 
                   const SizedBox(width: 6),
 
-                  // Date cells - infinitely scrollable
+                  const SizedBox(width: 6),
+
+                  // Date cells OR Unarchive button
                   Expanded(
                     flex: 3,
-                    child: SingleChildScrollView(
-                      controller: widget.scrollController,
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: widget.weekDates.map((date) {
-                          return _buildDayCell(date, isDark, context);
-                        }).toList(),
-                      ),
-                    ),
+                    child: widget.habit.isArchived
+                        ? Padding(
+                            padding: const EdgeInsets.only(right: 4),
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: IconButton(
+                                onPressed: widget.onArchive,
+                                icon: const Icon(
+                                  Icons.unarchive_outlined,
+                                  size: 20,
+                                ),
+                                tooltip: "Unarchive",
+                                style: IconButton.styleFrom(
+                                  foregroundColor: widget.habit.color,
+                                  backgroundColor: widget.habit.color
+                                      .withOpacity(0.1),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                        : SingleChildScrollView(
+                            controller: widget.scrollController,
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: widget.weekDates.map((date) {
+                                return _buildDayCell(date, isDark, context);
+                              }).toList(),
+                            ),
+                          ),
                   ),
                 ],
               ),
@@ -178,11 +206,7 @@ class _HabitRowState extends State<HabitRow>
       // Boolean habit: checkmark or X
       if (value == true) {
         cellColor = widget.habit.color;
-        cellContent = Icon(
-          Icons.check,
-          size: 14,
-          color: Colors.white,
-        );
+        cellContent = Icon(Icons.check, size: 14, color: Colors.white);
       } else if (value == false) {
         cellColor = isDark ? Colors.grey.shade800 : Colors.grey.shade300;
         cellContent = Icon(
@@ -228,10 +252,7 @@ class _HabitRowState extends State<HabitRow>
           color: cellColor,
           borderRadius: BorderRadius.circular(6),
           border: isToday
-              ? Border.all(
-                  color: widget.habit.color,
-                  width: 1.5,
-                )
+              ? Border.all(color: widget.habit.color, width: 1.5)
               : null,
         ),
         child: Center(child: cellContent),
@@ -239,7 +260,11 @@ class _HabitRowState extends State<HabitRow>
     );
   }
 
-  void _handleDayTap(BuildContext context, DateTime date, dynamic currentValue) {
+  void _handleDayTap(
+    BuildContext context,
+    DateTime date,
+    dynamic currentValue,
+  ) {
     // Just call the parent callback, let parent handle both boolean and measurable
     widget.onDayTap(date);
   }

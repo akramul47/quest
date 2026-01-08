@@ -169,9 +169,11 @@ class AddHabitFormContent extends StatefulWidget {
     required this.onCreate,
     this.scrollController,
     this.onClose,
+    this.isEditing = false,
   }) : super(key: key);
 
   final ScrollController? scrollController;
+  final bool isEditing;
 
   @override
   State<AddHabitFormContent> createState() => _AddHabitFormContentState();
@@ -379,7 +381,7 @@ class _AddHabitFormContentState extends State<AddHabitFormContent>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Create New Habit',
+                  widget.isEditing ? 'Edit Habit' : 'Create New Habit',
                   style: GoogleFonts.outfit(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -977,10 +979,13 @@ class _AddHabitFormContentState extends State<AddHabitFormContent>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.add_rounded, size: 24),
+            Icon(
+              widget.isEditing ? Icons.save_rounded : Icons.add_rounded,
+              size: 24,
+            ),
             const SizedBox(width: 8),
             Text(
-              'Create Habit',
+              widget.isEditing ? 'Update Habit' : 'Create Habit',
               style: GoogleFonts.outfit(
                 fontSize: isMobile ? 18 : 19,
                 fontWeight: FontWeight.bold,

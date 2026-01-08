@@ -44,6 +44,9 @@ class _HabitsScreenState extends State<HabitsScreen>
   final _questionController = TextEditingController();
   final _addHabitScrollController = ScrollController();
 
+  // Edit mode state
+  String? _editingHabitId;
+
   HabitType _selectedType = HabitType.boolean;
   Color _selectedColor = AppTheme.primaryColor;
   IconData _selectedIcon = Icons.favorite;
@@ -114,20 +117,48 @@ class _HabitsScreenState extends State<HabitsScreen>
           ? double.tryParse(_goalController.text)
           : null;
 
-      final newHabit = Habit(
-        id: DateTime.now().toString(),
-        name: _nameController.text,
-        type: _selectedType,
-        color: _selectedColor,
-        icon: _selectedIcon,
-        unit: _selectedType == HabitType.measurable ? _unitController.text : '',
-        createdAt: DateTime.now(),
-        question: _showQuestionField && _questionController.text.isNotEmpty
-            ? _questionController.text
-            : null,
-      );
+      if (_editingHabitId != null) {
+        // Update existing habit
+        final originalHabit = habitList.getHabitById(_editingHabitId!);
+        if (originalHabit != null) {
+          final updatedHabit = Habit(
+            id: _editingHabitId!,
+            name: _nameController.text,
+            type: _selectedType,
+            color: _selectedColor,
+            icon: _selectedIcon,
+            unit: _selectedType == HabitType.measurable
+                ? _unitController.text
+                : '',
+            createdAt: originalHabit.createdAt,
+            history: originalHabit.history, // Preserve history
+            isArchived: originalHabit.isArchived, // Preserve archive status
+            question: _showQuestionField && _questionController.text.isNotEmpty
+                ? _questionController.text
+                : null,
+          );
 
-      habitList.addHabit(newHabit);
+          habitList.updateHabit(_editingHabitId!, updatedHabit);
+        }
+      } else {
+        // Create new habit
+        final newHabit = Habit(
+          id: DateTime.now().toString(),
+          name: _nameController.text,
+          type: _selectedType,
+          color: _selectedColor,
+          icon: _selectedIcon,
+          unit: _selectedType == HabitType.measurable
+              ? _unitController.text
+              : '',
+          createdAt: DateTime.now(),
+          question: _showQuestionField && _questionController.text.isNotEmpty
+              ? _questionController.text
+              : null,
+        );
+
+        habitList.addHabit(newHabit);
+      }
 
       final isDarkMode = Theme.of(context).brightness == Brightness.dark;
       final screenWidth = MediaQuery.of(context).size.width;
@@ -144,7 +175,9 @@ class _HabitsScreenState extends State<HabitsScreen>
               Icon(Icons.check_circle, color: _selectedColor),
               const SizedBox(width: 12),
               Text(
-                'Habit created successfully!',
+                _editingHabitId != null
+                    ? 'Habit updated successfully!'
+                    : 'Habit created successfully!',
                 style: GoogleFonts.inter(
                   fontWeight: FontWeight.w500,
                   color: isDarkMode ? AppTheme.textDarkMode : AppTheme.textDark,
@@ -169,7 +202,6 @@ class _HabitsScreenState extends State<HabitsScreen>
 
       _toggleAddHabit();
       _saveHabits();
-      _resetForm();
     }
   }
 
@@ -220,17 +252,38 @@ class _HabitsScreenState extends State<HabitsScreen>
     return dates;
   }
 
-  void _toggleAddHabit() {
+  void _toggleAddHabit([Habit? habit]) {
     setState(() {
-      _isAddHabitVisible = !_isAddHabitVisible;
+      if (habit != null) {
+        // Edit mode
+        _isAddHabitVisible = true;
+        _editingHabitId = habit.id;
+
+        _nameController.text = habit.name;
+        _unitController.text = habit.unit;
+        _questionController.text = habit.question ?? '';
+
+        _selectedType = habit.type;
+        _selectedColor = habit.color;
+        _selectedIcon = habit.icon;
+        _showQuestionField =
+            habit.question != null && habit.question!.isNotEmpty;
+        _showGoalField = false; // Goal not currently stored in Habit model
+      } else {
+        // Toggle mode (New or Close)
+        _isAddHabitVisible = !_isAddHabitVisible;
+        if (!_isAddHabitVisible) {
+          _resetForm();
+          _editingHabitId = null;
+        } else {
+          _editingHabitId = null;
+          _resetForm();
+        }
+      }
+
       if (_rotationController != null) {
         if (_isAddHabitVisible) {
           _rotationController!.forward();
-          // Don't reset form immediately so animations don't look weird?
-          // But if we're opening, we should reset.
-          // Let's reset when opening.
-          // Actually, if we close without saving, maybe we want to keep draft?
-          // For now, let's keep draft. Reset only on successful create.
         } else {
           _rotationController!.reverse();
         }
@@ -340,8 +393,10 @@ class _HabitsScreenState extends State<HabitsScreen>
                                         : 'Show Archived',
                                     style: IconButton.styleFrom(
                                       backgroundColor: isDark
-                                          ? Colors.white.withOpacity(0.05)
-                                          : Colors.black.withOpacity(0.05),
+                                          ? Colors.white.withValues(alpha: 0.05)
+                                          : Colors.black.withValues(
+                                              alpha: 0.05,
+                                            ),
                                     ),
                                   ),
                                 ],
@@ -349,7 +404,7 @@ class _HabitsScreenState extends State<HabitsScreen>
                       ),
                     ),
                     const SizedBox(width: 8),
-                    if (!_showArchived)
+                    if (!_showArchived || _isAddHabitVisible)
                       RotationTransition(
                         turns: Tween(begin: 0.0, end: 0.125).animate(
                           CurvedAnimation(
@@ -482,6 +537,77 @@ class _HabitsScreenState extends State<HabitsScreen>
                                                 ),
                                               );
                                             },
+                                            onLongPress: () =>
+                                                _toggleAddHabit(habit),
+                                            onArchive: () {
+                                              if (habit.isArchived) {
+                                                habitList.unarchiveHabit(
+                                                  habit.id,
+                                                );
+                                                _saveHabits();
+                                                final screenWidth =
+                                                    MediaQuery.of(
+                                                      context,
+                                                    ).size.width;
+                                                final snackBarWidth =
+                                                    screenWidth > 400
+                                                    ? 400.0
+                                                    : screenWidth - 32;
+                                                final horizontalMargin =
+                                                    (screenWidth -
+                                                        snackBarWidth) /
+                                                    2;
+
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  SnackBar(
+                                                    content: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        const Icon(
+                                                          Icons
+                                                              .unarchive_outlined,
+                                                          color: Colors.white,
+                                                          size: 20,
+                                                        ),
+                                                        const SizedBox(
+                                                          width: 8,
+                                                        ),
+                                                        Text(
+                                                          'Habit restored',
+                                                          style:
+                                                              GoogleFonts.inter(
+                                                                color: Colors
+                                                                    .white,
+                                                              ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    backgroundColor:
+                                                        const Color(0xFF333333),
+                                                    behavior: SnackBarBehavior
+                                                        .floating,
+                                                    margin: EdgeInsets.only(
+                                                      bottom: 24,
+                                                      left: horizontalMargin,
+                                                      right: horizontalMargin,
+                                                    ),
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            30,
+                                                          ),
+                                                    ),
+                                                    duration: const Duration(
+                                                      seconds: 2,
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+                                            },
                                           ),
                                         );
                                       },
@@ -519,14 +645,14 @@ class _HabitsScreenState extends State<HabitsScreen>
                                   (isDark
                                           ? AppTheme.primaryColorDark
                                           : AppTheme.primaryColor)
-                                      .withOpacity(0.3), // Reduced opacity
-                              blurRadius: 30, // Reduced blur
-                              spreadRadius: 1, // Reduced spread
+                                      .withValues(alpha: 0.3),
+                              blurRadius: 30,
+                              spreadRadius: 1,
                               offset: const Offset(0, -4),
                             ),
                             BoxShadow(
-                              color: Colors.black.withOpacity(
-                                isDark ? 0.4 : 0.15,
+                              color: Colors.black.withValues(
+                                alpha: isDark ? 0.4 : 0.15,
                               ),
                               blurRadius: 20,
                               spreadRadius: 1,
@@ -563,6 +689,7 @@ class _HabitsScreenState extends State<HabitsScreen>
                             onCreate: _createHabit,
                             scrollController: _addHabitScrollController,
                             onClose: _toggleAddHabit,
+                            isEditing: _editingHabitId != null,
                           ),
                         ),
                       ),
@@ -580,7 +707,6 @@ class _HabitsScreenState extends State<HabitsScreen>
   Widget _buildAddHabitHeader(bool isDark, bool isMobile) {
     return Container(
       key: const ValueKey('add_habit_header'),
-      padding: const EdgeInsets.only(right: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -636,13 +762,81 @@ class _HabitsScreenState extends State<HabitsScreen>
               ],
             ),
           ),
+          if (_editingHabitId != null)
+            IconButton(
+              icon: Icon(
+                Icons.delete_outline_rounded,
+                color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
+              ),
+              onPressed: () {
+                final habitList = Provider.of<HabitList>(
+                  context,
+                  listen: false,
+                );
+
+                // Re-fetch to be safe inside callback
+                final habit = habitList.getHabitById(_editingHabitId!);
+                final isCurrentlyArchived = habit?.isArchived ?? false;
+
+                if (isCurrentlyArchived) {
+                  habitList.deleteHabit(_editingHabitId!);
+                } else {
+                  habitList.archiveHabit(_editingHabitId!);
+                }
+
+                _saveHabits();
+                _toggleAddHabit();
+
+                final screenWidth = MediaQuery.of(context).size.width;
+                final snackBarWidth = screenWidth > 400
+                    ? 400.0
+                    : screenWidth - 32;
+                final horizontalMargin = (screenWidth - snackBarWidth) / 2;
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          isCurrentlyArchived
+                              ? Icons.delete_forever_rounded
+                              : Icons.archive_outlined,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          isCurrentlyArchived
+                              ? 'Habit deleted permanently'
+                              : 'Habit moved to archives',
+                          style: GoogleFonts.inter(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    backgroundColor: const Color(0xFF333333),
+                    behavior: SnackBarBehavior.floating,
+                    margin: EdgeInsets.only(
+                      bottom: 24,
+                      left: horizontalMargin,
+                      right: horizontalMargin,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                );
+              },
+              tooltip: 'Delete Habit',
+              style: IconButton.styleFrom(
+                backgroundColor: isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.05),
+              ),
+            ),
         ],
       ),
     );
-  }
-
-  void _showAddHabitDialog() {
-    _toggleAddHabit();
   }
 
   void _showValueInputDialog(Habit habit, DateTime date) {
