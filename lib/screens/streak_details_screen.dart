@@ -624,15 +624,15 @@ class _MandalaPatternPainter extends CustomPainter {
     // Define technicolor palette - vibrant and colorful
     final colors = isDark
         ? [
-            const Color(0xFFFF3366).withAlpha(180), // Neon coral
-            const Color(0xFF00FF88).withAlpha(170), // Electric mint
-            const Color(0xFFFF6B00).withAlpha(160), // Vivid orange
-            const Color(0xFF00BFFF).withAlpha(150), // Electric blue
-            const Color(0xFFFF00FF).withAlpha(145), // Magenta
-            const Color(0xFFFFD700).withAlpha(140), // Bright gold
-            const Color(0xFF7B68EE).withAlpha(135), // Aurora purple
-            const Color(0xFF00FFCC).withAlpha(130), // Tropical teal
-            const Color(0xFFFF1493).withAlpha(125), // Deep pink
+            const Color(0xFFE57373).withAlpha(120), // Muted coral
+            const Color(0xFF4DB6AC).withAlpha(115), // Muted teal
+            const Color(0xFFFFB74D).withAlpha(110), // Muted orange
+            const Color(0xFF64B5F6).withAlpha(105), // Muted blue
+            const Color(0xFFBA68C8).withAlpha(100), // Muted orchid
+            const Color(0xFFFFD54F).withAlpha(95), // Muted gold
+            const Color(0xFF9575CD).withAlpha(90), // Muted purple
+            const Color(0xFF4DD0E1).withAlpha(85), // Muted cyan
+            const Color(0xFFF06292).withAlpha(80), // Muted pink
           ]
         : [
             const Color(0xFF00D084).withAlpha(180), // Emerald green
