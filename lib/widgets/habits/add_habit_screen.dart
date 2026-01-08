@@ -9,14 +9,17 @@ import '../../models/habit.dart';
 import '../../providers/habit_provider.dart';
 
 class AddHabitScreen extends StatefulWidget {
-  const AddHabitScreen({Key? key}) : super(key: key);
+  final bool isEmbedded;
+  final VoidCallback? onClose;
+
+  const AddHabitScreen({Key? key, this.isEmbedded = false, this.onClose})
+    : super(key: key);
 
   @override
   State<AddHabitScreen> createState() => _AddHabitScreenState();
 }
 
-class _AddHabitScreenState extends State<AddHabitScreen>
-    with SingleTickerProviderStateMixin {
+class _AddHabitScreenState extends State<AddHabitScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _unitController = TextEditingController();
@@ -26,13 +29,159 @@ class _AddHabitScreenState extends State<AddHabitScreen>
   HabitType _selectedType = HabitType.boolean;
   Color _selectedColor = AppTheme.primaryColor;
   IconData _selectedIcon = Icons.favorite;
+  bool _showGoalField = false;
+  bool _showQuestionField = false;
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _unitController.dispose();
+    _goalController.dispose();
+    _questionController.dispose();
+    super.dispose();
+  }
+
+  void _createHabit() {
+    if (_formKey.currentState!.validate()) {
+      final habitList = Provider.of<HabitList>(context, listen: false);
+
+      final goalValue = _showGoalField && _goalController.text.isNotEmpty
+          ? double.tryParse(_goalController.text)
+          : null;
+
+      final newHabit = Habit(
+        id: DateTime.now().toString(),
+        name: _nameController.text,
+        type: _selectedType,
+        color: _selectedColor,
+        icon: _selectedIcon,
+        unit: _selectedType == HabitType.measurable ? _unitController.text : '',
+        createdAt: DateTime.now(),
+        question: _showQuestionField && _questionController.text.isNotEmpty
+            ? _questionController.text
+            : null,
+      );
+
+      habitList.addHabit(newHabit);
+
+      final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+      // Show success feedback
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle, color: _selectedColor),
+              const SizedBox(width: 12),
+              Text(
+                'Habit created successfully!',
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w500,
+                  color: isDarkMode ? AppTheme.textDarkMode : AppTheme.textDark,
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: isDarkMode ? const Color(0xFF2D2D2D) : Colors.white,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      if (widget.isEmbedded && widget.onClose != null) {
+        widget.onClose!();
+      } else {
+        Navigator.pop(context);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AddHabitFormContent(
+      isEmbedded: widget.isEmbedded,
+      formKey: _formKey,
+      nameController: _nameController,
+      unitController: _unitController,
+      goalController: _goalController,
+      questionController: _questionController,
+      selectedType: _selectedType,
+      selectedColor: _selectedColor,
+      selectedIcon: _selectedIcon,
+      showGoalField: _showGoalField,
+      showQuestionField: _showQuestionField,
+      onTypeChanged: (val) => setState(() => _selectedType = val),
+      onColorChanged: (val) => setState(() => _selectedColor = val),
+      onIconChanged: (val) => setState(() => _selectedIcon = val),
+      onShowGoalChanged: (val) => setState(() => _showGoalField = val),
+      onShowQuestionChanged: (val) => setState(() => _showQuestionField = val),
+      onCreate: _createHabit,
+      onClose: widget.isEmbedded
+          ? widget.onClose
+          : () => Navigator.pop(context),
+    );
+  }
+}
+
+class AddHabitFormContent extends StatefulWidget {
+  final bool isEmbedded;
+  final GlobalKey<FormState> formKey;
+  final TextEditingController nameController;
+  final TextEditingController unitController;
+  final TextEditingController goalController;
+  final TextEditingController questionController;
+
+  final HabitType selectedType;
+  final Color selectedColor;
+  final IconData selectedIcon;
+  final bool showGoalField;
+  final bool showQuestionField;
+
+  final ValueChanged<HabitType> onTypeChanged;
+  final ValueChanged<Color> onColorChanged;
+  final ValueChanged<IconData> onIconChanged;
+  final ValueChanged<bool> onShowGoalChanged;
+  final ValueChanged<bool> onShowQuestionChanged;
+  final VoidCallback onCreate;
+  final VoidCallback? onClose;
+
+  const AddHabitFormContent({
+    Key? key,
+    required this.isEmbedded,
+    required this.formKey,
+    required this.nameController,
+    required this.unitController,
+    required this.goalController,
+    required this.questionController,
+    required this.selectedType,
+    required this.selectedColor,
+    required this.selectedIcon,
+    required this.showGoalField,
+    required this.showQuestionField,
+    required this.onTypeChanged,
+    required this.onColorChanged,
+    required this.onIconChanged,
+    required this.onShowGoalChanged,
+    required this.onShowQuestionChanged,
+    required this.onCreate,
+    this.scrollController,
+    this.onClose,
+  }) : super(key: key);
+
+  final ScrollController? scrollController;
+
+  @override
+  State<AddHabitFormContent> createState() => _AddHabitFormContentState();
+}
+
+class _AddHabitFormContentState extends State<AddHabitFormContent>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-
-  bool _showGoalField = false;
-  bool _showQuestionField = false;
 
   // Icon grid for selection
   final List<IconData> _availableIcons = [
@@ -64,18 +213,18 @@ class _AddHabitScreenState extends State<AddHabitScreen>
 
   // Predefined colors
   final List<Color> _colors = [
-    const Color(0xFFFF6B6B), // Red
-    const Color(0xFFEE5A6F), // Pink
-    const Color(0xFFC56CF0), // Purple
-    const Color(0xFF9B59B6), // Deep Purple
-    const Color(0xFF667EEA), // Indigo
-    const Color(0xFF4FACFE), // Blue
-    const Color(0xFF00D2FF), // Cyan
-    const Color(0xFF06BEB6), // Teal
-    const Color(0xFF11998E), // Dark Teal
-    const Color(0xFF38EF7D), // Green
-    const Color(0xFFFFA726), // Orange
-    const Color(0xFFFFD93D), // Yellow
+    const Color(0xFFFF6B6B),
+    const Color(0xFFEE5A6F),
+    const Color(0xFFC56CF0),
+    const Color(0xFF9B59B6),
+    const Color(0xFF667EEA),
+    const Color(0xFF4FACFE),
+    const Color(0xFF00D2FF),
+    const Color(0xFF06BEB6),
+    const Color(0xFF11998E),
+    const Color(0xFF38EF7D),
+    const Color(0xFFFFA726),
+    const Color(0xFFFFD93D),
   ];
 
   @override
@@ -102,10 +251,6 @@ class _AddHabitScreenState extends State<AddHabitScreen>
   @override
   void dispose() {
     _animationController.dispose();
-    _nameController.dispose();
-    _unitController.dispose();
-    _goalController.dispose();
-    _questionController.dispose();
     super.dispose();
   }
 
@@ -122,24 +267,24 @@ class _AddHabitScreenState extends State<AddHabitScreen>
         : (isMobile ? double.infinity : 600.0);
 
     return Scaffold(
-      backgroundColor: isDark
-          ? AppTheme.backgroundGradientStartDark
-          : AppTheme.backgroundGradientStart,
+      backgroundColor: widget.isEmbedded
+          ? Colors.transparent
+          : (isDark
+                ? AppTheme.backgroundGradientStartDark
+                : AppTheme.backgroundGradientStart),
       body: Column(
         children: [
-          // Windows title bar safe area (only on desktop platforms)
-          if (isDesktop && !kIsWeb && Platform.isWindows)
-            const SizedBox(height: 32), // Space for Windows title bar
+          // Windows title bar safe area
+          if (!widget.isEmbedded && isDesktop && !kIsWeb && Platform.isWindows)
+            const SizedBox(height: 32),
           Expanded(
             child: SafeArea(
               top:
-                  !(isDesktop &&
-                      !kIsWeb &&
-                      Platform
-                          .isWindows), // Don't apply top safe area if we already have title bar space
+                  !widget.isEmbedded &&
+                  !(isDesktop && !kIsWeb && Platform.isWindows),
               child: Column(
                 children: [
-                  _buildAppBar(isDark, isMobile),
+                  if (!widget.isEmbedded) _buildAppBar(isDark, isMobile),
                   Expanded(
                     child: Center(
                       child: ConstrainedBox(
@@ -149,15 +294,21 @@ class _AddHabitScreenState extends State<AddHabitScreen>
                           child: SlideTransition(
                             position: _slideAnimation,
                             child: Form(
-                              key: _formKey,
+                              key: widget.formKey,
                               child: ListView(
+                                controller: widget.scrollController,
                                 padding: EdgeInsets.symmetric(
                                   horizontal: isMobile ? 24 : 32,
                                   vertical: isMobile ? 8 : 16,
                                 ),
                                 children: [
-                                  _buildPreviewCard(isDark, isMobile),
-                                  SizedBox(height: isMobile ? 32 : 40),
+                                  // Hide preview card if embedded (it's in the app bar)
+                                  if (!widget.isEmbedded) ...[
+                                    _buildPreviewCard(isDark, isMobile),
+                                    SizedBox(height: isMobile ? 32 : 40),
+                                  ] else
+                                    const SizedBox(height: 24),
+
                                   _buildNameField(isDark, isMobile),
                                   SizedBox(height: isMobile ? 24 : 32),
                                   _buildTypeSelector(isDark, isMobile),
@@ -198,21 +349,25 @@ class _AddHabitScreenState extends State<AddHabitScreen>
         vertical: isMobile ? 12 : 16,
       ),
       decoration: BoxDecoration(
-        color: isDark
-            ? AppTheme.glassBackgroundDark.withOpacity(0.3)
-            : AppTheme.glassBackground.withOpacity(0.3),
-        border: Border(
-          bottom: BorderSide(
-            color: isDark
-                ? Colors.white.withOpacity(0.05)
-                : Colors.black.withOpacity(0.05),
-          ),
-        ),
+        color: widget.isEmbedded
+            ? Colors.transparent
+            : (isDark
+                  ? AppTheme.glassBackgroundDark.withOpacity(0.3)
+                  : AppTheme.glassBackground.withOpacity(0.3)),
+        border: widget.isEmbedded
+            ? null
+            : Border(
+                bottom: BorderSide(
+                  color: isDark
+                      ? Colors.white.withOpacity(0.05)
+                      : Colors.black.withOpacity(0.05),
+                ),
+              ),
       ),
       child: Row(
         children: [
           IconButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: widget.onClose,
             icon: Icon(
               Icons.close_rounded,
               color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
@@ -252,27 +407,30 @@ class _AddHabitScreenState extends State<AddHabitScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            _selectedColor.withOpacity(0.2),
-            _selectedColor.withOpacity(0.05),
+            widget.selectedColor.withOpacity(0.2),
+            widget.selectedColor.withOpacity(0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _selectedColor.withOpacity(0.3), width: 2),
+        border: Border.all(
+          color: widget.selectedColor.withOpacity(0.3),
+          width: 2,
+        ),
       ),
       child: Row(
         children: [
           Container(
             padding: EdgeInsets.all(isMobile ? 16 : 20),
             decoration: BoxDecoration(
-              color: _selectedColor.withOpacity(0.2),
+              color: widget.selectedColor.withOpacity(0.2),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(
-              _selectedIcon,
+              widget.selectedIcon,
               size: isMobile ? 40 : 48,
-              color: _selectedColor,
+              color: widget.selectedColor,
             ),
           ),
           SizedBox(width: isMobile ? 20 : 24),
@@ -281,7 +439,7 @@ class _AddHabitScreenState extends State<AddHabitScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ValueListenableBuilder<TextEditingValue>(
-                  valueListenable: _nameController,
+                  valueListenable: widget.nameController,
                   builder: (context, value, _) {
                     return Text(
                       value.text.isEmpty ? 'Your Habit' : value.text,
@@ -297,8 +455,8 @@ class _AddHabitScreenState extends State<AddHabitScreen>
                 ),
                 SizedBox(height: isMobile ? 4 : 6),
                 Text(
-                  _selectedType == HabitType.measurable
-                      ? 'Track ${_unitController.text.isEmpty ? 'values' : _unitController.text}'
+                  widget.selectedType == HabitType.measurable
+                      ? 'Track ${widget.unitController.text.isEmpty ? 'values' : widget.unitController.text}'
                       : 'Yes/No tracking',
                   style: GoogleFonts.inter(
                     fontSize: isMobile ? 14 : 16,
@@ -329,8 +487,8 @@ class _AddHabitScreenState extends State<AddHabitScreen>
         ),
         SizedBox(height: isMobile ? 12 : 14),
         TextFormField(
-          controller: _nameController,
-          autofocus: !isMobile, // Only autofocus on desktop
+          controller: widget.nameController,
+          autofocus: !isMobile,
           style: GoogleFonts.inter(
             fontSize: isMobile ? 16 : 17,
             color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
@@ -350,7 +508,7 @@ class _AddHabitScreenState extends State<AddHabitScreen>
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: _selectedColor, width: 2),
+              borderSide: BorderSide(color: widget.selectedColor, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 20,
@@ -405,10 +563,10 @@ class _AddHabitScreenState extends State<AddHabitScreen>
             ),
           ],
         ),
-        if (_selectedType == HabitType.measurable) ...[
+        if (widget.selectedType == HabitType.measurable) ...[
           const SizedBox(height: 16),
           TextFormField(
-            controller: _unitController,
+            controller: widget.unitController,
             style: GoogleFonts.inter(
               fontSize: 16,
               color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
@@ -419,7 +577,7 @@ class _AddHabitScreenState extends State<AddHabitScreen>
               hintStyle: GoogleFonts.inter(
                 color: isDark ? AppTheme.textLightDark : AppTheme.textLight,
               ),
-              prefixIcon: Icon(Icons.straighten, color: _selectedColor),
+              prefixIcon: Icon(Icons.straighten, color: widget.selectedColor),
               filled: true,
               fillColor: isDark
                   ? AppTheme.glassBackgroundDark.withOpacity(0.3)
@@ -430,7 +588,7 @@ class _AddHabitScreenState extends State<AddHabitScreen>
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: _selectedColor, width: 2),
+                borderSide: BorderSide(color: widget.selectedColor, width: 2),
               ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 20,
@@ -438,7 +596,7 @@ class _AddHabitScreenState extends State<AddHabitScreen>
               ),
             ),
             validator: (value) {
-              if (_selectedType == HabitType.measurable &&
+              if (widget.selectedType == HabitType.measurable &&
                   (value == null || value.trim().isEmpty)) {
                 return 'Please enter a unit (e.g., miles, pages)';
               }
@@ -458,22 +616,22 @@ class _AddHabitScreenState extends State<AddHabitScreen>
     String title,
     String subtitle,
   ) {
-    final isSelected = _selectedType == type;
+    final isSelected = widget.selectedType == type;
 
     return GestureDetector(
-      onTap: () => setState(() => _selectedType = type),
+      onTap: () => widget.onTypeChanged(type),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected
-              ? _selectedColor.withOpacity(0.15)
+              ? widget.selectedColor.withOpacity(0.15)
               : (isDark
                     ? AppTheme.glassBackgroundDark.withOpacity(0.3)
                     : AppTheme.glassBackground.withOpacity(0.5)),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? _selectedColor : Colors.transparent,
+            color: isSelected ? widget.selectedColor : Colors.transparent,
             width: 2,
           ),
         ),
@@ -483,7 +641,7 @@ class _AddHabitScreenState extends State<AddHabitScreen>
               icon,
               size: 32,
               color: isSelected
-                  ? _selectedColor
+                  ? widget.selectedColor
                   : (isDark ? AppTheme.textMediumDark : AppTheme.textMedium),
             ),
             const SizedBox(height: 8),
@@ -493,7 +651,7 @@ class _AddHabitScreenState extends State<AddHabitScreen>
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
                 color: isSelected
-                    ? _selectedColor
+                    ? widget.selectedColor
                     : (isDark ? AppTheme.textDarkMode : AppTheme.textDark),
               ),
             ),
@@ -544,21 +702,23 @@ class _AddHabitScreenState extends State<AddHabitScreen>
             itemCount: _availableIcons.length,
             itemBuilder: (context, index) {
               final icon = _availableIcons[index];
-              final isSelected = _selectedIcon == icon;
+              final isSelected = widget.selectedIcon == icon;
 
               return GestureDetector(
-                onTap: () => setState(() => _selectedIcon = icon),
+                onTap: () => widget.onIconChanged(icon),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? _selectedColor.withOpacity(0.2)
+                        ? widget.selectedColor.withOpacity(0.2)
                         : (isDark
                               ? Colors.white.withOpacity(0.05)
                               : Colors.black.withOpacity(0.03)),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isSelected ? _selectedColor : Colors.transparent,
+                      color: isSelected
+                          ? widget.selectedColor
+                          : Colors.transparent,
                       width: 2,
                     ),
                   ),
@@ -566,7 +726,7 @@ class _AddHabitScreenState extends State<AddHabitScreen>
                     icon,
                     size: isMobile ? 24 : 28,
                     color: isSelected
-                        ? _selectedColor
+                        ? widget.selectedColor
                         : (isDark
                               ? AppTheme.textMediumDark
                               : AppTheme.textMedium),
@@ -597,11 +757,11 @@ class _AddHabitScreenState extends State<AddHabitScreen>
           spacing: isMobile ? 12 : 16,
           runSpacing: isMobile ? 12 : 16,
           children: _colors.map((color) {
-            final isSelected = _selectedColor.value == color.value;
+            final isSelected = widget.selectedColor.value == color.value;
             final colorSize = isMobile ? 48.0 : 56.0;
 
             return GestureDetector(
-              onTap: () => setState(() => _selectedColor = color),
+              onTap: () => widget.onColorChanged(color),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 width: colorSize,
@@ -653,20 +813,21 @@ class _AddHabitScreenState extends State<AddHabitScreen>
         SizedBox(height: isMobile ? 12 : 14),
 
         // Goal field toggle
-        if (_selectedType == HabitType.measurable)
+        if (widget.selectedType == HabitType.measurable)
           _buildAdvancedOption(
             isDark,
             Icons.flag_outlined,
             'Daily Goal',
             'Set a target to reach each day',
-            _showGoalField,
-            (value) => setState(() => _showGoalField = value),
+            widget.showGoalField,
+            widget.onShowGoalChanged,
           ),
 
-        if (_showGoalField && _selectedType == HabitType.measurable) ...[
+        if (widget.showGoalField &&
+            widget.selectedType == HabitType.measurable) ...[
           const SizedBox(height: 12),
           TextFormField(
-            controller: _goalController,
+            controller: widget.goalController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             style: GoogleFonts.inter(
               fontSize: 16,
@@ -676,13 +837,15 @@ class _AddHabitScreenState extends State<AddHabitScreen>
               labelText: 'Daily Goal',
               hintText: 'e.g., 5',
               suffix: Text(
-                _unitController.text.isEmpty ? 'units' : _unitController.text,
+                widget.unitController.text.isEmpty
+                    ? 'units'
+                    : widget.unitController.text,
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   color: isDark ? AppTheme.textMediumDark : AppTheme.textMedium,
                 ),
               ),
-              prefixIcon: Icon(Icons.flag, color: _selectedColor),
+              prefixIcon: Icon(Icons.flag, color: widget.selectedColor),
               filled: true,
               fillColor: isDark
                   ? AppTheme.glassBackgroundDark.withOpacity(0.3)
@@ -693,7 +856,7 @@ class _AddHabitScreenState extends State<AddHabitScreen>
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: _selectedColor, width: 2),
+                borderSide: BorderSide(color: widget.selectedColor, width: 2),
               ),
             ),
           ),
@@ -707,14 +870,14 @@ class _AddHabitScreenState extends State<AddHabitScreen>
           Icons.quiz_outlined,
           'Custom Question',
           'Add a motivational question',
-          _showQuestionField,
-          (value) => setState(() => _showQuestionField = value),
+          widget.showQuestionField,
+          widget.onShowQuestionChanged,
         ),
 
-        if (_showQuestionField) ...[
+        if (widget.showQuestionField) ...[
           const SizedBox(height: 12),
           TextFormField(
-            controller: _questionController,
+            controller: widget.questionController,
             style: GoogleFonts.inter(
               fontSize: 16,
               color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
@@ -722,7 +885,7 @@ class _AddHabitScreenState extends State<AddHabitScreen>
             decoration: InputDecoration(
               labelText: 'Question',
               hintText: 'e.g., Did you meditate today?',
-              prefixIcon: Icon(Icons.quiz, color: _selectedColor),
+              prefixIcon: Icon(Icons.quiz, color: widget.selectedColor),
               filled: true,
               fillColor: isDark
                   ? AppTheme.glassBackgroundDark.withOpacity(0.3)
@@ -733,7 +896,7 @@ class _AddHabitScreenState extends State<AddHabitScreen>
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: _selectedColor, width: 2),
+                borderSide: BorderSide(color: widget.selectedColor, width: 2),
               ),
             ),
           ),
@@ -760,7 +923,7 @@ class _AddHabitScreenState extends State<AddHabitScreen>
       child: SwitchListTile(
         value: value,
         onChanged: onChanged,
-        activeColor: _selectedColor,
+        activeColor: widget.selectedColor,
         title: Row(
           children: [
             Icon(
@@ -798,18 +961,18 @@ class _AddHabitScreenState extends State<AddHabitScreen>
     bool isMobile,
     double maxContentWidth,
   ) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       height: isMobile ? 56 : 60,
       child: FilledButton(
-        onPressed: _createHabit,
+        onPressed: widget.onCreate,
         style: FilledButton.styleFrom(
-          backgroundColor: _selectedColor,
+          backgroundColor: widget.selectedColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
           elevation: 8,
-          shadowColor: _selectedColor.withOpacity(0.4),
+          shadowColor: widget.selectedColor.withOpacity(0.4),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -828,57 +991,5 @@ class _AddHabitScreenState extends State<AddHabitScreen>
         ),
       ),
     );
-  }
-
-  void _createHabit() {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    final habitList = Provider.of<HabitList>(context, listen: false);
-
-    final newHabit = Habit(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: _nameController.text.trim(),
-      color: _selectedColor,
-      icon: _selectedIcon,
-      type: _selectedType,
-      unit: _selectedType == HabitType.measurable
-          ? _unitController.text.trim()
-          : '',
-      createdAt: DateTime.now(),
-      question: _showQuestionField && _questionController.text.trim().isNotEmpty
-          ? _questionController.text.trim()
-          : null,
-    );
-
-    habitList.addHabit(newHabit);
-
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-    // Show success feedback
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.check_circle, color: _selectedColor),
-            const SizedBox(width: 12),
-            Text(
-              'Habit created successfully!',
-              style: GoogleFonts.inter(
-                fontWeight: FontWeight.w500,
-                color: isDarkMode ? AppTheme.textDarkMode : AppTheme.textDark,
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: isDarkMode ? const Color(0xFF2D2D2D) : Colors.white,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-
-    Navigator.pop(context);
   }
 }
