@@ -61,19 +61,28 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen>
         decoration: BoxDecoration(gradient: _buildBackgroundGradient(isDark)),
         child: Stack(
           children: [
-            // Mandala at gradient glow center
-            Align(
-              alignment: const Alignment(0, -1.5),
-              child: SizedBox(
-                width: screenSize.width * 0.5,
-                height: screenSize.width * 0.5,
-                child: CustomPaint(
-                  painter: _MandalaPatternPainter(
-                    isDark: isDark,
-                    size: screenSize.width * 0.5,
+            // Mandala at gradient glow center - matches Alignment(0, -0.3)
+            // Alignment(0, -0.3) means: center horizontally, 35% from top
+            Builder(
+              builder: (context) {
+                final mandalaSize = screenSize.width * 0.5;
+                // Alignment(0, -0.3) translates to: y = (1 - 0.3) / 2 * height = 0.35 * height
+                final gradientCenterY = screenSize.height * 0.35;
+                return Positioned(
+                  left: (screenSize.width - mandalaSize) / 2,
+                  top: gradientCenterY - (mandalaSize / 2),
+                  child: SizedBox(
+                    width: mandalaSize,
+                    height: mandalaSize,
+                    child: CustomPaint(
+                      painter: _MandalaPatternPainter(
+                        isDark: isDark,
+                        size: mandalaSize,
+                      ),
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
             // Content
             SafeArea(
@@ -532,7 +541,6 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen>
         ),
         backgroundColor: isDark ? _warmBrown : AppTheme.primaryColor,
         behavior: SnackBarBehavior.floating,
-        width: snackBarWidth,
         margin: EdgeInsets.only(
           bottom: 16,
           left: horizontalMargin,
@@ -559,7 +567,6 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen>
           ),
           backgroundColor: success ? Colors.blue : Colors.red,
           behavior: SnackBarBehavior.floating,
-          width: snackBarWidth,
           margin: EdgeInsets.only(
             bottom: 16,
             left: horizontalMargin,
@@ -589,7 +596,6 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen>
           ),
           backgroundColor: success ? Colors.purple : Colors.red,
           behavior: SnackBarBehavior.floating,
-          width: snackBarWidth,
           margin: EdgeInsets.only(
             bottom: 16,
             left: horizontalMargin,
