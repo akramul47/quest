@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import '../services/streak_service.dart';
+import '../screens/streak_details_screen.dart';
 
 class StreakDisplayWidget extends StatefulWidget {
   final bool compact;
@@ -52,7 +53,7 @@ class _StreakDisplayWidgetState extends State<StreakDisplayWidget> {
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
       child: GestureDetector(
-        onTap: () {}, // Make widget hit-testable
+        onTap: () => _navigateToDetails(context),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           decoration: BoxDecoration(
@@ -93,7 +94,7 @@ class _StreakDisplayWidgetState extends State<StreakDisplayWidget> {
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
       child: GestureDetector(
-        onTap: () {}, // Make widget hit-testable
+        onTap: () => _navigateToDetails(context),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
@@ -181,6 +182,25 @@ class _StreakDisplayWidgetState extends State<StreakDisplayWidget> {
     return _StreakIcon(size: size, isHovering: _isHovering);
   }
 
+  void _navigateToDetails(BuildContext context) {
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const StreakDetailsScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOut,
+            ),
+            child: child,
+          );
+        },
+      ),
+    );
+  }
+
   Widget _buildFreezeStatus(BuildContext context, int count) {
     return Tooltip(
       message: '$count freeze days available',
@@ -258,21 +278,13 @@ class _StreakIconState extends State<_StreakIcon>
   @override
   void didUpdateWidget(_StreakIcon oldWidget) {
     super.didUpdateWidget(oldWidget);
-    print(
-      'didUpdateWidget called: old=${oldWidget.isHovering}, new=${widget.isHovering}',
-    );
-
     if (widget.isHovering && !oldWidget.isHovering) {
       // Started hovering - restart animation
-      print('Started hovering - restarting animation');
       _loopCount = 0;
       if (_controller.duration != null) {
         _controller.reset();
         _controller.forward();
       }
-    } else if (!widget.isHovering && oldWidget.isHovering) {
-      // Stopped hovering
-      print('Stopped hovering');
     }
   }
 
