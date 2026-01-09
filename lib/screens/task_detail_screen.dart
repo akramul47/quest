@@ -15,12 +15,16 @@ class TaskDetailScreen extends StatefulWidget {
   final Todo? todo;
   final TodoPriority? initialPriority;
   final Function(Todo) onSave;
+  final Function(Todo)? onDelete;
+  final Function(Todo)? onArchive;
 
   const TaskDetailScreen({
     Key? key,
     this.todo,
     this.initialPriority,
     required this.onSave,
+    this.onDelete,
+    this.onArchive,
   }) : super(key: key);
 
   @override
@@ -182,6 +186,175 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
     }
   }
 
+  void _showDeleteConfirmation() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final hasSubtasks = _subtasks.isNotEmpty;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            'Delete Quest',
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Are you sure you want to delete this quest?',
+                style: GoogleFonts.inter(
+                  color: isDark ? Colors.white70 : Colors.black87,
+                ),
+              ),
+              if (hasSubtasks) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.orange.withValues(alpha: 0.15)
+                        : Colors.orange.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: Colors.orange.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.warning_amber_rounded,
+                        color: Colors.orange.shade700,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '${_subtasks.length} subtask${_subtasks.length > 1 ? 's' : ''} will also be deleted.',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            color: isDark
+                                ? Colors.orange.shade200
+                                : Colors.orange.shade800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.inter(
+                  color: isDark ? Colors.white60 : Colors.black54,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                _deleteTodo();
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.red.withValues(alpha: 0.1),
+              ),
+              child: Text(
+                'Delete',
+                style: GoogleFonts.inter(
+                  color: Colors.red,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteTodo() {
+    if (widget.todo == null || widget.onDelete == null) return;
+
+    final deletedTodo = widget.todo!;
+    widget.onDelete!(deletedTodo);
+
+    final deviceType = ResponsiveLayout.getDeviceType(context);
+    final isMobile = deviceType == DeviceType.mobile;
+
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Quest deleted', style: GoogleFonts.inter()),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.black87,
+        width: isMobile ? null : 400,
+        margin: isMobile ? const EdgeInsets.all(8) : null,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        action: SnackBarAction(
+          label: 'UNDO',
+          textColor: Colors.white,
+          onPressed: () {
+            // Re-add the deleted todo
+            widget.onSave(deletedTodo);
+          },
+        ),
+      ),
+    );
+
+    Navigator.pop(context);
+  }
+
+  void _archiveTodo() {
+    if (widget.todo == null || widget.onArchive == null) return;
+
+    widget.onArchive!(widget.todo!);
+
+    // Calculate snackbar positioning for centered display
+    final screenWidth = MediaQuery.of(context).size.width;
+    final snackBarWidth = screenWidth > 400 ? 400.0 : screenWidth - 32;
+    final horizontalMargin = (screenWidth - snackBarWidth) / 2;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.archive_outlined, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              'Quest archived',
+              style: GoogleFonts.inter(color: Colors.white),
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFF333333),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(
+          bottom: 24,
+          left: horizontalMargin,
+          right: horizontalMargin,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -234,12 +407,51 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
                     ),
                     onPressed: () {},
                   ),
-                  IconButton(
+                  PopupMenuButton<String>(
                     icon: Icon(
                       Icons.more_vert,
                       color: isDark ? Colors.white : Colors.black87,
                     ),
-                    onPressed: () {},
+                    position: PopupMenuPosition.under,
+                    offset: const Offset(0, 8),
+                    color: isDark ? const Color(0xFF2D2D2D) : Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    onSelected: (value) {
+                      if (value == 'delete') {
+                        _showDeleteConfirmation();
+                      }
+                    },
+                    itemBuilder: (BuildContext context) => [
+                      PopupMenuItem<String>(
+                        value: 'delete',
+                        enabled: widget.onDelete != null,
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.delete_outline_rounded,
+                              color: widget.onDelete != null
+                                  ? Colors.red
+                                  : (isDark ? Colors.white38 : Colors.black38),
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Delete',
+                              style: GoogleFonts.inter(
+                                color: widget.onDelete != null
+                                    ? Colors.red
+                                    : (isDark
+                                          ? Colors.white38
+                                          : Colors.black38),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ],

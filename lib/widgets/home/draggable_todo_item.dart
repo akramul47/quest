@@ -194,6 +194,14 @@ class _DraggableTodoItemState extends State<DraggableTodoItem> {
                           context.read<TodoList>().updateTodo(updatedTodo);
                           widget.onSave();
                         },
+                        onDelete: (todo) {
+                          context.read<TodoList>().deleteTodo(todo.id);
+                          widget.onSave();
+                        },
+                        onArchive: (todo) {
+                          context.read<TodoList>().archiveTodo(todo.id);
+                          widget.onSave();
+                        },
                       ),
                     ),
                   );
