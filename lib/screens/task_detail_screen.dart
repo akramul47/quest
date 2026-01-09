@@ -111,7 +111,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
 
   void _autoSaveTodo() {
     if (_titleController.text.trim().isEmpty) return;
-    if (_isSaving) return;
+    if (_hasSaved) return; // Already saved, don't save again
 
     // For new tasks, use the stable ID; for existing tasks, use existing ID
     final taskId = widget.todo?.id ?? _newTaskId;
