@@ -25,6 +25,7 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final screenSize = MediaQuery.of(context).size;
+    final isMobile = screenSize.width < 600;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -42,13 +43,19 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: BoxDecoration(gradient: _buildBackgroundGradient(isDark)),
+        decoration: BoxDecoration(
+          gradient: _buildBackgroundGradient(isDark, isMobile: isMobile),
+        ),
         child: Stack(
           children: [
             // Mandala at gradient glow center
             Builder(
               builder: (context) {
-                final mandalaSize = screenSize.width * 0.5;
+                // Larger mandala on mobile (smaller screens), smaller on desktop
+                final mandalaSize = isMobile
+                    ? screenSize.width * 0.75
+                    : screenSize.width * 0.5;
+
                 final gradientCenterY = screenSize.height * 0.35;
                 return Positioned(
                   left: (screenSize.width - mandalaSize) / 2,
@@ -93,18 +100,24 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
     );
   }
 
-  RadialGradient _buildBackgroundGradient(bool isDark) {
+  RadialGradient _buildBackgroundGradient(
+    bool isDark, {
+    bool isMobile = false,
+  }) {
+    // Larger gradient radius on mobile for a more prominent glow
+    final radius = isMobile ? 1.6 : 1.2;
+
     if (isDark) {
-      return const RadialGradient(
-        center: Alignment(0, -0.3),
-        radius: 1.2,
-        colors: [AppTheme.warmBrown, Color(0xFF0D0500), Colors.black],
-        stops: [0.0, 0.5, 1.0],
+      return RadialGradient(
+        center: const Alignment(0, -0.3),
+        radius: radius,
+        colors: const [AppTheme.warmBrown, Color(0xFF0D0500), Colors.black],
+        stops: const [0.0, 0.5, 1.0],
       );
     }
     return RadialGradient(
       center: const Alignment(0, -0.3),
-      radius: 1.2,
+      radius: radius,
       colors: [
         AppTheme.primaryColor.withAlpha(38),
         AppTheme.backgroundGradientStart,
