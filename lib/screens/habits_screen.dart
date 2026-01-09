@@ -301,406 +301,420 @@ class _HabitsScreenState extends State<HabitsScreen>
     final visibleDates = _getVisibleDates();
     final double sidebarWidth = isDesktop ? 220 : 72;
 
-    return Stack(
-      children: [
-        // Background gradient
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDark
-                  ? [
-                      AppTheme.backgroundGradientStartDark,
-                      AppTheme.backgroundGradientEndDark,
-                    ]
-                  : [
-                      AppTheme.backgroundGradientStart,
-                      AppTheme.backgroundGradientEnd,
-                    ],
+    return PopScope(
+      canPop: !_isAddHabitVisible,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && _isAddHabitVisible) {
+          _toggleAddHabit();
+        }
+      },
+      child: Stack(
+        children: [
+          // Background gradient
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDark
+                    ? [
+                        AppTheme.backgroundGradientStartDark,
+                        AppTheme.backgroundGradientEndDark,
+                      ]
+                    : [
+                        AppTheme.backgroundGradientStart,
+                        AppTheme.backgroundGradientEnd,
+                      ],
+              ),
             ),
           ),
-        ),
-        // Content with headers
-        SafeArea(
-          top: isMobile,
-          bottom: false,
-          child: Column(
-            children: [
-              if ((isTablet || isDesktop) && !kIsWeb && Platform.isWindows)
-                WindowControlsBar(
-                  sidebarWidth: sidebarWidth,
-                  showDragIndicator: true,
-                ),
+          // Content with headers
+          SafeArea(
+            top: isMobile,
+            bottom: false,
+            child: Column(
+              children: [
+                if ((isTablet || isDesktop) && !kIsWeb && Platform.isWindows)
+                  WindowControlsBar(
+                    sidebarWidth: sidebarWidth,
+                    showDragIndicator: true,
+                  ),
 
-              Container(
-                height: 70, // Fixed height for consistent switching
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 8, // Reduced padding to allow text to fit
-                ),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? AppTheme.glassBackgroundDark.withOpacity(0.3)
-                      : AppTheme.glassBackground.withOpacity(0.3),
-                  border: Border(
-                    bottom: BorderSide(
-                      color: isDark
-                          ? Colors.white.withOpacity(0.05)
-                          : Colors.black.withOpacity(0.05),
+                Container(
+                  height: 70, // Fixed height for consistent switching
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8, // Reduced padding to allow text to fit
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppTheme.glassBackgroundDark.withOpacity(0.3)
+                        : AppTheme.glassBackground.withOpacity(0.3),
+                    border: Border(
+                      bottom: BorderSide(
+                        color: isDark
+                            ? Colors.white.withOpacity(0.05)
+                            : Colors.black.withOpacity(0.05),
+                      ),
                     ),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        child: _isAddHabitVisible
-                            ? _buildAddHabitHeader(isDark, isMobile)
-                            : Row(
-                                key: const ValueKey('normal_header'),
-                                children: [
-                                  Text(
-                                    _showArchived
-                                        ? 'Archived Habits'
-                                        : 'Habits',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: isMobile ? 22 : 26,
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark
-                                          ? AppTheme.textDarkMode
-                                          : AppTheme.textDark,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  IconButton(
-                                    icon: Icon(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          child: _isAddHabitVisible
+                              ? _buildAddHabitHeader(isDark, isMobile)
+                              : Row(
+                                  key: const ValueKey('normal_header'),
+                                  children: [
+                                    Text(
                                       _showArchived
-                                          ? Icons.unarchive_outlined
-                                          : Icons.archive_outlined,
-                                      color: isDark
-                                          ? AppTheme.textDarkMode
-                                          : AppTheme.textDark,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        _showArchived = !_showArchived;
-                                      });
-                                    },
-                                    tooltip: _showArchived
-                                        ? 'Show Active'
-                                        : 'Show Archived',
-                                    style: IconButton.styleFrom(
-                                      backgroundColor: isDark
-                                          ? Colors.white.withValues(alpha: 0.05)
-                                          : Colors.black.withValues(
-                                              alpha: 0.05,
-                                            ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    if (!_showArchived || _isAddHabitVisible)
-                      RotationTransition(
-                        turns: Tween(begin: 0.0, end: 0.125).animate(
-                          CurvedAnimation(
-                            parent:
-                                _rotationController ??
-                                AnimationController(vsync: this),
-                            curve: Curves.easeInOut,
-                          ),
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.add_rounded),
-                          onPressed: _toggleAddHabit,
-                          tooltip: _isAddHabitVisible ? 'Close' : 'Add Habit',
-                          style: IconButton.styleFrom(
-                            backgroundColor: _isAddHabitVisible
-                                ? (isDark ? Colors.grey[800] : Colors.grey[300])
-                                : (isDark
-                                      ? AppTheme.primaryColorDark
-                                      : AppTheme.primaryColor),
-                            foregroundColor: _isAddHabitVisible
-                                ? (isDark ? Colors.white : Colors.black)
-                                : Colors.white,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-
-              Expanded(
-                child: Stack(
-                  children: [
-                    // Main Content
-                    _isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : Column(
-                            children: [
-                              const SizedBox(height: 8),
-                              NotificationListener<ScrollNotification>(
-                                onNotification: (notification) {
-                                  if (notification
-                                      is ScrollUpdateNotification) {
-                                    _syncScroll(notification.metrics.pixels);
-                                  }
-                                  return false;
-                                },
-                                child: HabitDateHeader(
-                                  visibleDates: visibleDates,
-                                  scrollController: _dateScrollController,
-                                  isDark: isDark,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Expanded(
-                                child: Consumer<HabitList>(
-                                  builder: (context, habitList, child) {
-                                    final habits = _showArchived
-                                        ? habitList.archivedHabits
-                                        : habitList.activeHabits;
-
-                                    if (habits.isEmpty) {
-                                      return HabitEmptyState(
-                                        isDark: isDark,
-                                        isMobile: isMobile,
-                                        showArchived: _showArchived,
-                                        onAddHabit: _toggleAddHabit,
-                                      );
-                                    }
-
-                                    while (_habitScrollControllers.length <
-                                        habits.length) {
-                                      _habitScrollControllers.add(
-                                        ScrollController(),
-                                      );
-                                    }
-                                    while (_habitScrollControllers.length >
-                                        habits.length) {
-                                      _habitScrollControllers
-                                          .removeLast()
-                                          .dispose();
-                                    }
-
-                                    return ListView.builder(
-                                      padding: const EdgeInsets.only(
-                                        bottom: 80,
+                                          ? 'Archived Habits'
+                                          : 'Habits',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: isMobile ? 22 : 26,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark
+                                            ? AppTheme.textDarkMode
+                                            : AppTheme.textDark,
                                       ),
-                                      itemCount: habits.length,
-                                      itemBuilder: (context, index) {
-                                        final habit = habits[index];
-                                        return NotificationListener<
-                                          ScrollNotification
-                                        >(
-                                          onNotification: (notification) {
-                                            if (notification
-                                                is ScrollUpdateNotification) {
-                                              _syncScroll(
-                                                notification.metrics.pixels,
-                                              );
-                                            }
-                                            return false;
-                                          },
-                                          child: HabitRow(
-                                            habit: habit,
-                                            weekDates: visibleDates,
-                                            scrollController:
-                                                _habitScrollControllers[index],
-                                            onDayTap: (date) {
-                                              if (habit.type ==
-                                                  HabitType.boolean) {
-                                                habitList.toggleHabitDay(
-                                                  habit.id,
-                                                  date,
-                                                );
-                                              } else {
-                                                _showValueInputDialog(
-                                                  habit,
-                                                  date,
+                                    ),
+                                    const Spacer(),
+                                    IconButton(
+                                      icon: Icon(
+                                        _showArchived
+                                            ? Icons.unarchive_outlined
+                                            : Icons.archive_outlined,
+                                        color: isDark
+                                            ? AppTheme.textDarkMode
+                                            : AppTheme.textDark,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          _showArchived = !_showArchived;
+                                        });
+                                      },
+                                      tooltip: _showArchived
+                                          ? 'Show Active'
+                                          : 'Show Archived',
+                                      style: IconButton.styleFrom(
+                                        backgroundColor: isDark
+                                            ? Colors.white.withValues(
+                                                alpha: 0.05,
+                                              )
+                                            : Colors.black.withValues(
+                                                alpha: 0.05,
+                                              ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      if (!_showArchived || _isAddHabitVisible)
+                        RotationTransition(
+                          turns: Tween(begin: 0.0, end: 0.125).animate(
+                            CurvedAnimation(
+                              parent:
+                                  _rotationController ??
+                                  AnimationController(vsync: this),
+                              curve: Curves.easeInOut,
+                            ),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.add_rounded),
+                            onPressed: _toggleAddHabit,
+                            tooltip: _isAddHabitVisible ? 'Close' : 'Add Habit',
+                            style: IconButton.styleFrom(
+                              backgroundColor: _isAddHabitVisible
+                                  ? (isDark
+                                        ? Colors.grey[800]
+                                        : Colors.grey[300])
+                                  : (isDark
+                                        ? AppTheme.primaryColorDark
+                                        : AppTheme.primaryColor),
+                              foregroundColor: _isAddHabitVisible
+                                  ? (isDark ? Colors.white : Colors.black)
+                                  : Colors.white,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+
+                Expanded(
+                  child: Stack(
+                    children: [
+                      // Main Content
+                      _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : Column(
+                              children: [
+                                const SizedBox(height: 8),
+                                NotificationListener<ScrollNotification>(
+                                  onNotification: (notification) {
+                                    if (notification
+                                        is ScrollUpdateNotification) {
+                                      _syncScroll(notification.metrics.pixels);
+                                    }
+                                    return false;
+                                  },
+                                  child: HabitDateHeader(
+                                    visibleDates: visibleDates,
+                                    scrollController: _dateScrollController,
+                                    isDark: isDark,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Expanded(
+                                  child: Consumer<HabitList>(
+                                    builder: (context, habitList, child) {
+                                      final habits = _showArchived
+                                          ? habitList.archivedHabits
+                                          : habitList.activeHabits;
+
+                                      if (habits.isEmpty) {
+                                        return HabitEmptyState(
+                                          isDark: isDark,
+                                          isMobile: isMobile,
+                                          showArchived: _showArchived,
+                                          onAddHabit: _toggleAddHabit,
+                                        );
+                                      }
+
+                                      while (_habitScrollControllers.length <
+                                          habits.length) {
+                                        _habitScrollControllers.add(
+                                          ScrollController(),
+                                        );
+                                      }
+                                      while (_habitScrollControllers.length >
+                                          habits.length) {
+                                        _habitScrollControllers
+                                            .removeLast()
+                                            .dispose();
+                                      }
+
+                                      return ListView.builder(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 80,
+                                        ),
+                                        itemCount: habits.length,
+                                        itemBuilder: (context, index) {
+                                          final habit = habits[index];
+                                          return NotificationListener<
+                                            ScrollNotification
+                                          >(
+                                            onNotification: (notification) {
+                                              if (notification
+                                                  is ScrollUpdateNotification) {
+                                                _syncScroll(
+                                                  notification.metrics.pixels,
                                                 );
                                               }
-                                              _saveHabits();
+                                              return false;
                                             },
-                                            onTap: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      HabitDetailScreen(
-                                                        habitId: habit.id,
-                                                      ),
-                                                ),
-                                              );
-                                            },
-                                            onLongPress: () =>
-                                                _toggleAddHabit(habit),
-                                            onArchive: () {
-                                              if (habit.isArchived) {
-                                                habitList.unarchiveHabit(
-                                                  habit.id,
-                                                );
+                                            child: HabitRow(
+                                              habit: habit,
+                                              weekDates: visibleDates,
+                                              scrollController:
+                                                  _habitScrollControllers[index],
+                                              onDayTap: (date) {
+                                                if (habit.type ==
+                                                    HabitType.boolean) {
+                                                  habitList.toggleHabitDay(
+                                                    habit.id,
+                                                    date,
+                                                  );
+                                                } else {
+                                                  _showValueInputDialog(
+                                                    habit,
+                                                    date,
+                                                  );
+                                                }
                                                 _saveHabits();
-                                                final screenWidth =
-                                                    MediaQuery.of(
-                                                      context,
-                                                    ).size.width;
-                                                final snackBarWidth =
-                                                    screenWidth > 400
-                                                    ? 400.0
-                                                    : screenWidth - 32;
-                                                final horizontalMargin =
-                                                    (screenWidth -
-                                                        snackBarWidth) /
-                                                    2;
-
-                                                ScaffoldMessenger.of(
+                                              },
+                                              onTap: () {
+                                                Navigator.push(
                                                   context,
-                                                ).showSnackBar(
-                                                  SnackBar(
-                                                    content: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      children: [
-                                                        const Icon(
-                                                          Icons
-                                                              .unarchive_outlined,
-                                                          color: Colors.white,
-                                                          size: 20,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        HabitDetailScreen(
+                                                          habitId: habit.id,
                                                         ),
-                                                        const SizedBox(
-                                                          width: 8,
-                                                        ),
-                                                        Text(
-                                                          'Habit restored',
-                                                          style:
-                                                              GoogleFonts.inter(
-                                                                color: Colors
-                                                                    .white,
-                                                              ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    backgroundColor:
-                                                        const Color(0xFF333333),
-                                                    behavior: SnackBarBehavior
-                                                        .floating,
-                                                    margin: EdgeInsets.only(
-                                                      bottom: 24,
-                                                      left: horizontalMargin,
-                                                      right: horizontalMargin,
-                                                    ),
-                                                    shape: RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            30,
-                                                          ),
-                                                    ),
-                                                    duration: const Duration(
-                                                      seconds: 2,
-                                                    ),
                                                   ),
                                                 );
-                                              }
-                                            },
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
+                                              },
+                                              onLongPress: () =>
+                                                  _toggleAddHabit(habit),
+                                              onArchive: () {
+                                                if (habit.isArchived) {
+                                                  habitList.unarchiveHabit(
+                                                    habit.id,
+                                                  );
+                                                  _saveHabits();
+                                                  final screenWidth =
+                                                      MediaQuery.of(
+                                                        context,
+                                                      ).size.width;
+                                                  final snackBarWidth =
+                                                      screenWidth > 400
+                                                      ? 400.0
+                                                      : screenWidth - 32;
+                                                  final horizontalMargin =
+                                                      (screenWidth -
+                                                          snackBarWidth) /
+                                                      2;
+
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
+                                                    SnackBar(
+                                                      content: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          const Icon(
+                                                            Icons
+                                                                .unarchive_outlined,
+                                                            color: Colors.white,
+                                                            size: 20,
+                                                          ),
+                                                          const SizedBox(
+                                                            width: 8,
+                                                          ),
+                                                          Text(
+                                                            'Habit restored',
+                                                            style:
+                                                                GoogleFonts.inter(
+                                                                  color: Colors
+                                                                      .white,
+                                                                ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      backgroundColor:
+                                                          const Color(
+                                                            0xFF333333,
+                                                          ),
+                                                      behavior: SnackBarBehavior
+                                                          .floating,
+                                                      margin: EdgeInsets.only(
+                                                        bottom: 24,
+                                                        left: horizontalMargin,
+                                                        right: horizontalMargin,
+                                                      ),
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              30,
+                                                            ),
+                                                      ),
+                                                      duration: const Duration(
+                                                        seconds: 2,
+                                                      ),
+                                                    ),
+                                                  );
+                                                }
+                                              },
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
                                 ),
+                              ],
+                            ),
+
+                      // Bottom Modal for Add Habit
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOutCubic,
+                        left: 4,
+                        right: 4,
+                        top: _isAddHabitVisible
+                            ? 4
+                            : MediaQuery.of(context).size.height,
+                        bottom: _isAddHabitVisible
+                            ? 0
+                            : -MediaQuery.of(context).size.height,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF000000)
+                                : Colors.white,
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(30),
+                            ),
+                            boxShadow: [
+                              // PROMINENT GLOW
+                              BoxShadow(
+                                color:
+                                    (isDark
+                                            ? AppTheme.primaryColorDark
+                                            : AppTheme.primaryColor)
+                                        .withValues(alpha: 0.3),
+                                blurRadius: 30,
+                                spreadRadius: 1,
+                                offset: const Offset(0, -4),
+                              ),
+                              BoxShadow(
+                                color: Colors.black.withValues(
+                                  alpha: isDark ? 0.4 : 0.15,
+                                ),
+                                blurRadius: 20,
+                                spreadRadius: 1,
+                                offset: const Offset(0, 10),
                               ),
                             ],
                           ),
-
-                    // Bottom Modal for Add Habit
-                    AnimatedPositioned(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOutCubic,
-                      left: 16,
-                      right: 16,
-                      top: _isAddHabitVisible
-                          ? 8 // Slightly reduced top padding
-                          : MediaQuery.of(context).size.height,
-                      bottom: _isAddHabitVisible
-                          ? 0
-                          : -MediaQuery.of(context).size.height,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF000000)
-                              : Colors.white,
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(30),
-                          ),
-                          boxShadow: [
-                            // PROMINENT GLOW
-                            BoxShadow(
-                              color:
-                                  (isDark
-                                          ? AppTheme.primaryColorDark
-                                          : AppTheme.primaryColor)
-                                      .withValues(alpha: 0.3),
-                              blurRadius: 30,
-                              spreadRadius: 1,
-                              offset: const Offset(0, -4),
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(30),
                             ),
-                            BoxShadow(
-                              color: Colors.black.withValues(
-                                alpha: isDark ? 0.4 : 0.15,
-                              ),
-                              blurRadius: 20,
-                              spreadRadius: 1,
-                              offset: const Offset(0, 10),
+                            child: AddHabitFormContent(
+                              isEmbedded: true,
+                              formKey: _formKey,
+                              nameController: _nameController,
+                              unitController: _unitController,
+                              goalController: _goalController,
+                              questionController: _questionController,
+                              selectedType: _selectedType,
+                              selectedColor: _selectedColor,
+                              selectedIcon: _selectedIcon,
+                              showGoalField: _showGoalField,
+                              showQuestionField: _showQuestionField,
+                              onTypeChanged: (val) =>
+                                  setState(() => _selectedType = val),
+                              onColorChanged: (val) =>
+                                  setState(() => _selectedColor = val),
+                              onIconChanged: (val) =>
+                                  setState(() => _selectedIcon = val),
+                              onShowGoalChanged: (val) =>
+                                  setState(() => _showGoalField = val),
+                              onShowQuestionChanged: (val) =>
+                                  setState(() => _showQuestionField = val),
+                              onCreate: _createHabit,
+                              scrollController: _addHabitScrollController,
+                              onClose: _toggleAddHabit,
+                              isEditing: _editingHabitId != null,
                             ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(30),
-                          ),
-                          child: AddHabitFormContent(
-                            isEmbedded: true,
-                            formKey: _formKey,
-                            nameController: _nameController,
-                            unitController: _unitController,
-                            goalController: _goalController,
-                            questionController: _questionController,
-                            selectedType: _selectedType,
-                            selectedColor: _selectedColor,
-                            selectedIcon: _selectedIcon,
-                            showGoalField: _showGoalField,
-                            showQuestionField: _showQuestionField,
-                            onTypeChanged: (val) =>
-                                setState(() => _selectedType = val),
-                            onColorChanged: (val) =>
-                                setState(() => _selectedColor = val),
-                            onIconChanged: (val) =>
-                                setState(() => _selectedIcon = val),
-                            onShowGoalChanged: (val) =>
-                                setState(() => _showGoalField = val),
-                            onShowQuestionChanged: (val) =>
-                                setState(() => _showQuestionField = val),
-                            onCreate: _createHabit,
-                            scrollController: _addHabitScrollController,
-                            onClose: _toggleAddHabit,
-                            isEditing: _editingHabitId != null,
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
