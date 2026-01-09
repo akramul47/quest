@@ -556,68 +556,7 @@ class _HomeScreenState extends State<HomeScreen> {
         const StreakDisplayWidget(compact: true),
         const SizedBox(width: 8),
         // Archive button with circular background
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: primaryColor.withValues(alpha: 0.5),
-              width: 1.5,
-            ),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDark
-                  ? [
-                      Colors.white.withValues(alpha: 0.1),
-                      Colors.white.withValues(alpha: 0.05),
-                    ]
-                  : [
-                      Colors.white.withValues(alpha: 0.9),
-                      Colors.white.withValues(alpha: 0.6),
-                    ],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: primaryColor.withValues(alpha: 0.3),
-                blurRadius: 12,
-                spreadRadius: 1,
-              ),
-              BoxShadow(
-                color: primaryColor.withValues(alpha: 0.15),
-                blurRadius: 6,
-                spreadRadius: 0,
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(20),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) =>
-                        const ArchivesScreen(),
-                    transitionsBuilder:
-                        (context, animation, secondaryAnimation, child) {
-                          return TaskAnimations.slideIn(animation, child);
-                        },
-                  ),
-                );
-              },
-              child: Center(
-                child: Icon(
-                  Icons.archive_outlined,
-                  size: 20,
-                  color: primaryColor.withValues(alpha: 0.9),
-                ),
-              ),
-            ),
-          ),
-        ),
+        _ArchiveButton(primaryColor: primaryColor, isDark: isDark),
         const SizedBox(width: 8),
         // Profile Avatar with popup panel
         Builder(
@@ -735,5 +674,93 @@ class _HomeScreenState extends State<HomeScreen> {
     _mainQuestController.dispose();
     _sideQuestController.dispose();
     super.dispose();
+  }
+}
+
+class _ArchiveButton extends StatefulWidget {
+  final Color primaryColor;
+  final bool isDark;
+
+  const _ArchiveButton({required this.primaryColor, required this.isDark});
+
+  @override
+  State<_ArchiveButton> createState() => _ArchiveButtonState();
+}
+
+class _ArchiveButtonState extends State<_ArchiveButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: _isHovered
+              ? Border.all(
+                  color: widget.primaryColor.withValues(alpha: 0.5),
+                  width: 1.5,
+                )
+              : null,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: widget.isDark
+                ? [
+                    Colors.white.withValues(alpha: 0.1),
+                    Colors.white.withValues(alpha: 0.05),
+                  ]
+                : [
+                    Colors.white.withValues(alpha: 0.9),
+                    Colors.white.withValues(alpha: 0.6),
+                  ],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: widget.primaryColor.withValues(alpha: 0.3),
+              blurRadius: 12,
+              spreadRadius: 1,
+            ),
+            BoxShadow(
+              color: widget.primaryColor.withValues(alpha: 0.15),
+              blurRadius: 6,
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () {
+              Navigator.push(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      const ArchivesScreen(),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                        return TaskAnimations.slideIn(animation, child);
+                      },
+                ),
+              );
+            },
+            child: Center(
+              child: Icon(
+                Icons.archive_outlined,
+                size: 16,
+                color: widget.primaryColor.withValues(alpha: 0.9),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
