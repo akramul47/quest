@@ -89,34 +89,109 @@ class _StreakDisplayWidgetState extends State<StreakDisplayWidget> {
   }
 
   Widget _buildCompact(BuildContext context, int streak, bool isFrozen) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Color scheme based on frozen state
+    final Color primaryColor;
+    final Color accentColor;
+
+    if (isFrozen) {
+      primaryColor = const Color(0xFF58A6FF); // Bright blue for frozen
+      accentColor = const Color(0xFF1F6FEB); // Darker blue
+    } else {
+      primaryColor = const Color(0xFFFF9500); // Vibrant orange for fire
+      accentColor = const Color(0xFFFF6B00); // Darker orange
+    }
+
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
       child: GestureDetector(
         onTap: () => _navigateToDetails(context),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface.withAlpha(128),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Theme.of(context).colorScheme.outline.withAlpha(26),
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildIcon(isFrozen, 20),
-              const SizedBox(width: 4),
-              Text(
-                '$streak',
-                style: GoogleFonts.outfit(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
+        child: AnimatedScale(
+          scale: _isHovering ? 1.05 : 1.0,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          child: Container(
+            height: 40,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDark
+                    ? [
+                        Colors.white.withValues(alpha: 0.12),
+                        Colors.white.withValues(alpha: 0.06),
+                      ]
+                    : [
+                        Colors.white.withValues(alpha: 0.95),
+                        Colors.white.withValues(alpha: 0.7),
+                      ],
               ),
-            ],
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: primaryColor.withValues(alpha: 0.3),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: primaryColor.withValues(alpha: 0.25),
+                  blurRadius: 12,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 2),
+                ),
+                BoxShadow(
+                  color: isDark
+                      ? Colors.black.withValues(alpha: 0.3)
+                      : Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 8,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Icon with gradient background
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        primaryColor.withValues(alpha: 0.2),
+                        accentColor.withValues(alpha: 0.15),
+                      ],
+                    ),
+                  ),
+                  child: Center(child: _buildIcon(isFrozen, 16)),
+                ),
+                const SizedBox(width: 6),
+                // Streak number with gradient text effect
+                ShaderMask(
+                  shaderCallback: (bounds) => LinearGradient(
+                    colors: [primaryColor, accentColor],
+                  ).createShader(bounds),
+                  child: Text(
+                    '$streak',
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                      height: 1.0,
+                      letterSpacing: -0.5,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
