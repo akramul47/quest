@@ -188,15 +188,10 @@ class _StreakDisplayWidgetState extends State<StreakDisplayWidget> {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: isFrozen
-                        ? [
-                            primaryColor.withValues(alpha: 0.35),
-                            accentColor.withValues(alpha: 0.25),
-                          ]
-                        : [
-                            primaryColor.withValues(alpha: 0.4),
-                            accentColor.withValues(alpha: 0.3),
-                          ],
+                    colors: [
+                      primaryColor.withValues(alpha: 0.4),
+                      accentColor.withValues(alpha: 0.55),
+                    ],
                   ),
                 ),
                 child: Center(child: _buildIcon(isFrozen, 18)),
