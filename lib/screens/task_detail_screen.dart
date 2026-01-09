@@ -504,8 +504,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
                 ),
                 // Back button - positioned at top-left of content area
                 Positioned(
-                  top: 8,
-                  left: 8,
+                  top: 16,
+                  left: 16,
                   child: _HoverButton(
                     icon: Icons.arrow_back,
                     onPressed: () => Navigator.pop(context),
@@ -515,8 +515,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
                 ),
                 // Right side buttons - positioned at top-right
                 Positioned(
-                  top: 8,
-                  right: 8,
+                  top: 16,
+                  right: 16,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -775,11 +775,11 @@ class _HoverButtonState extends State<_HoverButton> {
             onTap: widget.onPressed,
             borderRadius: BorderRadius.circular(24),
             child: Padding(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(10),
               child: Icon(
                 widget.icon,
                 color: widget.isPrimary ? baseColor : baseColor,
-                size: 20,
+                size: 22,
               ),
             ),
           ),
