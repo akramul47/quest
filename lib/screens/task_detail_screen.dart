@@ -45,6 +45,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
 
   // Prevent duplicate saves
   bool _isSaving = false;
+  // Track if task has been saved (via keyboard tick)
+  bool _hasSaved = false;
 
   @override
   void initState() {
@@ -131,12 +133,22 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
     );
 
     widget.onSave(todo);
+    _hasSaved = true; // Mark as saved to prevent duplicate saves
   }
 
   void _saveTodo() {
     if (_isSaving) return;
+    _isSaving = true;
 
+    // If already saved (via keyboard tick), just close the page
+    if (_hasSaved) {
+      Navigator.pop(context);
+      return;
+    }
+
+    // Validate title before saving
     if (_titleController.text.trim().isEmpty) {
+      _isSaving = false; // Reset flag to allow retry
       final deviceType = ResponsiveLayout.getDeviceType(context);
       final isMobile = deviceType == DeviceType.mobile;
 
@@ -155,7 +167,6 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
       return;
     }
 
-    _isSaving = true;
     _autoSaveTodo();
     Navigator.pop(context);
   }
