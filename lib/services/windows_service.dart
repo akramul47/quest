@@ -6,7 +6,8 @@ import 'package:win32_registry/win32_registry.dart'
     if (dart.library.html) '../services/win32_registry_stub.dart';
 
 class WindowsService {
-  static const String _registryPath = r'Software\Microsoft\Windows\CurrentVersion\Run';
+  static const String _registryPath =
+      r'Software\Microsoft\Windows\CurrentVersion\Run';
   static const String _appName = 'WindowsTodo';
 
   static Future<void> setupAutoStart() async {
@@ -18,15 +19,13 @@ class WindowsService {
     try {
       final key = Registry.localMachine.createKey(_registryPath);
       final exePath = await _getExecutablePath();
-      
+
       if (exePath != null) {
-        key.createValue(RegistryValue(
-          _appName,
-          RegistryValueType.string,
-          exePath,
-        ));
+        key.createValue(
+          RegistryValue(_appName, RegistryValueType.string, exePath),
+        );
       }
-      
+
       key.close();
     } catch (e) {
       // Handle or log error appropriately

@@ -169,9 +169,10 @@ class HabitDetailHeatmap extends StatelessWidget {
                     if (isFuture) {
                       cellColor = Colors.transparent;
                     } else if (habit.type == HabitType.measurable &&
-                        value != null) {
+                        value != null &&
+                        value is num) {
                       // Calculate intensity based on value
-                      final numValue = (value as num).toDouble();
+                      final numValue = value.toDouble();
                       // Use a simple normalization (can be improved with actual target)
                       final intensity = (numValue / 100).clamp(0.0, 1.0);
                       cellColor = habit.color.withValues(

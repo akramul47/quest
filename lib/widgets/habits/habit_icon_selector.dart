@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../Utils/app_theme.dart';
+import '../../utils/habit_icons.dart';
 
 class HabitIconSelector extends StatelessWidget {
   final IconData selectedIcon;
@@ -8,33 +9,6 @@ class HabitIconSelector extends StatelessWidget {
   final Color selectedColor;
   final bool isDark;
   final bool isMobile;
-
-  static const List<IconData> availableIcons = [
-    Icons.favorite,
-    Icons.fitness_center,
-    Icons.book,
-    Icons.water_drop,
-    Icons.bedtime,
-    Icons.restaurant,
-    Icons.directions_run,
-    Icons.self_improvement,
-    Icons.music_note,
-    Icons.brush,
-    Icons.school,
-    Icons.work,
-    Icons.coffee,
-    Icons.pets,
-    Icons.nature,
-    Icons.sunny,
-    Icons.medication,
-    Icons.psychology,
-    Icons.spa,
-    Icons.family_restroom,
-    Icons.celebration,
-    Icons.emoji_events,
-    Icons.lightbulb,
-    Icons.palette,
-  ];
 
   const HabitIconSelector({
     Key? key,
@@ -75,9 +49,9 @@ class HabitIconSelector extends StatelessWidget {
               crossAxisSpacing: isMobile ? 8 : 12,
               mainAxisSpacing: isMobile ? 8 : 12,
             ),
-            itemCount: availableIcons.length,
+            itemCount: HabitIcons.availableIcons.length,
             itemBuilder: (context, index) {
-              final icon = availableIcons[index];
+              final icon = HabitIcons.availableIcons[index];
               final isSelected = selectedIcon == icon;
 
               return GestureDetector(

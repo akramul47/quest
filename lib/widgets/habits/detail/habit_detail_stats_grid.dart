@@ -28,7 +28,7 @@ class HabitDetailStatsGrid extends StatelessWidget {
       final last30Days = List.generate(30, (i) {
         final date = DateTime.now().subtract(Duration(days: i));
         return habit.getValueForDate(date);
-      }).where((v) => v != null).toList();
+      }).where((v) => v != null && v is num).toList();
 
       if (last30Days.isNotEmpty) {
         averageValue =

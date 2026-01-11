@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/habit_icons.dart';
 
 /// Type of habit tracking: boolean (yes/no) or measurable (numeric value)
 enum HabitType {
@@ -66,11 +67,16 @@ class Habit {
   /// Check if habit was completed on a specific date
   bool isCompletedOn(DateTime date) {
     final value = getValueForDate(date);
-    if (type == HabitType.boolean) {
-      return value == true;
-    } else {
-      return value != null && (value as num) > 0;
+    if (value == null) return false;
+
+    // Handle both boolean and numeric values regardless of current type
+    // This handles cases where habit type was changed but history has mixed data
+    if (value is bool) {
+      return value;
+    } else if (value is num) {
+      return value > 0;
     }
+    return false;
   }
 
   /// Calculate current streak (consecutive days completed)
@@ -100,11 +106,12 @@ class Habit {
     if (history.isEmpty) return 0;
 
     // Get all dates sorted
-    final dates = history.keys
-        .map((key) => DateTime.parse(key))
-        .where((date) => isCompletedOn(date))
-        .toList()
-      ..sort();
+    final dates =
+        history.keys
+            .map((key) => DateTime.parse(key))
+            .where((date) => isCompletedOn(date))
+            .toList()
+          ..sort();
 
     if (dates.isEmpty) return 0;
 
@@ -144,20 +151,23 @@ class Habit {
   /// Get total count of completed days
   int getTotalCompletedDays() {
     return history.values.where((value) {
-      if (type == HabitType.boolean) {
-        return value == true;
-      } else {
-        return value != null && (value as num) > 0;
+      // Handle both boolean and numeric values regardless of current type
+      if (value is bool) {
+        return value;
+      } else if (value is num) {
+        return value > 0;
       }
+      return false;
     }).length;
   }
 
   /// Get total sum for measurable habits
   double getTotalValue() {
     if (type != HabitType.measurable) return 0;
-    return history.values
-        .whereType<num>()
-        .fold(0, (sum, value) => sum + value.toDouble());
+    return history.values.whereType<num>().fold(
+      0,
+      (sum, value) => sum + value.toDouble(),
+    );
   }
 
   /// Get weekly summary (last 7 days)
@@ -228,11 +238,7 @@ class Habit {
       id: json['id'],
       name: json['name'],
       color: Color(json['color']),
-      icon: IconData(
-        json['icon'],
-        fontFamily: json['iconFontFamily'] ?? 'MaterialIcons',
-        fontPackage: json['iconFontPackage'],
-      ),
+      icon: HabitIcons.fromCodePoint(json['icon']),
       type: HabitType.values[json['type'] ?? 0],
       unit: json['unit'] ?? '',
       history: Map<String, dynamic>.from(json['history'] ?? {}),
@@ -250,7 +256,11 @@ class Habit {
 
   // Helper methods
   static String _dateToKey(DateTime date) {
-    return DateTime(date.year, date.month, date.day).toIso8601String().split('T')[0];
+    return DateTime(
+      date.year,
+      date.month,
+      date.day,
+    ).toIso8601String().split('T')[0];
   }
 
   static bool _isToday(DateTime date) {

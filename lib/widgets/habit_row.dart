@@ -223,8 +223,9 @@ class _HabitRowState extends State<HabitRow>
       }
     } else {
       // Measurable habit: show value
-      if (value != null && value > 0) {
-        final intensity = (value as num).clamp(0, 100) / 100;
+      // Handle both numeric and boolean values (for when type was changed)
+      if (value is num && value > 0) {
+        final intensity = value.clamp(0, 100) / 100;
         cellColor = widget.habit.color.withOpacity(0.2 + (intensity * 0.8));
         cellContent = Text(
           '${value.toInt()}',
@@ -234,6 +235,10 @@ class _HabitRowState extends State<HabitRow>
             color: intensity > 0.5 ? Colors.white : widget.habit.color,
           ),
         );
+      } else if (value == true) {
+        // Boolean value from when habit was boolean type - show as completed
+        cellColor = widget.habit.color;
+        cellContent = Icon(Icons.check, size: 14, color: Colors.white);
       } else {
         cellColor = isDark
             ? Colors.white.withOpacity(0.05)

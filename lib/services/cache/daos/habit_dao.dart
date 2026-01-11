@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../../../models/habit.dart';
+import '../../../utils/habit_icons.dart';
 import '../database_helper.dart';
 
 /// Data Access Object for Habit operations.
@@ -327,11 +328,7 @@ class HabitDao {
       id: map['id'] as String,
       name: map['name'] as String,
       color: Color(map['color'] as int),
-      icon: IconData(
-        map['icon_code_point'] as int,
-        fontFamily: map['icon_font_family'] as String? ?? 'MaterialIcons',
-        fontPackage: map['icon_font_package'] as String?,
-      ),
+      icon: HabitIcons.fromCodePoint(map['icon_code_point'] as int),
       type: HabitType.values[map['type'] as int],
       unit: map['unit'] as String? ?? '',
       history: history,
