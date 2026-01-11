@@ -21,6 +21,12 @@ class HabitColorSelector extends StatelessWidget {
     Color(0xFF38EF7D),
     Color(0xFFFFA726),
     Color(0xFFFFD93D),
+    Color(0xFFFF1493),
+    Color(0xFF00BFA5),
+    Color(0xFF6200EA),
+    Color(0xFFFF6D00),
+    Color(0xFF2962FF),
+    Color(0xFFAEEA00),
   ];
 
   const HabitColorSelector({
@@ -45,48 +51,66 @@ class HabitColorSelector extends StatelessWidget {
           ),
         ),
         SizedBox(height: isMobile ? 12 : 14),
-        Wrap(
-          spacing: isMobile ? 12 : 16,
-          runSpacing: isMobile ? 12 : 16,
-          children: colors.map((color) {
-            final isSelected = selectedColor.value == color.value;
-            final colorSize = isMobile ? 48.0 : 56.0;
-
-            return GestureDetector(
-              onTap: () => onColorChanged(color),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: colorSize,
-                height: colorSize,
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isSelected ? Colors.white : Colors.transparent,
-                    width: 3,
-                  ),
-                  boxShadow: isSelected
-                      ? [
-                          BoxShadow(
-                            color: color.withValues(alpha: 0.4),
-                            blurRadius: 12,
-                            spreadRadius: 2,
-                          ),
-                        ]
-                      : null,
-                ),
-                child: isSelected
-                    ? Icon(
-                        Icons.check_rounded,
-                        color: Colors.white,
-                        size: isMobile ? 24 : 28,
-                      )
-                    : null,
-              ),
-            );
-          }).toList(),
-        ),
+        if (!isMobile)
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 6,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              childAspectRatio: 1,
+            ),
+            itemCount: colors.length,
+            itemBuilder: (context, index) {
+              return Center(child: _buildColorItem(colors[index]));
+            },
+          )
+        else
+          Wrap(
+            spacing: isMobile ? 12 : 16,
+            runSpacing: isMobile ? 12 : 16,
+            children: colors.map(_buildColorItem).toList(),
+          ),
       ],
+    );
+  }
+
+  Widget _buildColorItem(Color color) {
+    final isSelected = selectedColor.value == color.value;
+    final colorSize = isMobile ? 48.0 : 56.0;
+
+    return GestureDetector(
+      onTap: () => onColorChanged(color),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: colorSize,
+        height: colorSize,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isSelected ? Colors.white : Colors.transparent,
+            width: 3,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.4),
+                    blurRadius: 12,
+                    spreadRadius: 2,
+                  ),
+                ]
+              : null,
+        ),
+        child: isSelected
+            ? Icon(
+                Icons.check_rounded,
+                color: Colors.white,
+                size: isMobile ? 24 : 28,
+              )
+            : null,
+      ),
     );
   }
 }
