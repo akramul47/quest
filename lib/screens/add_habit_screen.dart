@@ -186,37 +186,24 @@ class AddHabitFormContent extends StatefulWidget {
   State<AddHabitFormContent> createState() => _AddHabitFormContentState();
 }
 
-class _AddHabitFormContentState extends State<AddHabitFormContent>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
+class _AddHabitFormContentState extends State<AddHabitFormContent> {
+  bool _widgetsLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 400),
-      vsync: this,
-    );
-    _fadeAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    );
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _animationController,
-            curve: Curves.easeOutCubic,
-          ),
-        );
-    _animationController.forward();
-  }
 
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
+    // Defer building widgets when embedded to let modal slide-in complete first
+    if (widget.isEmbedded) {
+      Future.delayed(const Duration(milliseconds: 320), () {
+        if (mounted) {
+          setState(() => _widgetsLoaded = true);
+        }
+      });
+    } else {
+      // Build immediately when not embedded
+      _widgetsLoaded = true;
+    }
   }
 
   @override
@@ -254,95 +241,93 @@ class _AddHabitFormContentState extends State<AddHabitFormContent>
                     child: Center(
                       child: ConstrainedBox(
                         constraints: BoxConstraints(maxWidth: maxContentWidth),
-                        child: FadeTransition(
-                          opacity: _fadeAnimation,
-                          child: SlideTransition(
-                            position: _slideAnimation,
-                            child: Form(
-                              key: widget.formKey,
-                              child: ListView(
-                                controller: widget.scrollController,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: isMobile ? 24 : 32,
-                                  vertical: isMobile ? 8 : 16,
-                                ),
-                                children: [
-                                  // Hide preview card if embedded (it's in the app bar)
-                                  if (!widget.isEmbedded) ...[
-                                    HabitPreviewCard(
-                                      selectedColor: widget.selectedColor,
-                                      selectedIcon: widget.selectedIcon,
+                        child: _widgetsLoaded
+                            ? Form(
+                                key: widget.formKey,
+                                child: ListView(
+                                  controller: widget.scrollController,
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: isMobile ? 24 : 32,
+                                    vertical: isMobile ? 8 : 16,
+                                  ),
+                                  children: [
+                                    // Hide preview card if embedded (it's in the app bar)
+                                    if (!widget.isEmbedded) ...[
+                                      HabitPreviewCard(
+                                        selectedColor: widget.selectedColor,
+                                        selectedIcon: widget.selectedIcon,
+                                        nameController: widget.nameController,
+                                        selectedType: widget.selectedType,
+                                        unitController: widget.unitController,
+                                        isDark: isDark,
+                                        isMobile: isMobile,
+                                      ),
+                                      SizedBox(height: isMobile ? 32 : 40),
+                                    ] else
+                                      const SizedBox(height: 24),
+
+                                    HabitNameField(
                                       nameController: widget.nameController,
+                                      isDark: isDark,
+                                      isMobile: isMobile,
+                                      selectedColor: widget.selectedColor,
+                                      onChanged: () => setState(() {}),
+                                    ),
+                                    SizedBox(height: isMobile ? 24 : 32),
+                                    HabitTypeSelector(
                                       selectedType: widget.selectedType,
+                                      onTypeChanged: widget.onTypeChanged,
                                       unitController: widget.unitController,
+                                      selectedColor: widget.selectedColor,
+                                      isDark: isDark,
+                                      isMobile: isMobile,
+                                      onChanged: () => setState(() {}),
+                                    ),
+                                    SizedBox(height: isMobile ? 24 : 32),
+                                    HabitIconSelector(
+                                      selectedIcon: widget.selectedIcon,
+                                      onIconChanged: widget.onIconChanged,
+                                      selectedColor: widget.selectedColor,
+                                      isDark: isDark,
+                                      isMobile: isMobile,
+                                    ),
+                                    SizedBox(height: isMobile ? 24 : 32),
+                                    HabitColorSelector(
+                                      selectedColor: widget.selectedColor,
+                                      onColorChanged: widget.onColorChanged,
+                                      isDark: isDark,
+                                      isMobile: isMobile,
+                                    ),
+                                    SizedBox(height: isMobile ? 24 : 32),
+                                    HabitAdvancedOptions(
+                                      selectedType: widget.selectedType,
+                                      showGoalField: widget.showGoalField,
+                                      onShowGoalChanged:
+                                          widget.onShowGoalChanged,
+                                      goalController: widget.goalController,
+                                      unitController: widget.unitController,
+                                      selectedColor: widget.selectedColor,
+                                      showQuestionField:
+                                          widget.showQuestionField,
+                                      onShowQuestionChanged:
+                                          widget.onShowQuestionChanged,
+                                      questionController:
+                                          widget.questionController,
                                       isDark: isDark,
                                       isMobile: isMobile,
                                     ),
                                     SizedBox(height: isMobile ? 32 : 40),
-                                  ] else
-                                    const SizedBox(height: 24),
-
-                                  HabitNameField(
-                                    nameController: widget.nameController,
-                                    isDark: isDark,
-                                    isMobile: isMobile,
-                                    selectedColor: widget.selectedColor,
-                                    onChanged: () => setState(() {}),
-                                  ),
-                                  SizedBox(height: isMobile ? 24 : 32),
-                                  HabitTypeSelector(
-                                    selectedType: widget.selectedType,
-                                    onTypeChanged: widget.onTypeChanged,
-                                    unitController: widget.unitController,
-                                    selectedColor: widget.selectedColor,
-                                    isDark: isDark,
-                                    isMobile: isMobile,
-                                    onChanged: () => setState(() {}),
-                                  ),
-                                  SizedBox(height: isMobile ? 24 : 32),
-                                  HabitIconSelector(
-                                    selectedIcon: widget.selectedIcon,
-                                    onIconChanged: widget.onIconChanged,
-                                    selectedColor: widget.selectedColor,
-                                    isDark: isDark,
-                                    isMobile: isMobile,
-                                  ),
-                                  SizedBox(height: isMobile ? 24 : 32),
-                                  HabitColorSelector(
-                                    selectedColor: widget.selectedColor,
-                                    onColorChanged: widget.onColorChanged,
-                                    isDark: isDark,
-                                    isMobile: isMobile,
-                                  ),
-                                  SizedBox(height: isMobile ? 24 : 32),
-                                  HabitAdvancedOptions(
-                                    selectedType: widget.selectedType,
-                                    showGoalField: widget.showGoalField,
-                                    onShowGoalChanged: widget.onShowGoalChanged,
-                                    goalController: widget.goalController,
-                                    unitController: widget.unitController,
-                                    selectedColor: widget.selectedColor,
-                                    showQuestionField: widget.showQuestionField,
-                                    onShowQuestionChanged:
-                                        widget.onShowQuestionChanged,
-                                    questionController:
-                                        widget.questionController,
-                                    isDark: isDark,
-                                    isMobile: isMobile,
-                                  ),
-                                  SizedBox(height: isMobile ? 32 : 40),
-                                  HabitCreateButton(
-                                    onCreate: widget.onCreate,
-                                    selectedColor: widget.selectedColor,
-                                    isEditing: widget.isEditing,
-                                    isMobile: isMobile,
-                                  ),
-                                  SizedBox(height: isMobile ? 24 : 32),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
+                                    HabitCreateButton(
+                                      onCreate: widget.onCreate,
+                                      selectedColor: widget.selectedColor,
+                                      isEditing: widget.isEditing,
+                                      isMobile: isMobile,
+                                    ),
+                                    SizedBox(height: isMobile ? 24 : 32),
+                                  ],
+                                ),
+                              )
+                            : const SizedBox.shrink(), // Empty while loading
                       ),
                     ),
                   ),

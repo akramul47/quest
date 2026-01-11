@@ -34,6 +34,7 @@ class _HabitsScreenState extends State<HabitsScreen>
 
   // Add habit modal state & controllers
   bool _isAddHabitVisible = false;
+  bool _showAddHabitHeader = false; // Deferred for smooth animation
   AnimationController? _rotationController;
 
   // Lifted state from AddHabitScreen
@@ -253,6 +254,8 @@ class _HabitsScreenState extends State<HabitsScreen>
   }
 
   void _toggleAddHabit([Habit? habit]) {
+    final wasVisible = _isAddHabitVisible;
+
     setState(() {
       if (habit != null) {
         // Edit mode
@@ -275,6 +278,8 @@ class _HabitsScreenState extends State<HabitsScreen>
         if (!_isAddHabitVisible) {
           _resetForm();
           _editingHabitId = null;
+          // Immediately hide header when closing
+          _showAddHabitHeader = false;
         } else {
           _editingHabitId = null;
           _resetForm();
@@ -289,6 +294,15 @@ class _HabitsScreenState extends State<HabitsScreen>
         }
       }
     });
+
+    // Defer header change until after modal slide-in completes
+    if (_isAddHabitVisible && !wasVisible) {
+      Future.delayed(const Duration(milliseconds: 320), () {
+        if (mounted && _isAddHabitVisible) {
+          setState(() => _showAddHabitHeader = true);
+        }
+      });
+    }
   }
 
   @override
@@ -363,7 +377,7 @@ class _HabitsScreenState extends State<HabitsScreen>
                       Expanded(
                         child: AnimatedSwitcher(
                           duration: const Duration(milliseconds: 300),
-                          child: _isAddHabitVisible
+                          child: _showAddHabitHeader
                               ? _buildAddHabitHeader(isDark, isMobile)
                               : Row(
                                   key: const ValueKey('normal_header'),
