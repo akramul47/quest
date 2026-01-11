@@ -51,27 +51,20 @@ class HabitColorSelector extends StatelessWidget {
           ),
         ),
         SizedBox(height: isMobile ? 12 : 14),
-        if (!isMobile)
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 6,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              childAspectRatio: 1,
-            ),
-            itemCount: colors.length,
-            itemBuilder: (context, index) {
-              return Center(child: _buildColorItem(colors[index]));
-            },
-          )
-        else
-          Wrap(
-            spacing: isMobile ? 12 : 16,
-            runSpacing: isMobile ? 12 : 16,
-            children: colors.map(_buildColorItem).toList(),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 6,
+            mainAxisSpacing: isMobile ? 12 : 16,
+            crossAxisSpacing: isMobile ? 12 : 16,
+            childAspectRatio: 1,
           ),
+          itemCount: colors.length,
+          itemBuilder: (context, index) {
+            return Center(child: _buildColorItem(colors[index]));
+          },
+        ),
       ],
     );
   }
