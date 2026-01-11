@@ -289,13 +289,20 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
     if (widget.todo == null || widget.onDelete == null) return;
 
     final deletedTodo = widget.todo!;
+    final onSaveCallback = widget.onSave; // Capture callback before navigation
     widget.onDelete!(deletedTodo);
 
     final deviceType = ResponsiveLayout.getDeviceType(context);
     final isMobile = deviceType == DeviceType.mobile;
+    final scaffoldMessenger = ScaffoldMessenger.of(
+      context,
+    ); // Capture before navigation
 
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
+    // Pop first, then show snackbar
+    Navigator.pop(context);
+
+    scaffoldMessenger.clearSnackBars();
+    scaffoldMessenger.showSnackBar(
       SnackBar(
         content: Text('Quest deleted', style: GoogleFonts.inter()),
         behavior: SnackBarBehavior.floating,
@@ -307,14 +314,12 @@ class _TaskDetailScreenState extends State<TaskDetailScreen>
           label: 'UNDO',
           textColor: Colors.white,
           onPressed: () {
-            // Re-add the deleted todo
-            widget.onSave(deletedTodo);
+            // Re-add the deleted todo using captured callback
+            onSaveCallback(deletedTodo);
           },
         ),
       ),
     );
-
-    Navigator.pop(context);
   }
 
   void _archiveTodo() {

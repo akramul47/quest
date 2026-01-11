@@ -185,21 +185,23 @@ class _DraggableTodoItemState extends State<DraggableTodoItem> {
                   });
                 },
                 onTap: () {
+                  // Capture TodoList before navigation to prevent context access after widget deactivation
+                  final todoList = context.read<TodoList>();
                   Navigator.push(
                     context,
                     RightToLeftRoute(
                       page: TaskDetailScreen(
                         todo: widget.todo,
                         onSave: (updatedTodo) {
-                          context.read<TodoList>().updateTodo(updatedTodo);
+                          todoList.updateTodo(updatedTodo);
                           widget.onSave();
                         },
                         onDelete: (todo) {
-                          context.read<TodoList>().deleteTodo(todo.id);
+                          todoList.deleteTodo(todo.id);
                           widget.onSave();
                         },
                         onArchive: (todo) {
-                          context.read<TodoList>().archiveTodo(todo.id);
+                          todoList.archiveTodo(todo.id);
                           widget.onSave();
                         },
                       ),
