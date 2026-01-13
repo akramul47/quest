@@ -66,8 +66,8 @@ function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button size="sm" className="bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity" data-testid="button-getstarted">
-            Get Started
+          <Button asChild size="sm" className="bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity" data-testid="button-getstarted">
+            <a href="https://boomsupersonic.quest/" target="_blank" rel="noopener noreferrer">Get Started</a>
           </Button>
         </div>
       </div>
@@ -128,12 +128,15 @@ function Hero() {
 
           <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button
+              asChild
               size="lg"
               className="bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all text-lg px-8 py-6 glow-primary"
               data-testid="button-liveapp"
             >
-              Try Live App
-              <ArrowRight className="ml-2 w-5 h-5" />
+              <a href="https://boomsupersonic.quest/" target="_blank" rel="noopener noreferrer">
+                Try Live App
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </a>
             </Button>
             <Button
               size="lg"
@@ -392,9 +395,9 @@ function Features() {
 }
 
 const platforms = [
-  { icon: Smartphone, name: "iOS & Android", description: "Native mobile experience" },
-  { icon: Monitor, name: "Windows & Mac", description: "Full desktop power" },
-  { icon: Tablet, name: "Web App", description: "Access anywhere" }
+  { icon: Smartphone, name: "iOS & Android", description: "Native mobile experience", url: null },
+  { icon: Monitor, name: "Windows & Mac", description: "Full desktop power", url: null },
+  { icon: Tablet, name: "Web App", description: "Access anywhere", url: "https://boomsupersonic.quest/" }
 ];
 
 function Platforms() {
@@ -427,24 +430,49 @@ function Platforms() {
             </motion.p>
 
             <motion.div variants={staggerContainer} className="space-y-4">
-              {platforms.map((platform, i) => (
-                <motion.div
-                  key={i}
-                  variants={fadeInUp}
-                  whileHover={{ x: 10 }}
-                  className="flex items-center gap-4 p-4 rounded-xl glass cursor-pointer group"
-                  data-testid={`platform-${i}`}
-                >
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                    <platform.icon className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold">{platform.name}</h4>
-                    <p className="text-sm text-muted-foreground">{platform.description}</p>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                </motion.div>
-              ))}
+              {platforms.map((platform, i) => {
+                const platformContent = (
+                  <>
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                      <platform.icon className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold">{platform.name}</h4>
+                      <p className="text-sm text-muted-foreground">{platform.description}</p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </>
+                );
+
+                if (platform.url) {
+                  return (
+                    <motion.a
+                      key={i}
+                      href={platform.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      variants={fadeInUp}
+                      whileHover={{ x: 10 }}
+                      className="flex items-center gap-4 p-4 rounded-xl glass cursor-pointer group"
+                      data-testid={`platform-${i}`}
+                    >
+                      {platformContent}
+                    </motion.a>
+                  );
+                }
+
+                return (
+                  <motion.div
+                    key={i}
+                    variants={fadeInUp}
+                    whileHover={{ x: 10 }}
+                    className="flex items-center gap-4 p-4 rounded-xl glass cursor-pointer group"
+                    data-testid={`platform-${i}`}
+                  >
+                    {platformContent}
+                  </motion.div>
+                );
+              })}
             </motion.div>
           </div>
 
@@ -605,12 +633,15 @@ function CTA() {
 
           <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button
+              asChild
               size="lg"
               className="bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all text-lg px-10 py-6 glow-primary"
               data-testid="button-cta-getstarted"
             >
-              Get Started for Free
-              <ArrowRight className="ml-2 w-5 h-5" />
+              <a href="https://boomsupersonic.quest/" target="_blank" rel="noopener noreferrer">
+                Get Started for Free
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </a>
             </Button>
           </motion.div>
 
