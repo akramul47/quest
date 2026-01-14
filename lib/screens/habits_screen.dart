@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../Utils/app_theme.dart';
 import '../Utils/responsive_layout.dart';
+import '../Utils/responsive_habit_config.dart';
 import '../models/habit.dart';
 import '../providers/habit_provider.dart';
 import '../services/storage_service.dart';
@@ -28,9 +29,9 @@ class _HabitsScreenState extends State<HabitsScreen>
     with SingleTickerProviderStateMixin {
   bool _isLoading = true;
   bool _showArchived = false;
-  int _daysToShow = 14;
-  final ScrollController _dateScrollController = ScrollController();
-  final List<ScrollController> _habitScrollControllers = [];
+
+  // Horizontal scroll state (inspired by uhabits dataOffset pattern)
+  int _dataOffset = 0;
 
   // Add habit modal state & controllers
   bool _isAddHabitVisible = false;
@@ -58,7 +59,6 @@ class _HabitsScreenState extends State<HabitsScreen>
   void initState() {
     super.initState();
     _loadHabits();
-    _dateScrollController.addListener(_onScroll);
     _initRotationController();
   }
 
@@ -77,11 +77,7 @@ class _HabitsScreenState extends State<HabitsScreen>
 
   @override
   void dispose() {
-    _dateScrollController.dispose();
     _rotationController?.dispose();
-    for (var controller in _habitScrollControllers) {
-      controller.dispose();
-    }
 
     // Dispose form controllers
     _nameController.dispose();
@@ -206,23 +202,22 @@ class _HabitsScreenState extends State<HabitsScreen>
     }
   }
 
-  void _syncScroll(double offset) {
-    if (_dateScrollController.hasClients &&
-        (_dateScrollController.offset - offset).abs() > 0.5) {
-      _dateScrollController.jumpTo(offset);
-    }
-    for (var controller in _habitScrollControllers) {
-      if (controller.hasClients && (controller.offset - offset).abs() > 0.5) {
-        controller.jumpTo(offset);
+  /// Handle horizontal swipe to change dataOffset (for loading older dates)
+  void _onHorizontalDragEnd(DragEndDetails details) {
+    // Swipe left = go back in time (increase offset)
+    // Swipe right = go forward in time (decrease offset)
+    if (details.primaryVelocity != null) {
+      if (details.primaryVelocity! < -100) {
+        // Swiped left - show older dates
+        setState(() {
+          _dataOffset += 1;
+        });
+      } else if (details.primaryVelocity! > 100 && _dataOffset > 0) {
+        // Swiped right - show newer dates (but don't go past today)
+        setState(() {
+          _dataOffset -= 1;
+        });
       }
-    }
-  }
-
-  void _onScroll() {
-    if (_dateScrollController.position.pixels <= 100) {
-      setState(() {
-        _daysToShow += 7;
-      });
     }
   }
 
@@ -244,13 +239,12 @@ class _HabitsScreenState extends State<HabitsScreen>
     await storageService.saveHabits(habitList.habits);
   }
 
-  List<DateTime> _getVisibleDates() {
-    final now = DateTime.now();
-    final List<DateTime> dates = [];
-    for (int i = 0; i < _daysToShow; i++) {
-      dates.add(now.subtract(Duration(days: i)));
-    }
-    return dates;
+  /// Get visible dates based on responsive column count and current offset
+  List<DateTime> _getVisibleDates(int columnCount) {
+    return ResponsiveHabitConfig.getVisibleDates(
+      dataOffset: _dataOffset,
+      columnCount: columnCount,
+    );
   }
 
   void _toggleAddHabit([Habit? habit]) {
@@ -312,7 +306,10 @@ class _HabitsScreenState extends State<HabitsScreen>
     final isMobile = deviceType == DeviceType.mobile;
     final isTablet = deviceType == DeviceType.tablet;
     final isDesktop = deviceType == DeviceType.desktop;
-    final visibleDates = _getVisibleDates();
+
+    // Calculate responsive column count
+    final columnCount = ResponsiveHabitConfig.getVisibleColumnCount(context);
+    final visibleDates = _getVisibleDates(columnCount);
     final double sidebarWidth = isDesktop ? 220 : 72;
 
     return PopScope(
@@ -465,77 +462,49 @@ class _HabitsScreenState extends State<HabitsScreen>
                       // Main Content
                       _isLoading
                           ? const Center(child: CircularProgressIndicator())
-                          : Column(
-                              children: [
-                                const SizedBox(height: 8),
-                                NotificationListener<ScrollNotification>(
-                                  onNotification: (notification) {
-                                    if (notification
-                                        is ScrollUpdateNotification) {
-                                      _syncScroll(notification.metrics.pixels);
-                                    }
-                                    return false;
-                                  },
-                                  child: HabitDateHeader(
+                          : GestureDetector(
+                              onHorizontalDragEnd: _onHorizontalDragEnd,
+                              child: Column(
+                                children: [
+                                  const SizedBox(height: 8),
+                                  HabitDateHeader(
                                     visibleDates: visibleDates,
-                                    scrollController: _dateScrollController,
                                     isDark: isDark,
+                                    dataOffset: _dataOffset,
+                                    onScroll: (delta) {
+                                      setState(() {
+                                        _dataOffset = (_dataOffset + delta)
+                                            .clamp(0, 365);
+                                      });
+                                    },
                                   ),
-                                ),
-                                const SizedBox(height: 8),
-                                Expanded(
-                                  child: Consumer<HabitList>(
-                                    builder: (context, habitList, child) {
-                                      final habits = _showArchived
-                                          ? habitList.archivedHabits
-                                          : habitList.activeHabits;
+                                  const SizedBox(height: 8),
+                                  Expanded(
+                                    child: Consumer<HabitList>(
+                                      builder: (context, habitList, child) {
+                                        final habits = _showArchived
+                                            ? habitList.archivedHabits
+                                            : habitList.activeHabits;
 
-                                      if (habits.isEmpty) {
-                                        return HabitEmptyState(
-                                          isDark: isDark,
-                                          isMobile: isMobile,
-                                          showArchived: _showArchived,
-                                          onAddHabit: _toggleAddHabit,
-                                        );
-                                      }
+                                        if (habits.isEmpty) {
+                                          return HabitEmptyState(
+                                            isDark: isDark,
+                                            isMobile: isMobile,
+                                            showArchived: _showArchived,
+                                            onAddHabit: _toggleAddHabit,
+                                          );
+                                        }
 
-                                      while (_habitScrollControllers.length <
-                                          habits.length) {
-                                        _habitScrollControllers.add(
-                                          ScrollController(),
-                                        );
-                                      }
-                                      while (_habitScrollControllers.length >
-                                          habits.length) {
-                                        _habitScrollControllers
-                                            .removeLast()
-                                            .dispose();
-                                      }
-
-                                      return ListView.builder(
-                                        padding: const EdgeInsets.only(
-                                          bottom: 80,
-                                        ),
-                                        itemCount: habits.length,
-                                        itemBuilder: (context, index) {
-                                          final habit = habits[index];
-                                          return NotificationListener<
-                                            ScrollNotification
-                                          >(
-                                            onNotification: (notification) {
-                                              if (notification
-                                                  is ScrollUpdateNotification) {
-                                                _syncScroll(
-                                                  notification.metrics.pixels,
-                                                );
-                                              }
-                                              return false;
-                                            },
-                                            child: HabitRow(
+                                        return ListView.builder(
+                                          padding: const EdgeInsets.only(
+                                            bottom: 80,
+                                          ),
+                                          itemCount: habits.length,
+                                          itemBuilder: (context, index) {
+                                            final habit = habits[index];
+                                            return HabitRow(
                                               habit: habit,
-                                              weekDates: visibleDates,
-                                              scrollController:
-                                                  _habitScrollControllers[index],
+                                              visibleDates: visibleDates,
                                               onDayTap: (date) {
                                                 if (habit.type ==
                                                     HabitType.boolean) {
@@ -635,14 +604,14 @@ class _HabitsScreenState extends State<HabitsScreen>
                                                   );
                                                 }
                                               },
-                                            ),
-                                          );
-                                        },
-                                      );
-                                    },
+                                            );
+                                          },
+                                        );
+                                      },
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
 
                       // Bottom Modal for Add Habit

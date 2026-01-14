@@ -2,29 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/habit.dart';
 import '../Utils/app_theme.dart';
+import '../Utils/responsive_habit_config.dart';
 
-/// A single habit row showing icon, name, and a week of tracking cells
-/// with smooth fade-in animation
+/// A single habit row showing icon, name, and fixed visible day columns.
+///
+/// Optimized: No internal ScrollController - receives pre-computed visible dates.
 class HabitRow extends StatefulWidget {
   final Habit habit;
-  final List<DateTime> weekDates;
+  final List<DateTime> visibleDates;
   final Function(DateTime) onDayTap;
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onArchive;
   final VoidCallback? onLongPress;
-  final ScrollController? scrollController;
 
   const HabitRow({
     Key? key,
     required this.habit,
-    required this.weekDates,
+    required this.visibleDates,
     required this.onDayTap,
     this.onTap,
     this.onEdit,
     this.onArchive,
     this.onLongPress,
-    this.scrollController,
   }) : super(key: key);
 
   @override
@@ -109,9 +109,9 @@ class _HabitRowState extends State<HabitRow>
                   ),
                   const SizedBox(width: 8),
 
-                  // Habit name and type indicator - Flexible width
-                  Expanded(
-                    flex: 2,
+                  // Habit name and type indicator - Fixed width to match header
+                  SizedBox(
+                    width: ResponsiveHabitConfig.habitInfoMinWidth,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
@@ -146,10 +146,7 @@ class _HabitRowState extends State<HabitRow>
                     ),
                   ),
 
-                  const SizedBox(width: 6),
-
-                  const SizedBox(width: 6),
-
+                  const SizedBox(width: 12), // Match header spacing
                   // Date cells OR Unarchive button
                   Expanded(
                     flex: 3,
@@ -176,13 +173,30 @@ class _HabitRowState extends State<HabitRow>
                               ),
                             ),
                           )
-                        : SingleChildScrollView(
-                            controller: widget.scrollController,
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: widget.weekDates.map((date) {
-                                return _buildDayCell(date, isDark, context);
-                              }).toList(),
+                        : RepaintBoundary(
+                            child: ClipRect(
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return SizedBox(
+                                    width: constraints.maxWidth,
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: widget.visibleDates.map((
+                                          date,
+                                        ) {
+                                          return _buildDayCell(date, isDark);
+                                        }).toList(),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
                           ),
                   ),
@@ -195,9 +209,9 @@ class _HabitRowState extends State<HabitRow>
     );
   }
 
-  Widget _buildDayCell(DateTime date, bool isDark, BuildContext context) {
+  Widget _buildDayCell(DateTime date, bool isDark) {
     final value = widget.habit.getValueForDate(date);
-    final isToday = _isToday(date);
+    final isToday = ResponsiveHabitConfig.isToday(date);
 
     Color cellColor;
     Widget cellContent;
@@ -206,7 +220,7 @@ class _HabitRowState extends State<HabitRow>
       // Boolean habit: checkmark or X
       if (value == true) {
         cellColor = widget.habit.color;
-        cellContent = Icon(Icons.check, size: 14, color: Colors.white);
+        cellContent = const Icon(Icons.check, size: 14, color: Colors.white);
       } else if (value == false) {
         cellColor = isDark ? Colors.grey.shade800 : Colors.grey.shade300;
         cellContent = Icon(
@@ -223,7 +237,6 @@ class _HabitRowState extends State<HabitRow>
       }
     } else {
       // Measurable habit: show value
-      // Handle both numeric and boolean values (for when type was changed)
       if (value is num && value > 0) {
         final intensity = value.clamp(0, 100) / 100;
         cellColor = widget.habit.color.withOpacity(0.2 + (intensity * 0.8));
@@ -236,9 +249,9 @@ class _HabitRowState extends State<HabitRow>
           ),
         );
       } else if (value == true) {
-        // Boolean value from when habit was boolean type - show as completed
+        // Boolean value from when habit was boolean type
         cellColor = widget.habit.color;
-        cellContent = Icon(Icons.check, size: 14, color: Colors.white);
+        cellContent = const Icon(Icons.check, size: 14, color: Colors.white);
       } else {
         cellColor = isDark
             ? Colors.white.withOpacity(0.05)
@@ -248,11 +261,13 @@ class _HabitRowState extends State<HabitRow>
     }
 
     return GestureDetector(
-      onTap: () => _handleDayTap(context, date, value),
+      onTap: () => widget.onDayTap(date),
       child: Container(
-        width: 28,
-        height: 28,
-        margin: const EdgeInsets.symmetric(horizontal: 1.5),
+        width: ResponsiveHabitConfig.cellSize,
+        height: ResponsiveHabitConfig.cellSize,
+        margin: EdgeInsets.symmetric(
+          horizontal: ResponsiveHabitConfig.cellMargin,
+        ),
         decoration: BoxDecoration(
           color: cellColor,
           borderRadius: BorderRadius.circular(6),
@@ -263,21 +278,5 @@ class _HabitRowState extends State<HabitRow>
         child: Center(child: cellContent),
       ),
     );
-  }
-
-  void _handleDayTap(
-    BuildContext context,
-    DateTime date,
-    dynamic currentValue,
-  ) {
-    // Just call the parent callback, let parent handle both boolean and measurable
-    widget.onDayTap(date);
-  }
-
-  static bool _isToday(DateTime date) {
-    final now = DateTime.now();
-    return date.year == now.year &&
-        date.month == now.month &&
-        date.day == now.day;
   }
 }
