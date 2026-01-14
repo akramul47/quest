@@ -38,27 +38,12 @@ class HabitDetailStatsGrid extends StatelessWidget {
 
     final statsList = [
       _StatData(
-        'Score',
-        '${(summary.todayScore * 100).toInt()}',
-        '%',
-        Icons.stars_rounded,
-        habit.color,
-      ),
-      _StatData(
-        'Current',
+        'Streak', // Renamed 'Current' to 'Streak' for clarity if allowed, or keep 'Current'. User said 'streak'.
         '${summary.currentStreak}',
         'days',
         Icons.local_fire_department,
         Colors.orange,
       ),
-      if (habit.type != HabitType.measurable)
-        _StatData(
-          '7-Day',
-          '${(summary.weeklyRate * 100).toInt()}',
-          '%',
-          Icons.trending_up,
-          Colors.green,
-        ),
       _StatData(
         '30-Day',
         '${(summary.monthlyRate * 100).toInt()}',
@@ -66,14 +51,6 @@ class HabitDetailStatsGrid extends StatelessWidget {
         Icons.analytics,
         Colors.blue,
       ),
-      if (averageValue != null)
-        _StatData(
-          'Average',
-          averageValue.toStringAsFixed(1),
-          habit.unit,
-          Icons.show_chart,
-          habit.color,
-        ),
     ];
 
     return GridView.builder(

@@ -18,7 +18,7 @@ class HabitDetailStreaks extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final stats = HabitStatisticsService.instance;
-    final bestStreaks = stats.getBestStreaks(habit, limit: 5);
+    final bestStreaks = stats.getBestStreaks(habit, limit: 3);
     final currentStreak = stats.getCurrentStreak(habit);
 
     return Container(

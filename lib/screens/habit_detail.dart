@@ -146,8 +146,6 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
             isMobile: false,
           ),
           const SizedBox(height: 32),
-          HabitDetailStatsGrid(habit: habit, isDark: isDark, crossAxisCount: 4),
-          const SizedBox(height: 32),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -155,6 +153,12 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
                 flex: 2,
                 child: Column(
                   children: [
+                    HabitDetailStatsGrid(
+                      habit: habit,
+                      isDark: isDark,
+                      crossAxisCount: 2,
+                    ),
+                    const SizedBox(height: 24),
                     HabitDetailMonthlyChart(habit: habit, isDark: isDark),
                     const SizedBox(height: 24),
                     HabitDetailHistoryChart(habit: habit, isDark: isDark),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../Utils/app_theme.dart';
 import '../../../models/habit.dart';
+import '../../../services/habit_statistics_service.dart';
 
 class HabitDetailOverviewCard extends StatelessWidget {
   final Habit habit;
@@ -20,7 +21,9 @@ class HabitDetailOverviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(isMobile ? 12 : 24),
+      padding: isMobile
+          ? const EdgeInsets.all(12)
+          : const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: BoxDecoration(
         color: isDark
             ? AppTheme.glassBackgroundDark.withValues(alpha: 0.7)
@@ -35,19 +38,17 @@ class HabitDetailOverviewCard extends StatelessWidget {
       child: Row(
         children: [
           if (onBack != null) ...[
-            if (onBack != null) ...[
-              IconButton(
-                onPressed: onBack,
-                icon: Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
-                  size: 24,
-                ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
+            IconButton(
+              onPressed: onBack,
+              icon: Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
+                size: 24,
               ),
-              const SizedBox(width: 16),
-            ],
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+            const SizedBox(width: 16),
           ],
           Container(
             padding: EdgeInsets.all(isMobile ? 8 : 20),
@@ -121,6 +122,38 @@ class HabitDetailOverviewCard extends StatelessWidget {
                   ),
                 ],
               ],
+            ),
+          ),
+          SizedBox(width: isMobile ? 12 : 20),
+          // Score Percentage
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: habit.color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text:
+                        '${(HabitStatisticsService.instance.getTodayScore(habit).value * 100).toInt()}',
+                    style: GoogleFonts.outfit(
+                      fontSize: isMobile ? 24 : 32,
+                      fontWeight: FontWeight.bold,
+                      color: habit.color,
+                    ),
+                  ),
+                  TextSpan(
+                    text: '%',
+                    style: GoogleFonts.outfit(
+                      fontSize: isMobile ? 14 : 18,
+                      fontWeight: FontWeight.w600,
+                      color: habit.color,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
