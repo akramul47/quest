@@ -342,7 +342,9 @@ class _HabitsScreenState extends State<HabitsScreen>
           ),
           // Content with headers
           SafeArea(
-            top: isMobile,
+            top:
+                !isDesktop ||
+                (!kIsWeb && (Platform.isAndroid || Platform.isIOS)),
             bottom: false,
             child: Column(
               children: [

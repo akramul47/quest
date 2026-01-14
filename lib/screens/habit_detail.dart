@@ -77,7 +77,12 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
                   if (isMobile) {
                     return _buildMobileLayout(habit, isDark, context);
                   } else {
-                    return _buildDesktopLayout(habit, isDark, isDesktop);
+                    return _buildDesktopLayout(
+                      habit,
+                      isDark,
+                      isDesktop,
+                      showWindowControls,
+                    );
                   }
                 },
               ),
@@ -138,16 +143,22 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
   }
 
   // Desktop layout (two-column)
-  Widget _buildDesktopLayout(Habit habit, bool isDark, bool isDesktop) {
+  Widget _buildDesktopLayout(
+    Habit habit,
+    bool isDark,
+    bool isDesktop,
+    bool showWindowControls,
+  ) {
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(32, 32, 32, 120),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           HabitDetailOverviewCard(
             habit: habit,
             isDark: isDark,
             isMobile: false,
+            onBack: () => Navigator.pop(context),
           ),
           const SizedBox(height: 24),
           Row(
