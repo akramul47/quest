@@ -230,39 +230,43 @@ class _HabitDetailStreaksState extends State<HabitDetailStreaks> {
                   ],
                 ),
                 const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Text(
-                      startStr,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: isDark
-                            ? AppTheme.textMediumDark
-                            : AppTheme.textMedium,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    children: [
+                      Text(
+                        startStr,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: isDark
+                              ? AppTheme.textMediumDark
+                              : AppTheme.textMedium,
+                        ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                      child: Icon(
-                        Icons.arrow_forward,
-                        size: 12,
-                        color: isDark
-                            ? AppTheme.textLightDark
-                            : AppTheme.textLight,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        child: Icon(
+                          Icons.arrow_forward,
+                          size: 12,
+                          color: isDark
+                              ? AppTheme.textLightDark
+                              : AppTheme.textLight,
+                        ),
                       ),
-                    ),
-                    Text(
-                      endStr,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: isDark
-                            ? AppTheme.textMediumDark
-                            : AppTheme.textMedium,
+                      Text(
+                        endStr,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: isDark
+                              ? AppTheme.textMediumDark
+                              : AppTheme.textMedium,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),

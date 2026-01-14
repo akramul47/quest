@@ -23,7 +23,7 @@ class HabitDetailOverviewCard extends StatelessWidget {
     return Container(
       padding: isMobile
           ? const EdgeInsets.all(16)
-          : const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          : const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: BoxDecoration(
         color: isDark
             ? AppTheme.glassBackgroundDark.withValues(alpha: 0.7)
@@ -42,14 +42,14 @@ class HabitDetailOverviewCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: EdgeInsets.all(isMobile ? 8 : 20),
+                padding: EdgeInsets.all(isMobile ? 8 : 12),
                 decoration: BoxDecoration(
                   color: habit.color.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(isMobile ? 50 : 12),
                 ),
                 child: Icon(
                   habit.icon,
-                  size: isMobile ? 24 : 48,
+                  size: isMobile ? 24 : 40,
                   color: habit.color,
                 ),
               ),
@@ -62,7 +62,7 @@ class HabitDetailOverviewCard extends StatelessWidget {
                     Text(
                       habit.name,
                       style: GoogleFonts.outfit(
-                        fontSize: isMobile ? 20 : 28,
+                        fontSize: isMobile ? 20 : 26,
                         fontWeight: FontWeight.bold,
                         color: isDark
                             ? AppTheme.textDarkMode
@@ -176,7 +176,7 @@ class HabitDetailOverviewCard extends StatelessWidget {
                         text:
                             '${(HabitStatisticsService.instance.getTodayScore(habit).value * 100).toInt()}',
                         style: GoogleFonts.outfit(
-                          fontSize: isMobile ? 20 : 28,
+                          fontSize: isMobile ? 20 : 26,
                           fontWeight: FontWeight.bold,
                           color: habit.color,
                         ),

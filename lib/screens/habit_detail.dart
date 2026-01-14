@@ -149,7 +149,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
             isDark: isDark,
             isMobile: false,
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
