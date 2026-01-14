@@ -11,12 +11,14 @@ class UpdateModal extends StatelessWidget {
   final VoidCallback?
   onRestart; // Optional: if null, only show dismiss (Web mode)
   final String? patchVersion;
+  final String? appVersion;
 
   const UpdateModal({
     Key? key,
     required this.onDismiss,
     this.onRestart,
     this.patchVersion,
+    this.appVersion,
   }) : super(key: key);
 
   void _handleRestart() {
@@ -43,193 +45,221 @@ class UpdateModal extends StatelessWidget {
         : AppTheme.primaryColor;
     final textColor = isDark ? AppTheme.textDarkMode : AppTheme.textDark;
 
-    return Center(
-      child: Container(
-        width: modalWidth,
-        margin: EdgeInsets.symmetric(
-          horizontal: isMobile ? 4 : 24,
-          vertical: 24,
-        ),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF000000) : Colors.white,
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: [
-            // Primary color glow
-            BoxShadow(
-              color: primaryColor.withOpacity(0.3),
-              blurRadius: 30,
-              spreadRadius: 1,
-              offset: const Offset(0, -4),
-            ),
-            // Bottom shadow
-            BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.4 : 0.15),
-              blurRadius: 20,
-              spreadRadius: 1,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(30),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header Row (Info Left, Close Right)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 20, 20, 10),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Top Left Info
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.system_update_rounded,
-                                size: 20,
-                                color: primaryColor,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Update Available',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: textColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (patchVersion != null) ...[
-                            const SizedBox(height: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: primaryColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                'Version $patchVersion',
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: primaryColor,
-                                ),
+    return Container(
+      width: modalWidth,
+      margin: EdgeInsets.fromLTRB(
+        isMobile ? 4 : 24,
+        0, // Top margin handled by parent positioning
+        isMobile ? 4 : 24,
+        12, // Bottom margin
+      ),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF000000) : Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          // Primary color glow
+          BoxShadow(
+            color: primaryColor.withOpacity(0.3),
+            blurRadius: 30,
+            spreadRadius: 1,
+            offset: const Offset(0, -4),
+          ),
+          // Bottom shadow
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.4 : 0.15),
+            blurRadius: 20,
+            spreadRadius: 1,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: Column(
+          mainAxisSize: MainAxisSize.max, // Fill height
+          children: [
+            // Header Row (Info Left, Close Right)
+            Container(
+              constraints: const BoxConstraints(minHeight: 120),
+              padding: const EdgeInsets.fromLTRB(24, 24, 20, 16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Top Left Info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.system_update_rounded,
+                              size: 28, // Slighly larger icon
+                              color: primaryColor,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'App updated!',
+                              style: GoogleFonts.outfit(
+                                fontSize: 22, // Larger title
+                                fontWeight: FontWeight.bold,
+                                color: textColor,
                               ),
                             ),
+                            if (appVersion != null) ...[
+                              const SizedBox(width: 12),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: primaryColor.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  patchVersion != null
+                                      ? '$appVersion (Patch $patchVersion)'
+                                      : appVersion!,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: primaryColor,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 8,
+                              ), // Spacing from close button
+                            ],
                           ],
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+                  ),
 
-                    // Close "X" Button
-                    IconButton(
-                      onPressed: onDismiss,
-                      icon: const Icon(Icons.close_rounded),
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                      tooltip: 'Close',
-                    ),
-                  ],
-                ),
+                  // Close "X" Button
+                  IconButton(
+                    onPressed: onDismiss,
+                    icon: const Icon(Icons.close_rounded),
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    tooltip: 'Close',
+                  ),
+                ],
               ),
+            ),
 
-              // Description Content
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 10,
-                ),
-                child: Text(
-                  onRestart == null
-                      ? 'Welcome to the new version! Check out the latest updates and improvements.'
-                      : 'A new version has been downloaded and is ready to install. Restart the app to apply changes.',
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    color: isDark
-                        ? AppTheme.textMediumDark
-                        : AppTheme.textMedium,
-                    height: 1.5,
+            // Description Content (Expanded)
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 10,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        onRestart == null
+                            ? 'Welcome to the latest version of Quest!'
+                            : 'A new update is ready to install.',
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: textColor,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        onRestart == null
+                            ? '• Web Update Notifications: You\'ll now be notified of new web versions automatically.\n\n• Responsive Design: The update modal now adapts beautifully to mobile, tablet, and desktop screens.\n\n• Performance Improvements: We\'ve optimized the app loading and interaction speeds for a smoother experience.\n\n• Bug Fixes: Resolved layout issues on tablet devices and improved navigation stability.\n\n• UI Polish: Enhanced padding and margins for a cleaner look.\n\n• Typography: Updated font styles for better readability.\n\n• Accessibility: Improved screen reader support for navigation elements.\n\n• Under the Hood: Upgraded core dependencies for better stability.'
+                            : '• Over-the-Air Updates: Seamless updates without needing a full reinstall.\n\n• UI Enhancements: Refined update dialogs and interactions.\n\n• Stability: Critical bug fixes for data persistence.\n\nPlease restart the app to apply these changes.',
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          color: isDark
+                              ? AppTheme.textMediumDark
+                              : AppTheme.textMedium,
+                          height: 1.6,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
+            ),
 
-              const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-              // Divider
-              Container(
-                height: 1,
-                color: isDark
-                    ? Colors.white.withOpacity(0.08)
-                    : Colors.black.withOpacity(0.06),
-              ),
+            // Divider
+            Container(
+              height: 1,
+              color: isDark
+                  ? Colors.white.withOpacity(0.08)
+                  : Colors.black.withOpacity(0.06),
+            ),
 
-              // Buttons Row
-              Padding(
-                padding: EdgeInsets.all(isMobile ? 16 : 20),
-                child: Row(
-                  children: [
-                    if (onRestart != null) ...[
-                      // "I understand" button (Left)
-                      Expanded(
-                        child: _buildButton(
-                          context: context,
-                          label: 'I understand',
-                          isPrimary: false,
-                          isDark: isDark,
-                          isMobile: isMobile,
-                          onPressed: () {
-                            HapticFeedback.lightImpact();
-                            onDismiss();
-                          },
-                        ),
+            // Buttons Row
+            Padding(
+              padding: EdgeInsets.all(isMobile ? 16 : 20),
+              child: Row(
+                children: [
+                  if (onRestart != null) ...[
+                    // "I understand" button (Left)
+                    Expanded(
+                      child: _buildButton(
+                        context: context,
+                        label: 'I understand',
+                        isPrimary: false,
+                        isDark: isDark,
+                        isMobile: isMobile,
+                        onPressed: () {
+                          HapticFeedback.lightImpact();
+                          onDismiss();
+                        },
                       ),
-                      const SizedBox(width: 12),
+                    ),
+                    const SizedBox(width: 12),
 
-                      // "Restart" button (Right)
-                      Expanded(
-                        child: _buildButton(
-                          context: context,
-                          label: 'Restart',
-                          isPrimary: true,
-                          isDark: isDark,
-                          isMobile: isMobile,
-                          onPressed: () {
-                            HapticFeedback.mediumImpact();
-                            _handleRestart();
-                          },
-                        ),
+                    // "Restart" button (Right)
+                    Expanded(
+                      child: _buildButton(
+                        context: context,
+                        label: 'Restart',
+                        isPrimary: true,
+                        isDark: isDark,
+                        isMobile: isMobile,
+                        onPressed: () {
+                          HapticFeedback.mediumImpact();
+                          _handleRestart();
+                        },
                       ),
-                    ] else ...[
-                      // Single Button (Center)
-                      const Spacer(),
-                      Expanded(
-                        flex: 2,
-                        child: _buildButton(
-                          context: context,
-                          label: 'I understand',
-                          isPrimary: true,
-                          isDark: isDark,
-                          isMobile: isMobile,
-                          onPressed: () {
-                            HapticFeedback.lightImpact();
-                            onDismiss();
-                          },
-                        ),
+                    ),
+                  ] else ...[
+                    // Single Button (Center)
+                    const Spacer(),
+                    Expanded(
+                      flex: 2,
+                      child: _buildButton(
+                        context: context,
+                        label: 'I understand',
+                        isPrimary: true,
+                        isDark: isDark,
+                        isMobile: isMobile,
+                        onPressed: () {
+                          HapticFeedback.lightImpact();
+                          onDismiss();
+                        },
                       ),
-                      const Spacer(),
-                    ],
+                    ),
+                    const Spacer(),
                   ],
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

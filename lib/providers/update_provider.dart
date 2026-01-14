@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../services/update_service.dart';
 
 /// Provider for managing update notification state
@@ -12,9 +13,13 @@ class UpdateProvider extends ChangeNotifier {
   bool _hasShownModal = false;
   bool _isDownloading = false;
   String? _lastDismissedPatch;
+  String? _appVersion;
 
   /// Whether an update is ready to install
   bool get isUpdateReady => _isUpdateReady;
+
+  /// Current app version (vX.Y.Z+Build)
+  String? get appVersion => _appVersion;
 
   /// Whether we're currently checking for updates
   bool get isChecking => _isChecking;
@@ -47,10 +52,24 @@ class UpdateProvider extends ChangeNotifier {
 
   /// Initialize and check for updates
   Future<void> initialize() async {
+    // Load app version first
+    await _loadAppVersion();
+
     if (!_updateService.isPlatformSupported) return;
 
     await _loadDismissedPatch();
     await checkForUpdates();
+  }
+
+  /// Load app version using package_info_plus
+  Future<void> _loadAppVersion() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      _appVersion = 'v${packageInfo.version}+${packageInfo.buildNumber}';
+      notifyListeners();
+    } catch (e) {
+      // Ignore errors
+    }
   }
 
   /// Load the last dismissed patch from storage
@@ -138,7 +157,8 @@ class UpdateProvider extends ChangeNotifier {
 
       // Check if current version matches last seen
       // For testing, we ensure it shows if versions differ
-      if (_currentWebVersion != _lastSeenWebVersion) {
+      // DEBUG: Always show for testing in debug mode
+      if (kDebugMode || _currentWebVersion != _lastSeenWebVersion) {
         _isUpdateReady = true;
         _hasShownModal = false;
       }

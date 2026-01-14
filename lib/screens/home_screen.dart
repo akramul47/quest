@@ -712,53 +712,58 @@ class _HomeScreenState extends State<HomeScreen> {
                 curve: Curves.easeOutCubic,
                 left: 0,
                 right: 0,
-                bottom: _isUpdateModalVisible ? 0 : -400,
-                child: SafeArea(
-                  top: false,
-                  child: UpdateModal(
-                    patchVersion: context
-                        .watch<UpdateProvider>()
-                        .availablePatchNumber,
-                    onDismiss: () {
-                      setState(() => _isUpdateModalVisible = false);
-                      if (kIsWeb) {
-                        context.read<UpdateProvider>().dismissWebUpdate();
-                      } else {
-                        context.read<UpdateProvider>().dismissUpdate();
-                      }
-                    },
-                    onRestart: kIsWeb
-                        ? null
-                        : () {
-                            // Close the app to apply update on next launch
-                            SystemNavigator.pop();
-                          },
-                  ),
+                top: _isUpdateModalVisible
+                    ? MediaQuery.of(context).padding.top + 70
+                    : MediaQuery.of(context).size.height,
+                bottom: _isUpdateModalVisible
+                    ? 0
+                    : -MediaQuery.of(context).size.height,
+                child: UpdateModal(
+                  patchVersion: context
+                      .watch<UpdateProvider>()
+                      .availablePatchNumber,
+                  appVersion: context.watch<UpdateProvider>().appVersion,
+                  onDismiss: () {
+                    setState(() => _isUpdateModalVisible = false);
+                    if (kIsWeb) {
+                      context.read<UpdateProvider>().dismissWebUpdate();
+                    } else {
+                      context.read<UpdateProvider>().dismissUpdate();
+                    }
+                  },
+                  onRestart: kIsWeb
+                      ? null
+                      : () {
+                          // Close the app to apply update on next launch
+                          SystemNavigator.pop();
+                        },
                 ),
               ),
             ],
           ),
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              RightToLeftRoute(
-                page: TaskDetailScreen(
-                  initialPriority: TodoPriority.mainQuest,
-                  onSave: (newTodo) {
-                    context.read<TodoList>().updateTodo(newTodo);
-                    _saveTodos();
-                  },
-                ),
+        floatingActionButton: _isUpdateModalVisible
+            ? null
+            : FloatingActionButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    RightToLeftRoute(
+                      page: TaskDetailScreen(
+                        initialPriority: TodoPriority.mainQuest,
+                        onSave: (newTodo) {
+                          context.read<TodoList>().updateTodo(newTodo);
+                          _saveTodos();
+                        },
+                      ),
+                    ),
+                  );
+                },
+                backgroundColor: isDark
+                    ? AppTheme.primaryColorDark
+                    : Theme.of(context).colorScheme.primary,
+                child: const Icon(Icons.add, color: Colors.white),
               ),
-            );
-          },
-          backgroundColor: isDark
-              ? AppTheme.primaryColorDark
-              : Theme.of(context).colorScheme.primary,
-          child: const Icon(Icons.add, color: Colors.white),
-        ),
       ),
     );
   }
