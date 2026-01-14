@@ -32,6 +32,7 @@ class _HabitsScreenState extends State<HabitsScreen>
 
   // Horizontal scroll state (inspired by uhabits dataOffset pattern)
   int _dataOffset = 0;
+  int _lastScrollTime = 0;
 
   // Add habit modal state & controllers
   bool _isAddHabitVisible = false;
@@ -472,9 +473,18 @@ class _HabitsScreenState extends State<HabitsScreen>
                                     isDark: isDark,
                                     dataOffset: _dataOffset,
                                     onScroll: (delta) {
-                                      setState(() {
-                                        _dataOffset = (_dataOffset + delta)
-                                            .clamp(0, 365);
+                                      final now =
+                                          DateTime.now().millisecondsSinceEpoch;
+                                      if (now - _lastScrollTime < 24) return;
+                                      _lastScrollTime = now;
+
+                                      Future.delayed(Duration.zero, () {
+                                        if (mounted) {
+                                          setState(() {
+                                            _dataOffset = (_dataOffset + delta)
+                                                .clamp(0, 365);
+                                          });
+                                        }
                                       });
                                     },
                                   ),
@@ -506,11 +516,19 @@ class _HabitsScreenState extends State<HabitsScreen>
                                               habit: habit,
                                               visibleDates: visibleDates,
                                               onScroll: (delta) {
-                                                setState(() {
-                                                  _dataOffset =
-                                                      (_dataOffset + delta)
-                                                          .clamp(0, 365);
-                                                });
+                                                Future.delayed(
+                                                  Duration.zero,
+                                                  () {
+                                                    if (mounted) {
+                                                      setState(() {
+                                                        _dataOffset =
+                                                            (_dataOffset +
+                                                                    delta)
+                                                                .clamp(0, 365);
+                                                      });
+                                                    }
+                                                  },
+                                                );
                                               },
                                               onDayTap: (date) {
                                                 if (habit.type ==

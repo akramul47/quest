@@ -65,13 +65,7 @@ class HabitDetailTimeAnalysis extends StatelessWidget {
             Icons.event,
             isDark,
           ),
-          const SizedBox(height: 12),
-          _buildTimeStat(
-            'Completion Rate',
-            '${((totalDays / daysSinceStart) * 100).toInt()}%',
-            Icons.percent,
-            isDark,
-          ),
+
           const SizedBox(height: 12),
           _buildTimeStat(
             'Started',
