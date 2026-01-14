@@ -12,6 +12,7 @@ import '../widgets/window_controls_bar.dart';
 import '../widgets/habits/detail/habit_detail_overview_card.dart';
 import '../widgets/habits/detail/habit_detail_stats_grid.dart';
 import '../widgets/habits/detail/habit_detail_monthly_chart.dart';
+import '../widgets/habits/detail/habit_detail_history_chart.dart';
 import '../widgets/habits/detail/habit_detail_heatmap.dart';
 import '../widgets/habits/detail/habit_detail_streaks.dart';
 import '../widgets/habits/detail/habit_detail_insights.dart';
@@ -126,6 +127,8 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
           const SizedBox(height: 20),
           HabitDetailMonthlyChart(habit: habit, isDark: isDark),
           const SizedBox(height: 20),
+          HabitDetailHistoryChart(habit: habit, isDark: isDark),
+          const SizedBox(height: 20),
           HabitDetailHeatmap(habit: habit, isDark: isDark),
           const SizedBox(height: 20),
           HabitDetailStreaks(habit: habit, isDark: isDark),
@@ -159,6 +162,8 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
                 child: Column(
                   children: [
                     HabitDetailMonthlyChart(habit: habit, isDark: isDark),
+                    const SizedBox(height: 24),
+                    HabitDetailHistoryChart(habit: habit, isDark: isDark),
                     const SizedBox(height: 24),
                     HabitDetailHeatmap(habit: habit, isDark: isDark),
                   ],
