@@ -37,6 +37,8 @@ dependencies:
   connectivity_plus: ^5.0.2
   lottie: ^3.3.1
   fl_chart: ^0.69.0
+  # Shorebird code push for OTA updates
+  shorebird_code_push: ^1.1.0
 
 dev_dependencies:
   flutter_test:

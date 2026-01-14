@@ -18,6 +18,7 @@ import 'models/todo_list.dart';
 import 'providers/habit_provider.dart';
 import 'providers/focus_provider.dart';
 import 'providers/window_state_provider.dart';
+import 'providers/update_provider.dart';
 
 // Platform detection helpers
 bool get isWindows => !kIsWeb && Platform.isWindows;
@@ -220,6 +221,7 @@ class MyApp extends StatelessWidget {
         ),
         Provider(create: (_) => StorageService()),
         Provider(create: (_) => CacheRepository()),
+        ChangeNotifierProvider(create: (_) => UpdateProvider()..initialize()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

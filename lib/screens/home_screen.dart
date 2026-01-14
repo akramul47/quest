@@ -21,6 +21,9 @@ import '../widgets/home/todo_list_section.dart';
 import '../widgets/home/completed_section.dart';
 import '../widgets/home/split_completed_section.dart';
 import '../widgets/home/profile_panel.dart';
+import '../widgets/update_modal.dart';
+import '../providers/update_provider.dart';
+import 'package:flutter/services.dart' show SystemNavigator;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -36,10 +39,42 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isDragging = false;
   TodoPriority? _draggingFromPriority;
 
+  // Update modal visibility state
+  bool _isUpdateModalVisible = false;
+
   @override
   void initState() {
     super.initState();
     _loadTodos();
+    // Check for updates after frame is rendered
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForUpdates();
+    });
+  }
+
+  void _checkForUpdates() {
+    final updateProvider = context.read<UpdateProvider>();
+    // Listen for update ready state
+    updateProvider.addListener(_onUpdateStateChanged);
+
+    // For web, check with delay to ensure loading matches user request
+    if (kIsWeb) {
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
+          updateProvider.checkForWebUpdates();
+        }
+      });
+    }
+  }
+
+  void _onUpdateStateChanged() {
+    final updateProvider = context.read<UpdateProvider>();
+    if (updateProvider.shouldShowModal && !_isUpdateModalVisible && mounted) {
+      setState(() {
+        _isUpdateModalVisible = true;
+      });
+      updateProvider.markModalShown();
+    }
   }
 
   Future<void> _loadTodos() async {
@@ -617,33 +652,92 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Scaffold(
         key: _scaffoldKey,
         backgroundColor: Colors.transparent,
-        body: Column(
-          children: [
-            // Window controls bar for Windows tablet/desktop
-            if (showWindowControls)
-              WindowControlsBar(
-                sidebarWidth: sidebarWidth,
-                showDragIndicator: true,
+        body: PopScope(
+          canPop: !_isUpdateModalVisible,
+          onPopInvokedWithResult: (didPop, result) {
+            if (!didPop && _isUpdateModalVisible) {
+              setState(() => _isUpdateModalVisible = false);
+              context.read<UpdateProvider>().dismissUpdate();
+            }
+          },
+          child: Stack(
+            children: [
+              // Main content
+              Column(
+                children: [
+                  // Window controls bar for Windows tablet/desktop
+                  if (showWindowControls)
+                    WindowControlsBar(
+                      sidebarWidth: sidebarWidth,
+                      showDragIndicator: true,
+                    ),
+                  // Main content
+                  Expanded(
+                    child: SafeArea(
+                      top:
+                          !showWindowControls, // No top safe area on Windows tablet/desktop (controls handle it)
+                      bottom: true,
+                      left: false,
+                      right: false,
+                      child: Consumer<TodoList>(
+                        builder: (context, todoList, child) {
+                          // Use responsive layout based on screen size
+                          return ResponsiveLayout.isTabletOrDesktop(context)
+                              ? _buildTabletDesktopLayout(todoList)
+                              : _buildMobileLayout(todoList);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            // Main content
-            Expanded(
-              child: SafeArea(
-                top:
-                    !showWindowControls, // No top safe area on Windows tablet/desktop (controls handle it)
-                bottom: true,
-                left: false,
-                right: false,
-                child: Consumer<TodoList>(
-                  builder: (context, todoList, child) {
-                    // Use responsive layout based on screen size
-                    return ResponsiveLayout.isTabletOrDesktop(context)
-                        ? _buildTabletDesktopLayout(todoList)
-                        : _buildMobileLayout(todoList);
+
+              // Update modal overlay with semi-transparent backdrop
+              if (_isUpdateModalVisible)
+                GestureDetector(
+                  onTap: () {
+                    // Dismiss on backdrop tap
+                    setState(() => _isUpdateModalVisible = false);
+                    context.read<UpdateProvider>().dismissUpdate();
                   },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    color: Colors.black.withValues(alpha: 0.5),
+                  ),
+                ),
+
+              // Animated update modal
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 350),
+                curve: Curves.easeOutCubic,
+                left: 0,
+                right: 0,
+                bottom: _isUpdateModalVisible ? 0 : -400,
+                child: SafeArea(
+                  top: false,
+                  child: UpdateModal(
+                    patchVersion: context
+                        .watch<UpdateProvider>()
+                        .availablePatchNumber,
+                    onDismiss: () {
+                      setState(() => _isUpdateModalVisible = false);
+                      if (kIsWeb) {
+                        context.read<UpdateProvider>().dismissWebUpdate();
+                      } else {
+                        context.read<UpdateProvider>().dismissUpdate();
+                      }
+                    },
+                    onRestart: kIsWeb
+                        ? null
+                        : () {
+                            // Close the app to apply update on next launch
+                            SystemNavigator.pop();
+                          },
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
@@ -671,6 +765,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    // Remove update listener
+    try {
+      context.read<UpdateProvider>().removeListener(_onUpdateStateChanged);
+    } catch (_) {}
     _mainQuestController.dispose();
     _sideQuestController.dispose();
     super.dispose();
