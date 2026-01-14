@@ -25,109 +25,173 @@ class HabitDetailHistoryChart extends StatefulWidget {
       _HabitDetailHistoryChartState();
 }
 
-class _HabitDetailHistoryChartState extends State<HabitDetailHistoryChart> {
+class _HabitDetailHistoryChartState extends State<HabitDetailHistoryChart>
+    with SingleTickerProviderStateMixin {
   HistoryPeriod _period = HistoryPeriod.days;
+  late AnimationController _animationController;
+  Animation<double>? _animation;
+  bool _isHovered = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    _animation = CurvedAnimation(
+      parent: _animationController,
+      // Custom curve: slow, smooth, and relaxing at the end
+      curve: const Cubic(0.22, 0.61, 0.36, 1.0), // Similar to easeOutQuint
+    );
+    // Start animation after page loads completely
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          _animationController.forward();
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _onHoverEnter() {
+    setState(() => _isHovered = true);
+    // Replay animation on hover with smooth pace
+    _animationController.duration = const Duration(milliseconds: 800);
+    _animationController.forward(from: 0);
+  }
+
+  void _onHoverExit() {
+    setState(() => _isHovered = false);
+    // Reset duration for next entry animation
+    _animationController.duration = const Duration(milliseconds: 1500);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: widget.isDark
-            ? AppTheme.glassBackgroundDark.withValues(alpha: 0.6)
-            : AppTheme.glassBackground.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
+    return MouseRegion(
+      onEnter: (_) => _onHoverEnter(),
+      onExit: (_) => _onHoverExit(),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        transform: Matrix4.identity()..scale(_isHovered ? 1.01 : 1.0),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
           color: widget.isDark
-              ? Colors.white.withValues(alpha: 0.08)
-              : Colors.white.withValues(alpha: 0.3),
+              ? AppTheme.glassBackgroundDark.withValues(alpha: 0.6)
+              : AppTheme.glassBackground.withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: _isHovered
+                ? widget.habit.color.withValues(alpha: 0.3)
+                : (widget.isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.white.withValues(alpha: 0.3)),
+            width: _isHovered ? 1.5 : 1,
+          ),
+          boxShadow: _isHovered
+              ? [
+                  BoxShadow(
+                    color: widget.habit.color.withValues(alpha: 0.15),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.bar_chart_rounded,
-                    color: widget.isDark
-                        ? AppTheme.textMediumDark
-                        : AppTheme.textMedium,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'History',
-                    style: GoogleFonts.outfit(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.bar_chart_rounded,
                       color: widget.isDark
-                          ? AppTheme.textDarkMode
-                          : AppTheme.textDark,
+                          ? AppTheme.textMediumDark
+                          : AppTheme.textMedium,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'History',
+                      style: GoogleFonts.outfit(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: widget.isDark
+                            ? AppTheme.textDarkMode
+                            : AppTheme.textDark,
+                      ),
+                    ),
+                  ],
+                ),
+                // Dropdown
+                Container(
+                  height: 32,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: widget.habit.color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<HistoryPeriod>(
+                      value: _period,
+                      icon: Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: widget.habit.color,
+                        size: 16,
+                      ),
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: widget.habit.color,
+                      ),
+                      dropdownColor: widget.isDark
+                          ? const Color(0xFF2C2C2C)
+                          : Colors.white,
+                      isDense: true,
+                      items: const [
+                        DropdownMenuItem(
+                          value: HistoryPeriod.week,
+                          child: Text('Week'),
+                        ),
+                        DropdownMenuItem(
+                          value: HistoryPeriod.days,
+                          child: Text('Month'),
+                        ),
+                        DropdownMenuItem(
+                          value: HistoryPeriod.months,
+                          child: Text('Year'),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _period = value;
+                          });
+                        }
+                      },
                     ),
                   ),
-                ],
-              ),
-              // Dropdown
-              Container(
-                height: 32,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: widget.habit.color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<HistoryPeriod>(
-                    value: _period,
-                    icon: Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      color: widget.habit.color,
-                      size: 16,
-                    ),
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: widget.habit.color,
-                    ),
-                    dropdownColor: widget.isDark
-                        ? const Color(0xFF2C2C2C)
-                        : Colors.white,
-                    isDense: true,
-                    items: const [
-                      DropdownMenuItem(
-                        value: HistoryPeriod.week,
-                        child: Text('Week'),
-                      ),
-                      DropdownMenuItem(
-                        value: HistoryPeriod.days,
-                        child: Text('Month'),
-                      ),
-                      DropdownMenuItem(
-                        value: HistoryPeriod.months,
-                        child: Text('Year'),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          _period = value;
-                        });
-                      }
-                    },
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            height: widget.isMobile ? 180 : 350,
-            child: _buildBarChart(),
-          ),
-        ],
+              ],
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              height: widget.isMobile ? 180 : 350,
+              child: _buildBarChart(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -219,187 +283,194 @@ class _HabitDetailHistoryChartState extends State<HabitDetailHistoryChart> {
     int labelInterval = 1;
     if (_period == HistoryPeriod.days) labelInterval = 5;
 
-    return BarChart(
-      BarChartData(
-        alignment: BarChartAlignment.spaceBetween,
-        maxY: topY,
-        barTouchData: BarTouchData(
-          enabled: true,
-          touchTooltipData: BarTouchTooltipData(
-            getTooltipColor: (_) => widget.isDark
-                ? Colors.black.withValues(alpha: 0.8)
-                : Colors.white.withValues(alpha: 0.9),
-            tooltipPadding: const EdgeInsets.all(8),
-            getTooltipItem: (group, groupIndex, rod, rodIndex) {
-              final date = sortedEntries[groupIndex].key;
-              final dateStr = DateFormat(tooltipDateFormat).format(date);
-              final val = rod.toY;
-              final valStr = val % 1 == 0
-                  ? val.toInt().toString()
-                  : val.toStringAsFixed(1);
+    return AnimatedBuilder(
+      animation: _animation ?? const AlwaysStoppedAnimation(1.0),
+      builder: (context, child) {
+        final animationValue = _animation?.value ?? 1.0;
+        return BarChart(
+          BarChartData(
+            alignment: BarChartAlignment.spaceBetween,
+            maxY: topY,
+            barTouchData: BarTouchData(
+              enabled: true,
+              touchTooltipData: BarTouchTooltipData(
+                getTooltipColor: (_) => widget.isDark
+                    ? Colors.black.withValues(alpha: 0.8)
+                    : Colors.white.withValues(alpha: 0.9),
+                tooltipPadding: const EdgeInsets.all(8),
+                getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                  final date = sortedEntries[groupIndex].key;
+                  final dateStr = DateFormat(tooltipDateFormat).format(date);
+                  // Use original value for tooltip, not animated value
+                  final val = sortedEntries[groupIndex].value;
+                  final valStr = val % 1 == 0
+                      ? val.toInt().toString()
+                      : val.toStringAsFixed(1);
 
-              return BarTooltipItem(
-                '$dateStr\n',
-                GoogleFonts.inter(
-                  color: widget.isDark ? Colors.white : Colors.black,
-                  fontWeight: FontWeight.bold,
+                  return BarTooltipItem(
+                    '$dateStr\n',
+                    GoogleFonts.inter(
+                      color: widget.isDark ? Colors.white : Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: 'Count: $valStr',
+                        style: GoogleFonts.inter(
+                          color: widget.habit.color,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+            titlesData: FlTitlesData(
+              show: true,
+              rightTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              topTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 20,
+                  getTitlesWidget: (value, meta) {
+                    final index = value.toInt();
+                    if (index < 0 || index >= sortedEntries.length)
+                      return const SizedBox.shrink();
+
+                    final val = sortedEntries[index].value;
+                    if (val == 0)
+                      return const SizedBox.shrink(); // Hide 0 labels? Or show?
+
+                    // Only show label if it doesn't overlap excessively?
+                    // Simple logic: Show all (fl_chart handles some collision, or we can skip)
+                    if (_period == HistoryPeriod.days && index % 2 != 0)
+                      return const SizedBox.shrink(); // Reduce clutter for Days view
+
+                    return Text(
+                      val % 1 == 0
+                          ? val.toInt().toString()
+                          : val.toStringAsFixed(1),
+                      style: GoogleFonts.inter(
+                        color: widget.habit.color,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
+                      ),
+                    );
+                  },
                 ),
-                children: [
-                  TextSpan(
-                    text: 'Count: $valStr',
-                    style: GoogleFonts.inter(
-                      color: widget.habit.color,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 12,
+              ),
+              leftTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 30,
+                  getTitlesWidget: (value, meta) {
+                    final index = value.toInt();
+                    if (index < 0 || index >= sortedEntries.length)
+                      return const SizedBox.shrink();
+
+                    final date = sortedEntries[index].key;
+                    String text = '';
+                    bool showLabel = false;
+
+                    if (_period == HistoryPeriod.months) {
+                      // Month label
+                      text = DateFormat('MMM').format(date);
+                      showLabel = true;
+                      // Year change? (e.g. show Year if Jan?)
+                      if (date.month == 1) {
+                        text += "\n${date.year}";
+                      }
+                    } else if (_period == HistoryPeriod.days) {
+                      if (index % 5 == 0) {
+                        text = DateFormat('d').format(date);
+                        showLabel = true;
+                      }
+                    } else {
+                      // Week
+                      text = DateFormat('E').format(date);
+                      showLabel = true;
+                    }
+
+                    if (!showLabel) return const SizedBox.shrink();
+
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        text,
+                        style: GoogleFonts.inter(
+                          color: widget.isDark
+                              ? AppTheme.textLightDark
+                              : AppTheme.textLight,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            gridData: FlGridData(
+              show: true,
+              drawVerticalLine: false,
+              horizontalInterval: topY / 4, // 4 grid lines?
+              getDrawingHorizontalLine: (value) => FlLine(
+                color: widget.isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.05),
+                strokeWidth: 1,
+                dashArray: [4, 4],
+              ),
+            ),
+            borderData: FlBorderData(show: false),
+            barGroups: sortedEntries.asMap().entries.map((entry) {
+              final index = entry.key;
+              final val = entry.value.value;
+
+              double rodWidth = 12;
+              if (_period == HistoryPeriod.week) rodWidth = 20;
+              if (_period == HistoryPeriod.days) rodWidth = 6;
+              if (_period == HistoryPeriod.months) rodWidth = 12;
+
+              return BarChartGroupData(
+                x: index,
+                barRods: [
+                  BarChartRodData(
+                    toY: val * animationValue, // Animate from 0 to full height
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        widget.habit.color.withValues(alpha: 0.7),
+                        widget.habit.color,
+                      ],
+                    ),
+                    width: rodWidth,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(4),
+                    ),
+                    backDrawRodData: BackgroundBarChartRodData(
+                      show: true,
+                      toY: topY,
+                      color: widget.isDark
+                          ? Colors.white.withValues(alpha: 0.02)
+                          : Colors.black.withValues(alpha: 0.02),
                     ),
                   ),
                 ],
               );
-            },
+            }).toList(),
           ),
-        ),
-        titlesData: FlTitlesData(
-          show: true,
-          rightTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          topTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 20,
-              getTitlesWidget: (value, meta) {
-                final index = value.toInt();
-                if (index < 0 || index >= sortedEntries.length)
-                  return const SizedBox.shrink();
-
-                final val = sortedEntries[index].value;
-                if (val == 0)
-                  return const SizedBox.shrink(); // Hide 0 labels? Or show?
-
-                // Only show label if it doesn't overlap excessively?
-                // Simple logic: Show all (fl_chart handles some collision, or we can skip)
-                if (_period == HistoryPeriod.days && index % 2 != 0)
-                  return const SizedBox.shrink(); // Reduce clutter for Days view
-
-                return Text(
-                  val % 1 == 0
-                      ? val.toInt().toString()
-                      : val.toStringAsFixed(1),
-                  style: GoogleFonts.inter(
-                    color: widget.habit.color,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 10,
-                  ),
-                );
-              },
-            ),
-          ),
-          leftTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 30,
-              getTitlesWidget: (value, meta) {
-                final index = value.toInt();
-                if (index < 0 || index >= sortedEntries.length)
-                  return const SizedBox.shrink();
-
-                final date = sortedEntries[index].key;
-                String text = '';
-                bool showLabel = false;
-
-                if (_period == HistoryPeriod.months) {
-                  // Month label
-                  text = DateFormat('MMM').format(date);
-                  showLabel = true;
-                  // Year change? (e.g. show Year if Jan?)
-                  if (date.month == 1) {
-                    text += "\n${date.year}";
-                  }
-                } else if (_period == HistoryPeriod.days) {
-                  if (index % 5 == 0) {
-                    text = DateFormat('d').format(date);
-                    showLabel = true;
-                  }
-                } else {
-                  // Week
-                  text = DateFormat('E').format(date);
-                  showLabel = true;
-                }
-
-                if (!showLabel) return const SizedBox.shrink();
-
-                return Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Text(
-                    text,
-                    style: GoogleFonts.inter(
-                      color: widget.isDark
-                          ? AppTheme.textLightDark
-                          : AppTheme.textLight,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-        gridData: FlGridData(
-          show: true,
-          drawVerticalLine: false,
-          horizontalInterval: topY / 4, // 4 grid lines?
-          getDrawingHorizontalLine: (value) => FlLine(
-            color: widget.isDark
-                ? Colors.white.withValues(alpha: 0.05)
-                : Colors.black.withValues(alpha: 0.05),
-            strokeWidth: 1,
-            dashArray: [4, 4],
-          ),
-        ),
-        borderData: FlBorderData(show: false),
-        barGroups: sortedEntries.asMap().entries.map((entry) {
-          final index = entry.key;
-          final val = entry.value.value;
-
-          double rodWidth = 12;
-          if (_period == HistoryPeriod.week) rodWidth = 20;
-          if (_period == HistoryPeriod.days) rodWidth = 6;
-          if (_period == HistoryPeriod.months) rodWidth = 12;
-
-          return BarChartGroupData(
-            x: index,
-            barRods: [
-              BarChartRodData(
-                toY: val,
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [
-                    widget.habit.color.withValues(alpha: 0.7),
-                    widget.habit.color,
-                  ],
-                ),
-                width: rodWidth,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(4),
-                ),
-                backDrawRodData: BackgroundBarChartRodData(
-                  show: true,
-                  toY: topY,
-                  color: widget.isDark
-                      ? Colors.white.withValues(alpha: 0.02)
-                      : Colors.black.withValues(alpha: 0.02),
-                ),
-              ),
-            ],
-          );
-        }).toList(),
-      ),
+        );
+      },
     );
   }
 
