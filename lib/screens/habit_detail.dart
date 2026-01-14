@@ -101,8 +101,6 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
                   // Responsive layout
                   if (isMobile) {
                     return _buildMobileLayout(habit, isDark);
-                  } else if (isTablet) {
-                    return _buildTabletLayout(habit, isDark);
                   } else {
                     return _buildDesktopLayout(habit, isDark);
                   }
@@ -133,42 +131,6 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
           HabitDetailStreaks(habit: habit, isDark: isDark),
           const SizedBox(height: 20),
           HabitDetailInsights(habit: habit, isDark: isDark),
-        ],
-      ),
-    );
-  }
-
-  // Tablet layout (mixed)
-  Widget _buildTabletLayout(Habit habit, bool isDark) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          HabitDetailOverviewCard(
-            habit: habit,
-            isDark: isDark,
-            isMobile: false,
-          ),
-          const SizedBox(height: 24),
-          HabitDetailStatsGrid(habit: habit, isDark: isDark, crossAxisCount: 4),
-          const SizedBox(height: 24),
-          HabitDetailMonthlyChart(habit: habit, isDark: isDark),
-          const SizedBox(height: 24),
-          HabitDetailHeatmap(habit: habit, isDark: isDark),
-          const SizedBox(height: 24),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: HabitDetailStreaks(habit: habit, isDark: isDark),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: HabitDetailInsights(habit: habit, isDark: isDark),
-              ),
-            ],
-          ),
         ],
       ),
     );

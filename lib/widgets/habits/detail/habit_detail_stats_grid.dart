@@ -81,111 +81,189 @@ class HabitDetailStatsGrid extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
-        mainAxisSpacing: 10,
-        crossAxisSpacing: 10,
-        childAspectRatio: 1.6,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        childAspectRatio: 2.2,
       ),
       itemCount: statsList.length,
       itemBuilder: (context, index) {
         final stat = statsList[index];
-        return _buildEnhancedStatCard(
-          stat.label,
-          stat.value,
-          stat.unit,
-          stat.icon,
-          stat.color,
-          isDark,
+        return _PremiumStatCard(
+          label: stat.label,
+          value: stat.value,
+          unit: stat.unit,
+          icon: stat.icon,
+          color: stat.color,
+          isDark: isDark,
         );
       },
     );
   }
+}
 
-  Widget _buildEnhancedStatCard(
-    String label,
-    String value,
-    String unit,
-    IconData icon,
-    Color color,
-    bool isDark,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: isDark
-            ? AppTheme.glassBackgroundDark.withValues(alpha: 0.6)
-            : AppTheme.glassBackground.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.08)
-              : Colors.white.withValues(alpha: 0.3),
+class _PremiumStatCard extends StatefulWidget {
+  final String label;
+  final String value;
+  final String unit;
+  final IconData icon;
+  final Color color;
+  final bool isDark;
+
+  const _PremiumStatCard({
+    required this.label,
+    required this.value,
+    required this.unit,
+    required this.icon,
+    required this.color,
+    required this.isDark,
+  });
+
+  @override
+  State<_PremiumStatCard> createState() => _PremiumStatCardState();
+}
+
+class _PremiumStatCardState extends State<_PremiumStatCard> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        transform: Matrix4.identity()..scale(_isHovered ? 1.02 : 1.0),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: widget.isDark
+                ? [
+                    AppTheme.glassBackgroundDark.withValues(alpha: 0.7),
+                    AppTheme.glassBackgroundDark.withValues(alpha: 0.5),
+                  ]
+                : [
+                    AppTheme.glassBackground.withValues(alpha: 0.8),
+                    AppTheme.glassBackground.withValues(alpha: 0.6),
+                  ],
+          ),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: _isHovered
+                ? widget.color.withValues(alpha: 0.3)
+                : (widget.isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.white.withValues(alpha: 0.3)),
+            width: _isHovered ? 1.5 : 1,
+          ),
+          boxShadow: _isHovered
+              ? [
+                  BoxShadow(
+                    color: widget.color.withValues(alpha: 0.15),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : [
+                  BoxShadow(
+                    color: widget.isDark
+                        ? Colors.black.withValues(alpha: 0.2)
+                        : Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Icon and value row
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
+        child: Row(
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: EdgeInsets.all(_isHovered ? 8 : 7),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    widget.color.withValues(alpha: 0.2),
+                    widget.color.withValues(alpha: 0.1),
+                  ],
                 ),
-                child: Icon(icon, color: color, size: 16),
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: _isHovered
+                    ? [
+                        BoxShadow(
+                          color: widget.color.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        value,
+              child: Icon(
+                widget.icon,
+                color: widget.color,
+                size: _isHovered ? 24 : 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        widget.value,
                         style: GoogleFonts.outfit(
-                          fontSize: 22,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: isDark
+                          color: widget.isDark
                               ? AppTheme.textDarkMode
                               : AppTheme.textDark,
                           height: 1,
+                          letterSpacing: -0.5,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    const SizedBox(width: 2),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 1),
-                      child: Text(
-                        unit,
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                          color: isDark
-                              ? AppTheme.textLightDark
-                              : AppTheme.textLight,
+                      const SizedBox(width: 2),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 1),
+                        child: Text(
+                          widget.unit,
+                          style: GoogleFonts.inter(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                            color: widget.isDark
+                                ? AppTheme.textLightDark
+                                : AppTheme.textLight,
+                          ),
                         ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    widget.label,
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      color: widget.isDark
+                          ? AppTheme.textLightDark
+                          : AppTheme.textLight,
                     ),
-                  ],
-                ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
-              color: isDark ? AppTheme.textLightDark : AppTheme.textLight,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

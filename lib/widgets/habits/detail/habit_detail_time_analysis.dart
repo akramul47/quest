@@ -94,6 +94,7 @@ class HabitDetailTimeAnalysis extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
@@ -101,21 +102,29 @@ class HabitDetailTimeAnalysis extends StatelessWidget {
               color: isDark ? AppTheme.textLightDark : AppTheme.textLight,
             ),
             const SizedBox(width: 8),
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                color: isDark ? AppTheme.textMediumDark : AppTheme.textMedium,
+            Container(
+              constraints: const BoxConstraints(maxWidth: 100),
+              child: Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: isDark ? AppTheme.textMediumDark : AppTheme.textMedium,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
         ),
-        Text(
-          value,
-          style: GoogleFonts.outfit(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
+        Flexible(
+          child: Text(
+            value,
+            style: GoogleFonts.outfit(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
+            ),
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.right,
           ),
         ),
       ],

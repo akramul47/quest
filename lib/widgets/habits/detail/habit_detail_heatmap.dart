@@ -46,161 +46,250 @@ class HabitDetailHeatmap extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Flexible(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Less',
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          color: isDark
-                              ? AppTheme.textLightDark
-                              : AppTheme.textLight,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      ...List.generate(5, (i) {
-                        return Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 2),
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            color: habit.color.withValues(
-                              alpha: 0.2 + (i * 0.2),
-                            ),
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        );
-                      }),
-                      const SizedBox(width: 4),
-                      Text(
-                        'More',
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          color: isDark
-                              ? AppTheme.textLightDark
-                              : AppTheme.textLight,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildHeatmapGrid(habit, isDark),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeatmapGrid(Habit habit, bool isDark) {
-    final now = DateTime.now();
-    final weeks = 12; // Show 12 weeks
-    final startDate = now.subtract(Duration(days: weeks * 7 - 1));
-
-    return Column(
-      children: [
-        // Week day labels
-        Row(
-          children: [
-            const SizedBox(width: 30),
-            ...['Mon', 'Wed', 'Fri'].map(
-              (day) => Expanded(
-                child: Text(
-                  day,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
-                    fontSize: 10,
-                    color: isDark ? AppTheme.textLightDark : AppTheme.textLight,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        // Heatmap grid
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Day labels
-            Column(
-              children: ['Mon', '', 'Wed', '', 'Fri', '', 'Sun'].map((label) {
-                return SizedBox(
-                  height: 16,
-                  child: Text(
-                    label,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Less',
                     style: GoogleFonts.inter(
-                      fontSize: 9,
+                      fontSize: 10,
                       color: isDark
                           ? AppTheme.textLightDark
                           : AppTheme.textLight,
                     ),
                   ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(width: 8),
-            // Heatmap cells
-            Expanded(
-              child: SizedBox(
-                height: 16 * 7,
-                child: GridView.builder(
-                  scrollDirection: Axis.horizontal,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 7,
-                    mainAxisSpacing: 3,
-                    crossAxisSpacing: 3,
-                    childAspectRatio: 1,
-                  ),
-                  itemCount: weeks * 7,
-                  itemBuilder: (context, index) {
-                    final date = startDate.add(Duration(days: index));
-                    final isCompleted = habit.isCompletedOn(date);
-                    final value = habit.getValueForDate(date);
-                    final isFuture = date.isAfter(now);
-
-                    Color cellColor;
-                    if (isFuture) {
-                      cellColor = Colors.transparent;
-                    } else if (habit.type == HabitType.measurable &&
-                        value != null &&
-                        value is num) {
-                      // Calculate intensity based on value
-                      final numValue = value.toDouble();
-                      // Use a simple normalization (can be improved with actual target)
-                      final intensity = (numValue / 100).clamp(0.0, 1.0);
-                      cellColor = habit.color.withValues(
-                        alpha: 0.3 + (intensity * 0.7),
-                      );
-                    } else if (isCompleted) {
-                      cellColor = habit.color.withValues(alpha: 0.8);
-                    } else {
-                      cellColor = isDark
-                          ? Colors.white.withValues(alpha: 0.05)
-                          : Colors.black.withValues(alpha: 0.05);
-                    }
-
+                  const SizedBox(width: 4),
+                  ...List.generate(5, (i) {
                     return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      width: 12,
+                      height: 12,
                       decoration: BoxDecoration(
-                        color: cellColor,
-                        borderRadius: BorderRadius.circular(3),
-                        border: Border.all(
-                          color: isFuture
-                              ? Colors.transparent
-                              : (isDark
-                                    ? Colors.white.withValues(alpha: 0.1)
-                                    : Colors.black.withValues(alpha: 0.1)),
-                          width: 0.5,
-                        ),
+                        color: habit.color.withValues(alpha: 0.2 + (i * 0.2)),
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     );
-                  },
+                  }),
+                  const SizedBox(width: 4),
+                  Text(
+                    'More',
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      color: isDark
+                          ? AppTheme.textLightDark
+                          : AppTheme.textLight,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return _buildResponsiveHeatmap(
+                habit,
+                isDark,
+                constraints.maxWidth,
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResponsiveHeatmap(
+    Habit habit,
+    bool isDark,
+    double availableWidth,
+  ) {
+    // Calculate how many weeks can fit
+    const cellSize = 13.0;
+    const cellSpacing = 4.0;
+    const dayLabelWidth = 30.0;
+
+    // Increased buffer from 8 to 12 to prevent cut-off
+    final usableWidth = availableWidth - dayLabelWidth - 12;
+    // Calculate exact number of weeks that can fit, allowing up to 53 weeks (full year + 1)
+    // No minimum clamp helps on very small screens, max 53 covers a year
+    final weeksToShow = (usableWidth / (cellSize + cellSpacing)).floor().clamp(
+      1,
+      53,
+    );
+
+    final now = DateTime.now();
+    final startDate = now.subtract(Duration(days: weeksToShow * 7 - 1));
+
+    return Column(
+      children: [
+        const SizedBox(height: 8),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            // Day labels (left side)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                SizedBox(height: 14), // Space for month header alignment
+                ...['Mon', '', 'Wed', '', 'Fri', '', 'Sun'].map((label) {
+                  return SizedBox(
+                    height: cellSize, // Match cell height
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        label,
+                        style: GoogleFonts.inter(
+                          fontSize: 9,
+                          color: isDark
+                              ? AppTheme.textLightDark
+                              : AppTheme.textLight,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ],
+            ),
+            const SizedBox(width: 8),
+            // Heatmap (right-aligned)
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                reverse: true, // Start from right
+                padding: const EdgeInsets.only(
+                  right: 2,
+                ), // Prevent edge clipping
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min, // Hug content
+                  children: List.generate(weeksToShow, (weekIndex) {
+                    final weekStart = startDate.add(
+                      Duration(days: weekIndex * 7),
+                    );
+                    final prevWeekStart = startDate.add(
+                      Duration(days: (weekIndex - 1) * 7),
+                    );
+
+                    bool showMonth = false;
+                    if (weekIndex == 0) {
+                      showMonth = true;
+                    } else if (weekStart.month != prevWeekStart.month) {
+                      showMonth = true;
+                    }
+
+                    // Don't show if it's too close to the end and fits awkwardly?
+                    // No, showing adjacent months is fine.
+
+                    String monthLabel = "";
+                    if (showMonth) {
+                      const months = [
+                        'Jan',
+                        'Feb',
+                        'Mar',
+                        'Apr',
+                        'May',
+                        'Jun',
+                        'Jul',
+                        'Aug',
+                        'Sep',
+                        'Oct',
+                        'Nov',
+                        'Dec',
+                      ];
+                      monthLabel = months[weekStart.month - 1];
+                    }
+
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        left: weekIndex == 0 ? 0 : cellSpacing,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Month Header
+                          Container(
+                            height: 14,
+                            width:
+                                cellSize, // Constrain width to prevent column expansion
+                            alignment: Alignment.bottomLeft,
+                            child: showMonth
+                                ? Text(
+                                    monthLabel,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark
+                                          ? AppTheme.textMediumDark
+                                          : AppTheme.textMedium,
+                                    ),
+                                    maxLines: 1,
+                                    softWrap: false,
+                                    overflow: TextOverflow.visible,
+                                  )
+                                : null,
+                          ),
+                          const SizedBox(height: 4),
+                          // Cells
+                          ...List.generate(7, (dayIndex) {
+                            final date = weekStart.add(
+                              Duration(days: dayIndex),
+                            );
+                            final isCompleted = habit.isCompletedOn(date);
+                            final value = habit.getValueForDate(date);
+                            final isFuture = date.isAfter(now);
+
+                            Color cellColor;
+                            if (isFuture) {
+                              cellColor = Colors.transparent;
+                            } else if (habit.type == HabitType.measurable &&
+                                value != null &&
+                                value is num) {
+                              final numValue = value.toDouble();
+                              final intensity = (numValue / 100).clamp(
+                                0.0,
+                                1.0,
+                              );
+                              cellColor = habit.color.withValues(
+                                alpha: 0.3 + (intensity * 0.7),
+                              );
+                            } else if (isCompleted) {
+                              cellColor = habit.color.withValues(alpha: 0.8);
+                            } else {
+                              cellColor = isDark
+                                  ? Colors.white.withValues(alpha: 0.05)
+                                  : Colors.black.withValues(alpha: 0.05);
+                            }
+
+                            return Container(
+                              margin: EdgeInsets.only(
+                                bottom: dayIndex < 6 ? cellSpacing : 0,
+                              ),
+                              width: cellSize,
+                              height: cellSize,
+                              decoration: BoxDecoration(
+                                color: cellColor,
+                                borderRadius: BorderRadius.circular(3),
+                                border: Border.all(
+                                  color: isFuture
+                                      ? Colors.transparent
+                                      : (isDark
+                                            ? Colors.white.withValues(
+                                                alpha: 0.1,
+                                              )
+                                            : Colors.black.withValues(
+                                                alpha: 0.1,
+                                              )),
+                                  width: 0.5,
+                                ),
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                    );
+                  }),
                 ),
               ),
             ),

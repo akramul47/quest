@@ -41,12 +41,15 @@ class HabitDetailStreaks extends StatelessWidget {
             children: [
               Icon(Icons.local_fire_department, color: Colors.orange, size: 22),
               const SizedBox(width: 8),
-              Text(
-                'Best Streaks',
-                style: GoogleFonts.outfit(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
+              Expanded(
+                child: Text(
+                  'Best Streaks',
+                  style: GoogleFonts.outfit(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -133,14 +136,17 @@ class HabitDetailStreaks extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(
-                      '${streak.length} ${streak.length == 1 ? 'day' : 'days'}',
-                      style: GoogleFonts.outfit(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: isDark
-                            ? AppTheme.textDarkMode
-                            : AppTheme.textDark,
+                    Flexible(
+                      child: Text(
+                        '${streak.length} ${streak.length == 1 ? 'day' : 'days'}',
+                        style: GoogleFonts.outfit(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: isDark
+                              ? AppTheme.textDarkMode
+                              : AppTheme.textDark,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     if (isActive) ...[
