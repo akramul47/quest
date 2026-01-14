@@ -77,7 +77,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
                   if (isMobile) {
                     return _buildMobileLayout(habit, isDark, context);
                   } else {
-                    return _buildDesktopLayout(habit, isDark);
+                    return _buildDesktopLayout(habit, isDark, isDesktop);
                   }
                 },
               ),
@@ -112,9 +112,17 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
               children: [
                 HabitDetailStatsGrid(habit: habit, isDark: isDark),
                 const SizedBox(height: 20),
-                HabitDetailMonthlyChart(habit: habit, isDark: isDark),
+                HabitDetailMonthlyChart(
+                  habit: habit,
+                  isDark: isDark,
+                  isMobile: true,
+                ),
                 const SizedBox(height: 20),
-                HabitDetailHistoryChart(habit: habit, isDark: isDark),
+                HabitDetailHistoryChart(
+                  habit: habit,
+                  isDark: isDark,
+                  isMobile: true,
+                ),
                 const SizedBox(height: 20),
                 HabitDetailHeatmap(habit: habit, isDark: isDark),
                 const SizedBox(height: 20),
@@ -130,7 +138,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
   }
 
   // Desktop layout (two-column)
-  Widget _buildDesktopLayout(Habit habit, bool isDark) {
+  Widget _buildDesktopLayout(Habit habit, bool isDark, bool isDesktop) {
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(32, 32, 32, 120),
       child: Column(
@@ -151,9 +159,17 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
                   children: [
                     HabitDetailStatsGrid(habit: habit, isDark: isDark),
                     const SizedBox(height: 24),
-                    HabitDetailMonthlyChart(habit: habit, isDark: isDark),
+                    HabitDetailMonthlyChart(
+                      habit: habit,
+                      isDark: isDark,
+                      isMobile: !isDesktop,
+                    ),
                     const SizedBox(height: 24),
-                    HabitDetailHistoryChart(habit: habit, isDark: isDark),
+                    HabitDetailHistoryChart(
+                      habit: habit,
+                      isDark: isDark,
+                      isMobile: !isDesktop,
+                    ),
                     const SizedBox(height: 24),
                     HabitDetailHeatmap(habit: habit, isDark: isDark),
                   ],

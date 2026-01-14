@@ -8,11 +8,13 @@ import '../../../services/habit_statistics_service.dart';
 class HabitDetailMonthlyChart extends StatelessWidget {
   final Habit habit;
   final bool isDark;
+  final bool isMobile;
 
   const HabitDetailMonthlyChart({
     Key? key,
     required this.habit,
     required this.isDark,
+    this.isMobile = false,
   }) : super(key: key);
 
   @override
@@ -122,7 +124,7 @@ class HabitDetailMonthlyChart extends StatelessWidget {
 
           // Chart Area
           SizedBox(
-            height: 250, // Increased height for better visualization
+            height: isMobile ? 140 : 250, // Responsive height
             child: spots.length < 2
                 ? Center(
                     child: Text(

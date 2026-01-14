@@ -11,11 +11,13 @@ enum HistoryPeriod { week, days, months }
 class HabitDetailHistoryChart extends StatefulWidget {
   final Habit habit;
   final bool isDark;
+  final bool isMobile;
 
   const HabitDetailHistoryChart({
     Key? key,
     required this.habit,
     required this.isDark,
+    this.isMobile = false,
   }) : super(key: key);
 
   @override
@@ -121,7 +123,10 @@ class _HabitDetailHistoryChartState extends State<HabitDetailHistoryChart> {
             ],
           ),
           const SizedBox(height: 24),
-          SizedBox(height: 350, child: _buildBarChart()),
+          SizedBox(
+            height: widget.isMobile ? 180 : 350,
+            child: _buildBarChart(),
+          ),
         ],
       ),
     );
