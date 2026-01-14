@@ -29,12 +29,12 @@ class _HabitDetailHistoryChartState extends State<HabitDetailHistoryChart> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: widget.isDark
             ? AppTheme.glassBackgroundDark.withValues(alpha: 0.6)
             : AppTheme.glassBackground.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: widget.isDark
               ? Colors.white.withValues(alpha: 0.08)
@@ -121,86 +121,103 @@ class _HabitDetailHistoryChartState extends State<HabitDetailHistoryChart> {
             ],
           ),
           const SizedBox(height: 24),
-          SizedBox(height: 180, child: _buildChart()),
+          SizedBox(height: 200, child: _buildBarChart()),
         ],
       ),
     );
   }
 
-  Widget _buildChart() {
-    final stats = HabitStatisticsService.instance;
-    Map<DateTime, double> history;
-    String tooltipFormat;
-    String axisFormat;
+  Widget _buildBarChart() {
+    // 1. Prepare Data
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    // Map of Date -> Value (Count or Sum)
+    final Map<DateTime, double> chartData = {};
+    DateTime from;
+    String tooltipDateFormat;
+    bool isMonthlyAgg = false;
 
     switch (_period) {
       case HistoryPeriod.week:
-        // Compute raw completion for last 7 days
-        history = {};
-        final now = DateTime.now();
-        final today = DateTime(now.year, now.month, now.day);
+        // Last 7 days
+        from = today.subtract(const Duration(days: 6));
+        tooltipDateFormat = 'MMM d';
         for (int i = 0; i < 7; i++) {
           final date = today.subtract(Duration(days: 6 - i));
-          final val = widget.habit.getValueForDate(date);
-          double dVal = 0.0;
-          if (val == true) {
-            dVal = 1.0;
-          } else if (val is num && val > 0) {
-            dVal = 1.0;
-          }
-          history[date] = dVal;
+          chartData[date] = _getDailyValue(date);
         }
-        tooltipFormat = 'MMM d, yyyy';
-        axisFormat = 'E'; // Show day name (Mon, Tue)
         break;
-      case HistoryPeriod.days:
-        // Compute raw completion for last 30 days (0 or 1) to match Frequency view
-        history = {};
-        final now = DateTime.now();
-        final today = DateTime(now.year, now.month, now.day);
+
+      case HistoryPeriod.days: // Month view (Daily bars)
+        // Last 30 days
+        from = today.subtract(const Duration(days: 29));
+        tooltipDateFormat = 'MMM d';
         for (int i = 0; i < 30; i++) {
           final date = today.subtract(Duration(days: 29 - i));
-          final val = widget.habit.getValueForDate(date);
-          double dVal = 0.0;
-          if (val == true) {
-            dVal = 1.0;
-          } else if (val is num && val > 0) {
-            dVal = 1.0; // Treat any progress as 'active' for frequency bar
-          }
-          history[date] = dVal;
+          chartData[date] = _getDailyValue(date);
         }
-        tooltipFormat = 'MMM d, yyyy';
-        axisFormat = 'd';
         break;
-      case HistoryPeriod.months:
-        history = stats.getCompletionByMonth(widget.habit, 12);
-        tooltipFormat = 'MMMM yyyy';
-        axisFormat = 'MMM';
+
+      case HistoryPeriod.months: // Year view (Monthly bars)
+        // Last 12 months
+        from = DateTime(
+          today.year - 1,
+          today.month + 1,
+          1,
+        ); // Start of calc 1 yr ago
+        tooltipDateFormat = 'MMMM yyyy';
+        isMonthlyAgg = true;
+
+        // Iterate last 12 months
+        for (int i = 11; i >= 0; i--) {
+          final monthStart = DateTime(today.year, today.month - i, 1);
+          // Sum up counts for this month
+          double monthTotal = 0;
+          final daysInMonth = DateUtils.getDaysInMonth(
+            monthStart.year,
+            monthStart.month,
+          );
+          for (int d = 1; d <= daysInMonth; d++) {
+            final date = DateTime(monthStart.year, monthStart.month, d);
+            if (date.isAfter(today)) break;
+            monthTotal += _getDailyValue(date);
+          }
+          chartData[monthStart] = monthTotal;
+        }
         break;
     }
 
-    final sortedEntries = history.entries.toList()
+    final sortedEntries = chartData.entries.toList()
       ..sort((a, b) => a.key.compareTo(b.key));
 
-    if (sortedEntries.isEmpty) {
-      return Center(
-        child: Text(
-          'No history yet',
-          style: GoogleFonts.inter(
-            color: widget.isDark ? AppTheme.textLightDark : AppTheme.textLight,
-          ),
-        ),
-      );
+    if (sortedEntries.isEmpty || sortedEntries.every((e) => e.value == 0)) {
+      // Show empty chart placeholder or just empty chart?
+      // Keeping chart but empty is better so layout doesn't jump
     }
 
-    // Determine interval for axis labels to avoid overlapping
+    // 2. Determine Max Y for scaling
+    double maxY = 0;
+    for (var e in sortedEntries) {
+      // Corrected from chatData.values
+      if (e.value > maxY) maxY = e.value;
+    }
+    // Add some padding to top
+    if (maxY == 0) maxY = 1;
+
+    // Adjust maxY for "visual breathing room"
+    double topY = maxY * 1.2;
+    // For counts (integers), ensure topY is at least slightly higher
+    if (topY < maxY + 1) topY = maxY + 1;
+
+    // 3. Interval
     int labelInterval = 1;
-    if (_period == HistoryPeriod.days) labelInterval = 5; // Every 5 days
+    if (_period == HistoryPeriod.days) labelInterval = 5;
 
     return BarChart(
       BarChartData(
-        alignment: BarChartAlignment.spaceBetween, // Distribute evenly
-        maxY: 1.0,
+        alignment: BarChartAlignment.spaceBetween,
+        maxY: topY,
         barTouchData: BarTouchData(
           enabled: true,
           touchTooltipData: BarTouchTooltipData(
@@ -208,11 +225,14 @@ class _HabitDetailHistoryChartState extends State<HabitDetailHistoryChart> {
                 ? Colors.black.withValues(alpha: 0.8)
                 : Colors.white.withValues(alpha: 0.9),
             tooltipPadding: const EdgeInsets.all(8),
-            tooltipMargin: 8,
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               final date = sortedEntries[groupIndex].key;
-              final dateStr = DateFormat(tooltipFormat).format(date);
-              final value = (rod.toY * 100).toInt();
+              final dateStr = DateFormat(tooltipDateFormat).format(date);
+              final val = rod.toY;
+              final valStr = val % 1 == 0
+                  ? val.toInt().toString()
+                  : val.toStringAsFixed(1);
+
               return BarTooltipItem(
                 '$dateStr\n',
                 GoogleFonts.inter(
@@ -221,7 +241,7 @@ class _HabitDetailHistoryChartState extends State<HabitDetailHistoryChart> {
                 ),
                 children: [
                   TextSpan(
-                    text: '$value% Completed',
+                    text: 'Count: $valStr',
                     style: GoogleFonts.inter(
                       color: widget.habit.color,
                       fontWeight: FontWeight.w500,
@@ -235,28 +255,76 @@ class _HabitDetailHistoryChartState extends State<HabitDetailHistoryChart> {
         ),
         titlesData: FlTitlesData(
           show: true,
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 20,
+              getTitlesWidget: (value, meta) {
+                final index = value.toInt();
+                if (index < 0 || index >= sortedEntries.length)
+                  return const SizedBox.shrink();
+
+                final val = sortedEntries[index].value;
+                if (val == 0)
+                  return const SizedBox.shrink(); // Hide 0 labels? Or show?
+
+                // Only show label if it doesn't overlap excessively?
+                // Simple logic: Show all (fl_chart handles some collision, or we can skip)
+                if (_period == HistoryPeriod.days && index % 2 != 0)
+                  return const SizedBox.shrink(); // Reduce clutter for Days view
+
+                return Text(
+                  val % 1 == 0
+                      ? val.toInt().toString()
+                      : val.toStringAsFixed(1),
+                  style: GoogleFonts.inter(
+                    color: widget.habit.color,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
+                  ),
+                );
+              },
+            ),
+          ),
+          leftTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 30, // Make room for labels
+              reservedSize: 30,
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
-                if (index < 0 || index >= sortedEntries.length) {
+                if (index < 0 || index >= sortedEntries.length)
                   return const SizedBox.shrink();
-                }
-
-                // Skip labels based on interval
-                if (index % labelInterval != 0) return const SizedBox.shrink();
 
                 final date = sortedEntries[index].key;
-                String text;
+                String text = '';
+                bool showLabel = false;
+
                 if (_period == HistoryPeriod.months) {
+                  // Month label
                   text = DateFormat('MMM').format(date);
-                } else if (_period == HistoryPeriod.week) {
-                  text = DateFormat('E').format(date)[0]; // M, T, W...
+                  showLabel = true;
+                  // Year change? (e.g. show Year if Jan?)
+                  if (date.month == 1) {
+                    text += "\n${date.year}";
+                  }
+                } else if (_period == HistoryPeriod.days) {
+                  if (index % 5 == 0) {
+                    text = DateFormat('d').format(date);
+                    showLabel = true;
+                  }
                 } else {
-                  text = DateFormat('d MMM').format(date);
+                  // Week
+                  text = DateFormat('E').format(date);
+                  showLabel = true;
                 }
+
+                if (!showLabel) return const SizedBox.shrink();
 
                 return Padding(
                   padding: const EdgeInsets.only(top: 8.0),
@@ -269,48 +337,40 @@ class _HabitDetailHistoryChartState extends State<HabitDetailHistoryChart> {
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 );
               },
             ),
           ),
-          leftTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          topTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          rightTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
         ),
         gridData: FlGridData(
           show: true,
           drawVerticalLine: false,
-          horizontalInterval: 0.25,
+          horizontalInterval: topY / 4, // 4 grid lines?
           getDrawingHorizontalLine: (value) => FlLine(
             color: widget.isDark
                 ? Colors.white.withValues(alpha: 0.05)
                 : Colors.black.withValues(alpha: 0.05),
             strokeWidth: 1,
-            dashArray: [4, 4], // Dashed grid lines
+            dashArray: [4, 4],
           ),
         ),
         borderData: FlBorderData(show: false),
         barGroups: sortedEntries.asMap().entries.map((entry) {
           final index = entry.key;
-          final value = entry.value.value.clamp(0.0, 1.0);
+          final val = entry.value.value;
 
-          // Dynamic width based on count
           double rodWidth = 12;
-          if (_period == HistoryPeriod.week) rodWidth = 24;
+          if (_period == HistoryPeriod.week) rodWidth = 20;
           if (_period == HistoryPeriod.days) rodWidth = 6;
+          if (_period == HistoryPeriod.months) rodWidth = 12;
 
           return BarChartGroupData(
             x: index,
             barRods: [
               BarChartRodData(
-                toY: value,
+                toY: val,
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
@@ -325,7 +385,7 @@ class _HabitDetailHistoryChartState extends State<HabitDetailHistoryChart> {
                 ),
                 backDrawRodData: BackgroundBarChartRodData(
                   show: true,
-                  toY: 1.0,
+                  toY: topY,
                   color: widget.isDark
                       ? Colors.white.withValues(alpha: 0.02)
                       : Colors.black.withValues(alpha: 0.02),
@@ -336,5 +396,12 @@ class _HabitDetailHistoryChartState extends State<HabitDetailHistoryChart> {
         }).toList(),
       ),
     );
+  }
+
+  double _getDailyValue(DateTime date) {
+    final val = widget.habit.getValueForDate(date);
+    if (val == true) return 1.0;
+    if (val is num) return val.toDouble();
+    return 0.0;
   }
 }

@@ -42,32 +42,6 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
       backgroundColor: isDark
           ? AppTheme.backgroundGradientStartDark
           : AppTheme.backgroundGradientStart,
-      // Only show AppBar on mobile or non-Windows platforms
-      appBar: !showWindowControls
-          ? AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              leading: IconButton(
-                icon: Icon(
-                  Icons.arrow_back,
-                  color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
-                ),
-                onPressed: () => Navigator.pop(context),
-              ),
-              title: Consumer<HabitList>(
-                builder: (context, habitList, child) {
-                  final habit = habitList.getHabitById(widget.habitId);
-                  return Text(
-                    habit?.name ?? 'Habit Details',
-                    style: GoogleFonts.outfit(
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
-                    ),
-                  );
-                },
-              ),
-            )
-          : null,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -101,7 +75,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
 
                   // Responsive layout
                   if (isMobile) {
-                    return _buildMobileLayout(habit, isDark);
+                    return _buildMobileLayout(habit, isDark, context);
                   } else {
                     return _buildDesktopLayout(habit, isDark);
                   }
@@ -115,27 +89,47 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
   }
 
   // Mobile layout (single column)
-  Widget _buildMobileLayout(Habit habit, bool isDark) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          HabitDetailOverviewCard(habit: habit, isDark: isDark, isMobile: true),
-          const SizedBox(height: 20),
-          HabitDetailStatsGrid(habit: habit, isDark: isDark, crossAxisCount: 2),
-          const SizedBox(height: 20),
-          HabitDetailMonthlyChart(habit: habit, isDark: isDark),
-          const SizedBox(height: 20),
-          HabitDetailHistoryChart(habit: habit, isDark: isDark),
-          const SizedBox(height: 20),
-          HabitDetailHeatmap(habit: habit, isDark: isDark),
-          const SizedBox(height: 20),
-          HabitDetailStreaks(habit: habit, isDark: isDark),
-          const SizedBox(height: 20),
-          HabitDetailInsights(habit: habit, isDark: isDark),
-        ],
-      ),
+  Widget _buildMobileLayout(Habit habit, bool isDark, BuildContext context) {
+    return Column(
+      children: [
+        SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: HabitDetailOverviewCard(
+              habit: habit,
+              isDark: isDark,
+              isMobile: true,
+              onBack: () => Navigator.pop(context),
+            ),
+          ),
+        ),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                HabitDetailStatsGrid(
+                  habit: habit,
+                  isDark: isDark,
+                  crossAxisCount: 2,
+                ),
+                const SizedBox(height: 20),
+                HabitDetailMonthlyChart(habit: habit, isDark: isDark),
+                const SizedBox(height: 20),
+                HabitDetailHistoryChart(habit: habit, isDark: isDark),
+                const SizedBox(height: 20),
+                HabitDetailHeatmap(habit: habit, isDark: isDark),
+                const SizedBox(height: 20),
+                HabitDetailStreaks(habit: habit, isDark: isDark),
+                const SizedBox(height: 20),
+                HabitDetailInsights(habit: habit, isDark: isDark),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
