@@ -13,6 +13,7 @@ class UpdateProvider extends ChangeNotifier {
   bool _hasShownModal = false;
   bool _isDownloading = false;
   String? _lastDismissedPatch;
+  String? _lastSeenAppVersion;
   String? _appVersion;
 
   /// Whether an update is ready to install
@@ -34,11 +35,18 @@ class UpdateProvider extends ChangeNotifier {
     if (_hasShownModal) return false;
 
     // Don't show if user already dismissed this patch version
+    // Don't show if user already dismissed this patch version
     final availablePatch = _updateService.availablePatchNumber;
-    if (_lastDismissedPatch != null &&
-        availablePatch != null &&
-        _lastDismissedPatch == availablePatch) {
-      return false;
+    if (availablePatch != null) {
+      if (_lastDismissedPatch != null &&
+          _lastDismissedPatch == availablePatch) {
+        return false;
+      }
+    } else {
+      // Native update check: Don't show if we've seen this app version
+      if (_appVersion != null && _lastSeenAppVersion == _appVersion) {
+        return false;
+      }
     }
 
     return true;
@@ -58,6 +66,7 @@ class UpdateProvider extends ChangeNotifier {
     if (!_updateService.isPlatformSupported) return;
 
     await _loadDismissedPatch();
+    await _loadLastSeenAppVersion();
     await checkForUpdates();
   }
 
@@ -92,9 +101,29 @@ class UpdateProvider extends ChangeNotifier {
     }
   }
 
+  /// Load the last seen app version from storage
+  Future<void> _loadLastSeenAppVersion() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _lastSeenAppVersion = prefs.getString('last_seen_app_version');
+    } catch (e) {
+      // Ignore errors
+    }
+  }
+
+  /// Save last seen app version to storage
+  Future<void> _saveLastSeenAppVersion(String version) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('last_seen_app_version', version);
+    } catch (e) {
+      // Ignore errors
+    }
+  }
+
   /// Check for updates and download if available
   Future<void> checkForUpdates() async {
-    if (!_updateService.isPlatformSupported) return;
+    // if (!_updateService.isPlatformSupported) return;
     if (_isChecking) return;
 
     _isChecking = true;
@@ -103,8 +132,17 @@ class UpdateProvider extends ChangeNotifier {
     try {
       final hasUpdate = await _updateService.checkAndDownloadUpdate();
 
-      _isUpdateReady = hasUpdate;
-      _hasShownModal = false; // Reset so modal can show for new update
+      // Check native version change
+      final hasNativeUpdate =
+          _appVersion != null && _lastSeenAppVersion != _appVersion;
+
+      // DEBUG: Force update ready for testing on mobile
+      if (hasUpdate || hasNativeUpdate) {
+        _isUpdateReady = true;
+        _hasShownModal = false;
+      } else {
+        _isUpdateReady = false;
+      }
     } catch (e) {
       _isUpdateReady = false;
     } finally {
@@ -129,6 +167,12 @@ class UpdateProvider extends ChangeNotifier {
     if (patch != null) {
       _lastDismissedPatch = patch;
       _saveDismissedPatch(patch);
+    } else {
+      // Dismissing Native Update
+      if (_appVersion != null) {
+        _lastSeenAppVersion = _appVersion;
+        _saveLastSeenAppVersion(_appVersion!);
+      }
     }
 
     notifyListeners();
@@ -158,7 +202,7 @@ class UpdateProvider extends ChangeNotifier {
       // Check if current version matches last seen
       // For testing, we ensure it shows if versions differ
       // DEBUG: Always show for testing in debug mode
-      if (kDebugMode || _currentWebVersion != _lastSeenWebVersion) {
+      if (_currentWebVersion != _lastSeenWebVersion) {
         _isUpdateReady = true;
         _hasShownModal = false;
       }

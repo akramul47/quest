@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../Utils/app_theme.dart';
 import '../Utils/responsive_layout.dart';
+import '../config/release_notes.dart';
 
 /// Slide-up modal for update notification
 /// Matches the habits add modal styling pattern
@@ -164,8 +165,8 @@ class UpdateModal extends StatelessWidget {
                     children: [
                       Text(
                         onRestart == null
-                            ? 'Welcome to the latest version of Quest!'
-                            : 'A new update is ready to install.',
+                            ? ReleaseNotes.appUpdatedTitle
+                            : ReleaseNotes.updateReadyTitle,
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -175,8 +176,8 @@ class UpdateModal extends StatelessWidget {
                       const SizedBox(height: 12),
                       Text(
                         onRestart == null
-                            ? '• Web Update Notifications: You\'ll now be notified of new web versions automatically.\n\n• Responsive Design: The update modal now adapts beautifully to mobile, tablet, and desktop screens.\n\n• Performance Improvements: We\'ve optimized the app loading and interaction speeds for a smoother experience.\n\n• Bug Fixes: Resolved layout issues on tablet devices and improved navigation stability.\n\n• UI Polish: Enhanced padding and margins for a cleaner look.\n\n• Typography: Updated font styles for better readability.\n\n• Accessibility: Improved screen reader support for navigation elements.\n\n• Under the Hood: Upgraded core dependencies for better stability.'
-                            : '• Over-the-Air Updates: Seamless updates without needing a full reinstall.\n\n• UI Enhancements: Refined update dialogs and interactions.\n\n• Stability: Critical bug fixes for data persistence.\n\nPlease restart the app to apply these changes.',
+                            ? ReleaseNotes.currentReleaseNotes
+                            : ReleaseNotes.pendingUpdateText,
                         style: GoogleFonts.inter(
                           fontSize: 15,
                           color: isDark

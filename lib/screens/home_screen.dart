@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'dart:io' show Platform;
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -52,6 +52,25 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  @override
+  void reassemble() {
+    super.reassemble();
+    // Trigger update check on hot reload for testing
+    if (kDebugMode) {
+      // Small delay to ensure frame is ready
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (mounted) {
+          final provider = context.read<UpdateProvider>();
+          if (kIsWeb) {
+            provider.checkForWebUpdates();
+          } else {
+            provider.checkForUpdates();
+          }
+        }
+      });
+    }
+  }
+
   void _checkForUpdates() {
     final updateProvider = context.read<UpdateProvider>();
     // Listen for update ready state
@@ -68,8 +87,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onUpdateStateChanged() {
+    if (!mounted) return;
     final updateProvider = context.read<UpdateProvider>();
-    if (updateProvider.shouldShowModal && !_isUpdateModalVisible && mounted) {
+    if (updateProvider.shouldShowModal && !_isUpdateModalVisible) {
       setState(() {
         _isUpdateModalVisible = true;
       });
@@ -713,7 +733,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 left: 0,
                 right: 0,
                 top: _isUpdateModalVisible
-                    ? MediaQuery.of(context).padding.top + 70
+                    ? MediaQuery.of(context).padding.top +
+                          70 +
+                          (showWindowControls ? 32 : 0)
                     : MediaQuery.of(context).size.height,
                 bottom: _isUpdateModalVisible
                     ? 0
@@ -731,7 +753,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       context.read<UpdateProvider>().dismissUpdate();
                     }
                   },
-                  onRestart: kIsWeb
+                  onRestart:
+                      context.read<UpdateProvider>().availablePatchNumber ==
+                          null
                       ? null
                       : () {
                           // Close the app to apply update on next launch
