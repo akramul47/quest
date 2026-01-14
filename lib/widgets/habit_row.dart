@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/habit.dart';
 import '../Utils/app_theme.dart';
@@ -15,6 +16,7 @@ class HabitRow extends StatefulWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onArchive;
   final VoidCallback? onLongPress;
+  final Function(int)? onScroll;
 
   const HabitRow({
     Key? key,
@@ -25,6 +27,7 @@ class HabitRow extends StatefulWidget {
     this.onEdit,
     this.onArchive,
     this.onLongPress,
+    this.onScroll,
   }) : super(key: key);
 
   @override
@@ -66,18 +69,18 @@ class _HabitRowState extends State<HabitRow>
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
           color: isDark
-              ? AppTheme.glassBackgroundDark.withOpacity(0.6)
-              : AppTheme.glassBackground.withOpacity(0.7),
+              ? AppTheme.glassBackgroundDark.withValues(alpha: 0.6)
+              : AppTheme.glassBackground.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isDark
-                ? Colors.white.withOpacity(0.08)
-                : Colors.white.withOpacity(0.3),
+                ? Colors.white.withValues(alpha: 0.08)
+                : Colors.white.withValues(alpha: 0.3),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -98,7 +101,7 @@ class _HabitRowState extends State<HabitRow>
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: widget.habit.color.withOpacity(0.15),
+                      color: widget.habit.color.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -165,7 +168,7 @@ class _HabitRowState extends State<HabitRow>
                                 style: IconButton.styleFrom(
                                   foregroundColor: widget.habit.color,
                                   backgroundColor: widget.habit.color
-                                      .withOpacity(0.1),
+                                      .withValues(alpha: 0.1),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
@@ -173,29 +176,53 @@ class _HabitRowState extends State<HabitRow>
                               ),
                             ),
                           )
-                        : RepaintBoundary(
-                            child: ClipRect(
-                              child: LayoutBuilder(
-                                builder: (context, constraints) {
-                                  return SizedBox(
-                                    width: constraints.maxWidth,
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      physics:
-                                          const NeverScrollableScrollPhysics(),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.end,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: widget.visibleDates.map((
-                                          date,
-                                        ) {
-                                          return _buildDayCell(date, isDark);
-                                        }).toList(),
-                                      ),
-                                    ),
-                                  );
-                                },
+                        : Listener(
+                            onPointerSignal: (event) {
+                              if (event is PointerScrollEvent &&
+                                  widget.onScroll != null) {
+                                // Scroll right (positive) = older dates, left (negative) = newer dates
+                                final delta = event.scrollDelta.dx != 0
+                                    ? event.scrollDelta.dx
+                                    : event.scrollDelta.dy;
+                                if (delta > 0) {
+                                  // Scroll down/right = show older dates
+                                  widget.onScroll!(1);
+                                } else if (delta < 0) {
+                                  // Scroll up/left = show newer dates
+                                  widget.onScroll!(-1);
+                                }
+                              }
+                            },
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.grab,
+                              child: RepaintBoundary(
+                                child: ClipRect(
+                                  child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      return SizedBox(
+                                        width: constraints.maxWidth,
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          physics:
+                                              const NeverScrollableScrollPhysics(),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.end,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: widget.visibleDates.map((
+                                              date,
+                                            ) {
+                                              return _buildDayCell(
+                                                date,
+                                                isDark,
+                                              );
+                                            }).toList(),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -231,15 +258,17 @@ class _HabitRowState extends State<HabitRow>
       } else {
         // Not tracked yet
         cellColor = isDark
-            ? Colors.white.withOpacity(0.05)
-            : Colors.black.withOpacity(0.05);
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.black.withValues(alpha: 0.05);
         cellContent = const SizedBox.shrink();
       }
     } else {
       // Measurable habit: show value
       if (value is num && value > 0) {
         final intensity = value.clamp(0, 100) / 100;
-        cellColor = widget.habit.color.withOpacity(0.2 + (intensity * 0.8));
+        cellColor = widget.habit.color.withValues(
+          alpha: 0.2 + (intensity * 0.8),
+        );
         cellContent = Text(
           '${value.toInt()}',
           style: GoogleFonts.inter(
@@ -254,8 +283,8 @@ class _HabitRowState extends State<HabitRow>
         cellContent = const Icon(Icons.check, size: 14, color: Colors.white);
       } else {
         cellColor = isDark
-            ? Colors.white.withOpacity(0.05)
-            : Colors.black.withOpacity(0.05);
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.black.withValues(alpha: 0.05);
         cellContent = const SizedBox.shrink();
       }
     }

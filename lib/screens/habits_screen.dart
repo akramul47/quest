@@ -505,6 +505,13 @@ class _HabitsScreenState extends State<HabitsScreen>
                                             return HabitRow(
                                               habit: habit,
                                               visibleDates: visibleDates,
+                                              onScroll: (delta) {
+                                                setState(() {
+                                                  _dataOffset =
+                                                      (_dataOffset + delta)
+                                                          .clamp(0, 365);
+                                                });
+                                              },
                                               onDayTap: (date) {
                                                 if (habit.type ==
                                                     HabitType.boolean) {
