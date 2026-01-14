@@ -26,6 +26,7 @@ class Habit {
   String unit; // For measurable habits (e.g., "miles", "pages", "minutes")
   Map<String, dynamic> history; // Date (ISO string) -> value (bool or num)
   DateTime createdAt;
+  DateTime updatedAt; // Track modification time for sync
   bool isArchived;
   String? question; // Optional question text (e.g., "Did you meditate?")
   TimeOfDay? reminderTime; // Optional reminder time
@@ -39,16 +40,19 @@ class Habit {
     this.unit = '',
     Map<String, dynamic>? history,
     required this.createdAt,
+    DateTime? updatedAt,
     this.isArchived = false,
     this.question,
     this.reminderTime,
-  }) : history = history ?? {};
+  }) : history = history ?? {},
+       updatedAt = updatedAt ?? DateTime.now();
 
   /// Toggle a boolean habit for a specific date
   void toggleDay(DateTime date) {
     if (type != HabitType.boolean) return;
     final dateKey = _dateToKey(date);
     history[dateKey] = !(history[dateKey] as bool? ?? false);
+    updatedAt = DateTime.now();
   }
 
   /// Record a measurable value for a specific date
@@ -56,6 +60,7 @@ class Habit {
     if (type != HabitType.measurable) return;
     final dateKey = _dateToKey(date);
     history[dateKey] = value;
+    updatedAt = DateTime.now();
   }
 
   /// Get value for a specific date (bool or num)
@@ -195,6 +200,7 @@ class Habit {
     bool? isArchived,
     String? question,
     TimeOfDay? reminderTime,
+    DateTime? updatedAt,
   }) {
     return Habit(
       id: id,
@@ -205,6 +211,7 @@ class Habit {
       unit: unit ?? this.unit,
       history: history ?? Map.from(this.history),
       createdAt: createdAt,
+      updatedAt: updatedAt ?? DateTime.now(), // Auto-update unless specified
       isArchived: isArchived ?? this.isArchived,
       question: question ?? this.question,
       reminderTime: reminderTime ?? this.reminderTime,
@@ -223,7 +230,9 @@ class Habit {
       'type': type.index,
       'unit': unit,
       'history': history,
+
       'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
       'isArchived': isArchived,
       'question': question,
       'reminderTime': reminderTime != null
@@ -243,6 +252,9 @@ class Habit {
       unit: json['unit'] ?? '',
       history: Map<String, dynamic>.from(json['history'] ?? {}),
       createdAt: DateTime.parse(json['createdAt']),
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'])
+          : DateTime.parse(json['createdAt']), // Fallback for existing data
       isArchived: json['isArchived'] ?? false,
       question: json['question'],
       reminderTime: json['reminderTime'] != null
