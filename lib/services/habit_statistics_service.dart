@@ -46,22 +46,32 @@ class HabitStatisticsService {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    // Default to all history or last 365 days
-    final startDate =
-        from ??
-        _getEarliestDate(habit) ??
-        today.subtract(const Duration(days: 365));
     final endDate = to ?? today;
+    final normalizedEnd = DateTime(endDate.year, endDate.month, endDate.day);
 
-    if (startDate.isAfter(endDate)) return [];
+    // Always start computation from the absolute beginning of the habit's history
+    // to ensure consistent EMA values regardless of the requested window.
+    final earliestDate = _getEarliestDate(habit);
+    final historyStart =
+        earliestDate ?? today.subtract(const Duration(days: 365));
+
+    // The calculation loop starts from the earliest relevant date
+    var currentDate = DateTime(
+      historyStart.year,
+      historyStart.month,
+      historyStart.day,
+    );
+
+    // If requested 'from' is even earlier than history, start there (edge case)
+    if (from != null && from.isBefore(currentDate)) {
+      currentDate = DateTime(from.year, from.month, from.day);
+    }
+
+    if (currentDate.isAfter(normalizedEnd)) return [];
 
     final frequency = _getHabitFrequency(habit);
-    final scores = <HabitScore>[];
+    final allScores = <HabitScore>[];
     var previousScore = 0.0;
-
-    // Iterate from oldest to newest
-    var currentDate = DateTime(startDate.year, startDate.month, startDate.day);
-    final normalizedEnd = DateTime(endDate.year, endDate.month, endDate.day);
 
     while (!currentDate.isAfter(normalizedEnd)) {
       final checkmarkValue = _getCheckmarkValue(habit, currentDate);
@@ -72,11 +82,17 @@ class HabitStatisticsService {
         checkmarkValue: checkmarkValue,
       );
 
-      scores.add(HabitScore(date: currentDate, value: previousScore));
+      allScores.add(HabitScore(date: currentDate, value: previousScore));
       currentDate = currentDate.add(const Duration(days: 1));
     }
 
-    return scores;
+    // Filter results to match the requested range
+    if (from != null) {
+      final normalizedFrom = DateTime(from.year, from.month, from.day);
+      return allScores.where((s) => !s.date.isBefore(normalizedFrom)).toList();
+    }
+
+    return allScores;
   }
 
   /// Get today's score for a habit.
