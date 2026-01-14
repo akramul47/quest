@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../Utils/app_theme.dart';
 import '../../../models/habit.dart';
+import '../../../services/habit_statistics_service.dart';
 
 class HabitDetailStatsGrid extends StatelessWidget {
   final Habit habit;
@@ -17,10 +18,8 @@ class HabitDetailStatsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentStreak = habit.getCurrentStreak();
-    final longestStreak = habit.getLongestStreak();
-    final completionRate7 = habit.getCompletionRate(7);
-    final completionRate30 = habit.getCompletionRate(30);
+    final stats = HabitStatisticsService.instance;
+    final summary = stats.getSummary(habit);
 
     // Calculate average for measurable habits
     double? averageValue;
@@ -37,32 +36,32 @@ class HabitDetailStatsGrid extends StatelessWidget {
       }
     }
 
-    final stats = [
+    final statsList = [
+      _StatData(
+        'Score',
+        '${(summary.todayScore * 100).toInt()}',
+        '%',
+        Icons.stars_rounded,
+        habit.color,
+      ),
       _StatData(
         'Current',
-        '$currentStreak',
+        '${summary.currentStreak}',
         'days',
         Icons.local_fire_department,
         Colors.orange,
       ),
-      _StatData(
-        'Best',
-        '$longestStreak',
-        'days',
-        Icons.emoji_events,
-        Colors.amber,
-      ),
       if (habit.type != HabitType.measurable)
         _StatData(
           '7-Day',
-          '${(completionRate7 * 100).toInt()}',
+          '${(summary.weeklyRate * 100).toInt()}',
           '%',
           Icons.trending_up,
           Colors.green,
         ),
       _StatData(
         '30-Day',
-        '${(completionRate30 * 100).toInt()}',
+        '${(summary.monthlyRate * 100).toInt()}',
         '%',
         Icons.analytics,
         Colors.blue,
@@ -86,9 +85,9 @@ class HabitDetailStatsGrid extends StatelessWidget {
         crossAxisSpacing: 10,
         childAspectRatio: 1.6,
       ),
-      itemCount: stats.length,
+      itemCount: statsList.length,
       itemBuilder: (context, index) {
-        final stat = stats[index];
+        final stat = statsList[index];
         return _buildEnhancedStatCard(
           stat.label,
           stat.value,

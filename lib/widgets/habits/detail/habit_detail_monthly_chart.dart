@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../Utils/app_theme.dart';
 import '../../../models/habit.dart';
+import '../../../services/habit_statistics_service.dart';
 
 class HabitDetailMonthlyChart extends StatelessWidget {
   final Habit habit;
@@ -36,7 +37,7 @@ class HabitDetailMonthlyChart extends StatelessWidget {
             children: [
               Flexible(
                 child: Text(
-                  'Monthly Overview',
+                  'Progress Score',
                   style: GoogleFonts.outfit(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -67,24 +68,21 @@ class HabitDetailMonthlyChart extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
-          _buildMonthlyProgressLine(habit, isDark),
+          _buildScoreChart(habit, isDark),
         ],
       ),
     );
   }
 
-  Widget _buildMonthlyProgressLine(Habit habit, bool isDark) {
-    final now = DateTime.now();
-    final days = List.generate(30, (i) => now.subtract(Duration(days: 29 - i)));
+  Widget _buildScoreChart(Habit habit, bool isDark) {
+    final stats = HabitStatisticsService.instance;
+    final scoreHistory = stats.getScoreHistory(habit, 30);
 
-    final completionRates = <double>[];
-    for (int i = 0; i < days.length; i++) {
-      final weekDays = days.sublist(0, i + 1 > 7 ? i + 1 : 7);
-      final completed = weekDays.where((d) => habit.isCompletedOn(d)).length;
-      completionRates.add(
-        weekDays.isNotEmpty ? completed / weekDays.length : 0,
-      );
-    }
+    // Convert to list sorted by date (oldest to newest)
+    final sortedEntries = scoreHistory.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+
+    final scores = sortedEntries.map((e) => e.value).toList();
 
     return Column(
       children: [
@@ -92,8 +90,8 @@ class HabitDetailMonthlyChart extends StatelessWidget {
           height: 120,
           child: CustomPaint(
             size: Size.infinite,
-            painter: _ProgressLinePainter(
-              completionRates: completionRates,
+            painter: _ScoreChartPainter(
+              scores: scores,
               color: habit.color,
               isDark: isDark,
             ),
@@ -125,20 +123,20 @@ class HabitDetailMonthlyChart extends StatelessWidget {
   }
 }
 
-class _ProgressLinePainter extends CustomPainter {
-  final List<double> completionRates;
+class _ScoreChartPainter extends CustomPainter {
+  final List<double> scores;
   final Color color;
   final bool isDark;
 
-  _ProgressLinePainter({
-    required this.completionRates,
+  _ScoreChartPainter({
+    required this.scores,
     required this.color,
     required this.isDark,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (completionRates.isEmpty) return;
+    if (scores.isEmpty) return;
 
     final paint = Paint()
       ..color = color
@@ -159,9 +157,9 @@ class _ProgressLinePainter extends CustomPainter {
 
     fillPath.moveTo(0, size.height);
 
-    for (int i = 0; i < completionRates.length; i++) {
-      final x = (size.width / (completionRates.length - 1)) * i;
-      final y = size.height - (completionRates[i] * size.height);
+    for (int i = 0; i < scores.length; i++) {
+      final x = (size.width / (scores.length - 1)) * i;
+      final y = size.height - (scores[i] * size.height);
 
       if (i == 0) {
         path.moveTo(x, y);
@@ -183,9 +181,9 @@ class _ProgressLinePainter extends CustomPainter {
       ..color = color
       ..style = PaintingStyle.fill;
 
-    for (int i = 0; i < completionRates.length; i++) {
-      final x = (size.width / (completionRates.length - 1)) * i;
-      final y = size.height - (completionRates[i] * size.height);
+    for (int i = 0; i < scores.length; i++) {
+      final x = (size.width / (scores.length - 1)) * i;
+      final y = size.height - (scores[i] * size.height);
       canvas.drawCircle(Offset(x, y), 4, dotPaint);
     }
   }

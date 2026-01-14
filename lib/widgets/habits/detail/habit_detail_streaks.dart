@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../../../Utils/app_theme.dart';
 import '../../../models/habit.dart';
+import '../../../services/habit_statistics_service.dart';
 
 class HabitDetailStreaks extends StatelessWidget {
   final Habit habit;
@@ -15,6 +17,10 @@ class HabitDetailStreaks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final stats = HabitStatisticsService.instance;
+    final bestStreaks = stats.getBestStreaks(habit, limit: 5);
+    final currentStreak = stats.getCurrentStreak(habit);
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -36,7 +42,7 @@ class HabitDetailStreaks extends StatelessWidget {
               Icon(Icons.local_fire_department, color: Colors.orange, size: 22),
               const SizedBox(width: 8),
               Text(
-                'Streaks',
+                'Best Streaks',
                 style: GoogleFonts.outfit(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -46,93 +52,133 @@ class HabitDetailStreaks extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
-          _buildStreakBar(
-            'Current Streak',
-            habit.getCurrentStreak(),
-            habit.getLongestStreak(),
-            Colors.orange,
-            isDark,
-          ),
-          const SizedBox(height: 16),
-          _buildStreakBar(
-            'Longest Streak',
-            habit.getLongestStreak(),
-            habit.getLongestStreak(),
-            Colors.amber,
-            isDark,
-          ),
+          if (bestStreaks.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Text(
+                  'No streaks yet',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: isDark ? AppTheme.textLightDark : AppTheme.textLight,
+                  ),
+                ),
+              ),
+            )
+          else
+            ...bestStreaks.asMap().entries.map((entry) {
+              final index = entry.key;
+              final streak = entry.value;
+              final isActive =
+                  currentStreak != null &&
+                  streak.start == currentStreak.start &&
+                  streak.end == currentStreak.end;
+
+              return Padding(
+                padding: EdgeInsets.only(
+                  bottom: index < bestStreaks.length - 1 ? 12 : 0,
+                ),
+                child: _buildStreakItem(streak, isActive, isDark),
+              );
+            }).toList(),
         ],
       ),
     );
   }
 
-  Widget _buildStreakBar(
-    String label,
-    int value,
-    int maxValue,
-    Color color,
-    bool isDark,
-  ) {
-    final percentage = maxValue > 0 ? value / maxValue : 0.0;
+  Widget _buildStreakItem(dynamic streak, bool isActive, bool isDark) {
+    final dateFormat = DateFormat('MMM d, y');
+    final startStr = dateFormat.format(streak.start);
+    final endStr = dateFormat.format(streak.end);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: isDark ? AppTheme.textMediumDark : AppTheme.textMedium,
-              ),
-            ),
-            Text(
-              '$value ${value == 1 ? 'day' : 'days'}',
-              style: GoogleFonts.outfit(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
-              ),
-            ),
-          ],
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isActive
+            ? Colors.orange.withValues(alpha: 0.1)
+            : (isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.black.withValues(alpha: 0.03)),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isActive
+              ? Colors.orange.withValues(alpha: 0.3)
+              : (isDark
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.black.withValues(alpha: 0.08)),
         ),
-        const SizedBox(height: 10),
-        Stack(
-          children: [
-            Container(
-              height: 10,
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.1)
-                    : Colors.black.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(5),
-              ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isActive
+                  ? Colors.orange.withValues(alpha: 0.2)
+                  : (isDark
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : Colors.black.withValues(alpha: 0.1)),
+              borderRadius: BorderRadius.circular(8),
             ),
-            FractionallySizedBox(
-              widthFactor: percentage,
-              child: Container(
-                height: 10,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [color.withValues(alpha: 0.7), color],
-                  ),
-                  borderRadius: BorderRadius.circular(5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: color.withValues(alpha: 0.3),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
+            child: Icon(
+              isActive ? Icons.local_fire_department : Icons.emoji_events,
+              color: isActive ? Colors.orange : Colors.amber,
+              size: 18,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      '${streak.length} ${streak.length == 1 ? 'day' : 'days'}',
+                      style: GoogleFonts.outfit(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: isDark
+                            ? AppTheme.textDarkMode
+                            : AppTheme.textDark,
+                      ),
                     ),
+                    if (isActive) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'Active',
+                          style: GoogleFonts.inter(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.orange,
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
-              ),
+                const SizedBox(height: 2),
+                Text(
+                  '$startStr - $endStr',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: isDark ? AppTheme.textLightDark : AppTheme.textLight,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 }
