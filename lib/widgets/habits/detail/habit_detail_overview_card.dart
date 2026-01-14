@@ -23,7 +23,7 @@ class HabitDetailOverviewCard extends StatelessWidget {
     return Container(
       padding: isMobile
           ? const EdgeInsets.all(12)
-          : const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          : const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
         color: isDark
             ? AppTheme.glassBackgroundDark.withValues(alpha: 0.7)

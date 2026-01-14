@@ -7,13 +7,11 @@ import '../../../services/habit_statistics_service.dart';
 class HabitDetailStatsGrid extends StatelessWidget {
   final Habit habit;
   final bool isDark;
-  final int crossAxisCount;
 
   const HabitDetailStatsGrid({
     Key? key,
     required this.habit,
     required this.isDark,
-    required this.crossAxisCount,
   }) : super(key: key);
 
   @override
@@ -53,27 +51,28 @@ class HabitDetailStatsGrid extends StatelessWidget {
       ),
     ];
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossAxisCount,
-        mainAxisSpacing: 8,
-        crossAxisSpacing: 8,
-        childAspectRatio: 2.2,
-      ),
-      itemCount: statsList.length,
-      itemBuilder: (context, index) {
-        final stat = statsList[index];
-        return _PremiumStatCard(
-          label: stat.label,
-          value: stat.value,
-          unit: stat.unit,
-          icon: stat.icon,
-          color: stat.color,
-          isDark: isDark,
-        );
-      },
+    final statsCards = statsList.asMap().entries.map((entry) {
+      final stat = entry.value;
+      return Expanded(
+        child: Padding(
+          padding: EdgeInsets.only(
+            right: entry.key < statsList.length - 1 ? 8.0 : 0,
+          ),
+          child: _PremiumStatCard(
+            label: stat.label,
+            value: stat.value,
+            unit: stat.unit,
+            icon: stat.icon,
+            color: stat.color,
+            isDark: isDark,
+          ),
+        ),
+      );
+    }).toList();
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: statsCards,
     );
   }
 }
@@ -111,7 +110,7 @@ class _PremiumStatCardState extends State<_PremiumStatCard> {
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
         transform: Matrix4.identity()..scale(_isHovered ? 1.02 : 1.0),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,

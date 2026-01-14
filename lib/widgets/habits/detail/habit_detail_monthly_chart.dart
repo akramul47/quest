@@ -122,7 +122,7 @@ class HabitDetailMonthlyChart extends StatelessWidget {
 
           // Chart Area
           SizedBox(
-            height: 140, // Slightly taller for better visualization
+            height: 250, // Increased height for better visualization
             child: spots.length < 2
                 ? Center(
                     child: Text(

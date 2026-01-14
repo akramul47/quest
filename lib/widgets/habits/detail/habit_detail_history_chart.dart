@@ -121,7 +121,7 @@ class _HabitDetailHistoryChartState extends State<HabitDetailHistoryChart> {
             ],
           ),
           const SizedBox(height: 24),
-          SizedBox(height: 200, child: _buildBarChart()),
+          SizedBox(height: 350, child: _buildBarChart()),
         ],
       ),
     );
