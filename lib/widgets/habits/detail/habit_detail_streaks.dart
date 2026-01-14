@@ -5,7 +5,7 @@ import '../../../Utils/app_theme.dart';
 import '../../../models/habit.dart';
 import '../../../services/habit_statistics_service.dart';
 
-class HabitDetailStreaks extends StatelessWidget {
+class HabitDetailStreaks extends StatefulWidget {
   final Habit habit;
   final bool isDark;
 
@@ -16,75 +16,109 @@ class HabitDetailStreaks extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<HabitDetailStreaks> createState() => _HabitDetailStreaksState();
+}
+
+class _HabitDetailStreaksState extends State<HabitDetailStreaks> {
+  bool _isHovered = false;
+
+  @override
   Widget build(BuildContext context) {
     final stats = HabitStatisticsService.instance;
-    final bestStreaks = stats.getBestStreaks(habit, limit: 3);
-    final currentStreak = stats.getCurrentStreak(habit);
+    final bestStreaks = stats.getBestStreaks(widget.habit, limit: 3);
+    final currentStreak = stats.getCurrentStreak(widget.habit);
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark
-            ? AppTheme.glassBackgroundDark.withValues(alpha: 0.6)
-            : AppTheme.glassBackground.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.08)
-              : Colors.white.withValues(alpha: 0.3),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.local_fire_department, color: Colors.orange, size: 22),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Best Streaks',
-                  style: GoogleFonts.outfit(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        transform: Matrix4.identity()..scale(_isHovered ? 1.01 : 1.0),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: widget.isDark
+              ? AppTheme.glassBackgroundDark.withValues(alpha: 0.6)
+              : AppTheme.glassBackground.withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: _isHovered
+                ? widget.habit.color.withValues(alpha: 0.3)
+                : (widget.isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.white.withValues(alpha: 0.3)),
+            width: _isHovered ? 1.5 : 1,
           ),
-          const SizedBox(height: 20),
-          if (bestStreaks.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: Text(
-                  'No streaks yet',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    color: isDark ? AppTheme.textLightDark : AppTheme.textLight,
+          boxShadow: _isHovered
+              ? [
+                  BoxShadow(
+                    color: widget.habit.color.withValues(alpha: 0.15),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.local_fire_department,
+                  color: Colors.orange,
+                  size: 22,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Best Streaks',
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: widget.isDark
+                          ? AppTheme.textDarkMode
+                          : AppTheme.textDark,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-              ),
-            )
-          else
-            ...bestStreaks.asMap().entries.map((entry) {
-              final index = entry.key;
-              final streak = entry.value;
-              final isActive =
-                  currentStreak != null &&
-                  streak.start == currentStreak.start &&
-                  streak.end == currentStreak.end;
-
-              return Padding(
-                padding: EdgeInsets.only(
-                  bottom: index < bestStreaks.length - 1 ? 12 : 0,
+              ],
+            ),
+            const SizedBox(height: 20),
+            if (bestStreaks.isEmpty)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Text(
+                    'No streaks yet',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: widget.isDark
+                          ? AppTheme.textLightDark
+                          : AppTheme.textLight,
+                    ),
+                  ),
                 ),
-                child: _buildStreakItem(streak, isActive, isDark),
-              );
-            }).toList(),
-        ],
+              )
+            else
+              ...bestStreaks.asMap().entries.map((entry) {
+                final index = entry.key;
+                final streak = entry.value;
+                final isActive =
+                    currentStreak != null &&
+                    streak.start == currentStreak.start &&
+                    streak.end == currentStreak.end;
+
+                return Padding(
+                  padding: EdgeInsets.only(
+                    bottom: index < bestStreaks.length - 1 ? 12 : 0,
+                  ),
+                  child: _buildStreakItem(streak, isActive, widget.isDark),
+                );
+              }).toList(),
+          ],
+        ),
       ),
     );
   }
@@ -95,41 +129,59 @@ class HabitDetailStreaks extends StatelessWidget {
     final endStr = dateFormat.format(streak.end);
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isActive
-            ? Colors.orange.withValues(alpha: 0.1)
-            : (isDark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : Colors.black.withValues(alpha: 0.03)),
-        borderRadius: BorderRadius.circular(12),
+        gradient: isActive
+            ? LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  widget.habit.color.withValues(alpha: 0.15),
+                  widget.habit.color.withValues(alpha: 0.05),
+                ],
+              )
+            : LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: isDark
+                    ? [
+                        Colors.white.withValues(alpha: 0.08),
+                        Colors.white.withValues(alpha: 0.02),
+                      ]
+                    : [
+                        Colors.white.withValues(alpha: 0.7),
+                        Colors.white.withValues(alpha: 0.3),
+                      ],
+              ),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isActive
-              ? Colors.orange.withValues(alpha: 0.3)
+              ? widget.habit.color.withValues(alpha: 0.3)
               : (isDark
                     ? Colors.white.withValues(alpha: 0.08)
-                    : Colors.black.withValues(alpha: 0.08)),
+                    : Colors.white.withValues(alpha: 0.2)),
+          width: 1,
         ),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: isActive
-                  ? Colors.orange.withValues(alpha: 0.2)
+                  ? widget.habit.color.withValues(alpha: 0.15)
                   : (isDark
-                        ? Colors.white.withValues(alpha: 0.1)
-                        : Colors.black.withValues(alpha: 0.1)),
-              borderRadius: BorderRadius.circular(8),
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.black.withValues(alpha: 0.05)),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               isActive ? Icons.local_fire_department : Icons.emoji_events,
-              color: isActive ? Colors.orange : Colors.amber,
-              size: 18,
+              color: isActive ? widget.habit.color : Colors.amber,
+              size: 20,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,7 +192,7 @@ class HabitDetailStreaks extends StatelessWidget {
                       child: Text(
                         '${streak.length} ${streak.length == 1 ? 'day' : 'days'}',
                         style: GoogleFonts.outfit(
-                          fontSize: 15,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: isDark
                               ? AppTheme.textDarkMode
@@ -150,35 +202,67 @@ class HabitDetailStreaks extends StatelessWidget {
                       ),
                     ),
                     if (isActive) ...[
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
+                          horizontal: 8,
+                          vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.orange.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(6),
+                          color: widget.habit.color.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: widget.habit.color.withValues(alpha: 0.3),
+                            width: 1,
+                          ),
                         ),
                         child: Text(
                           'Active',
                           style: GoogleFonts.inter(
-                            fontSize: 9,
+                            fontSize: 10,
                             fontWeight: FontWeight.w600,
-                            color: Colors.orange,
+                            color: widget.habit.color,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ),
                     ],
                   ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  '$startStr - $endStr',
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    color: isDark ? AppTheme.textLightDark : AppTheme.textLight,
-                  ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Text(
+                      startStr,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: isDark
+                            ? AppTheme.textMediumDark
+                            : AppTheme.textMedium,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: Icon(
+                        Icons.arrow_forward,
+                        size: 12,
+                        color: isDark
+                            ? AppTheme.textLightDark
+                            : AppTheme.textLight,
+                      ),
+                    ),
+                    Text(
+                      endStr,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: isDark
+                            ? AppTheme.textMediumDark
+                            : AppTheme.textMedium,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

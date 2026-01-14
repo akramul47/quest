@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../Utils/app_theme.dart';
 import '../../../models/habit.dart';
 
-class HabitDetailHeatmap extends StatelessWidget {
+class HabitDetailHeatmap extends StatefulWidget {
   final Habit habit;
   final bool isDark;
 
@@ -14,87 +14,117 @@ class HabitDetailHeatmap extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<HabitDetailHeatmap> createState() => _HabitDetailHeatmapState();
+}
+
+class _HabitDetailHeatmapState extends State<HabitDetailHeatmap> {
+  bool _isHovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark
-            ? AppTheme.glassBackgroundDark.withValues(alpha: 0.6)
-            : AppTheme.glassBackground.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.08)
-              : Colors.white.withValues(alpha: 0.3),
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        transform: Matrix4.identity()..scale(_isHovered ? 1.01 : 1.0),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: widget.isDark
+              ? AppTheme.glassBackgroundDark.withValues(alpha: 0.6)
+              : AppTheme.glassBackground.withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: _isHovered
+                ? widget.habit.color.withValues(alpha: 0.3)
+                : (widget.isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.white.withValues(alpha: 0.3)),
+            width: _isHovered ? 1.5 : 1,
+          ),
+          boxShadow: _isHovered
+              ? [
+                  BoxShadow(
+                    color: widget.habit.color.withValues(alpha: 0.15),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Text(
-                  'Activity Heatmap',
-                  style: GoogleFonts.outfit(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  child: Text(
+                    'Activity Heatmap',
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: widget.isDark
+                          ? AppTheme.textDarkMode
+                          : AppTheme.textDark,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              const SizedBox(width: 8),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Less',
-                    style: GoogleFonts.inter(
-                      fontSize: 10,
-                      color: isDark
-                          ? AppTheme.textLightDark
-                          : AppTheme.textLight,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  ...List.generate(5, (i) {
-                    return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: habit.color.withValues(alpha: 0.2 + (i * 0.2)),
-                        borderRadius: BorderRadius.circular(2),
+                const SizedBox(width: 8),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Less',
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        color: widget.isDark
+                            ? AppTheme.textLightDark
+                            : AppTheme.textLight,
                       ),
-                    );
-                  }),
-                  const SizedBox(width: 4),
-                  Text(
-                    'More',
-                    style: GoogleFonts.inter(
-                      fontSize: 10,
-                      color: isDark
-                          ? AppTheme.textLightDark
-                          : AppTheme.textLight,
                     ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              return _buildResponsiveHeatmap(
-                habit,
-                isDark,
-                constraints.maxWidth,
-              );
-            },
-          ),
-        ],
+                    const SizedBox(width: 4),
+                    ...List.generate(5, (i) {
+                      return Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 2),
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: widget.habit.color.withValues(
+                            alpha: 0.2 + (i * 0.2),
+                          ),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      );
+                    }),
+                    const SizedBox(width: 4),
+                    Text(
+                      'More',
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        color: widget.isDark
+                            ? AppTheme.textLightDark
+                            : AppTheme.textLight,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return _buildResponsiveHeatmap(
+                  widget.habit,
+                  widget.isDark,
+                  constraints.maxWidth,
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

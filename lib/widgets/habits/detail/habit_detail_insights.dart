@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../Utils/app_theme.dart';
 import '../../../models/habit.dart';
 
-class HabitDetailInsights extends StatelessWidget {
+class HabitDetailInsights extends StatefulWidget {
   final Habit habit;
   final bool isDark;
 
@@ -14,65 +14,93 @@ class HabitDetailInsights extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final insights = _generateInsights(habit);
+  State<HabitDetailInsights> createState() => _HabitDetailInsightsState();
+}
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark
-            ? AppTheme.glassBackgroundDark.withValues(alpha: 0.6)
-            : AppTheme.glassBackground.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.08)
-              : Colors.white.withValues(alpha: 0.3),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.lightbulb_outline, color: Colors.amber, size: 22),
-              const SizedBox(width: 8),
-              Text(
-                'Insights',
-                style: GoogleFonts.outfit(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
-                ),
-              ),
-            ],
+class _HabitDetailInsightsState extends State<HabitDetailInsights> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final insights = _generateInsights(widget.habit);
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        transform: Matrix4.identity()..scale(_isHovered ? 1.01 : 1.0),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: widget.isDark
+              ? AppTheme.glassBackgroundDark.withValues(alpha: 0.6)
+              : AppTheme.glassBackground.withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: _isHovered
+                ? widget.habit.color.withValues(alpha: 0.3)
+                : (widget.isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.white.withValues(alpha: 0.3)),
+            width: _isHovered ? 1.5 : 1,
           ),
-          const SizedBox(height: 16),
-          ...insights.map(
-            (insight) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(insight.icon, size: 18, color: insight.color),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      insight.text,
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        height: 1.4,
-                        color: isDark
-                            ? AppTheme.textMediumDark
-                            : AppTheme.textMedium,
+          boxShadow: _isHovered
+              ? [
+                  BoxShadow(
+                    color: widget.habit.color.withValues(alpha: 0.15),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.lightbulb_outline, color: Colors.amber, size: 22),
+                const SizedBox(width: 8),
+                Text(
+                  'Insights',
+                  style: GoogleFonts.outfit(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: widget.isDark
+                        ? AppTheme.textDarkMode
+                        : AppTheme.textDark,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ...insights.map(
+              (insight) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(insight.icon, size: 18, color: insight.color),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        insight.text,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          height: 1.4,
+                          color: widget.isDark
+                              ? AppTheme.textMediumDark
+                              : AppTheme.textMedium,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
