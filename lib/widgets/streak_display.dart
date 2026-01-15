@@ -135,7 +135,7 @@ class _StreakDisplayWidgetState extends State<StreakDisplayWidget> {
             minWidth: 60, // Minimum width for small numbers
             maxWidth: 120, // Maximum width to prevent excessive stretching
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             border: _isHovering
                 ? Border.all(
@@ -188,10 +188,15 @@ class _StreakDisplayWidgetState extends State<StreakDisplayWidget> {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      primaryColor.withValues(alpha: 0.4),
-                      accentColor.withValues(alpha: 0.55),
-                    ],
+                    colors: isDark
+                        ? [
+                            Colors.black.withValues(alpha: 0.5),
+                            Colors.black.withValues(alpha: 0.7),
+                          ]
+                        : [
+                            const Color(0xFF1a1a1a).withValues(alpha: 0.5),
+                            const Color(0xFF000000).withValues(alpha: 0.8),
+                          ],
                   ),
                 ),
                 child: Center(child: _buildIcon(isFrozen, 18)),
@@ -206,7 +211,7 @@ class _StreakDisplayWidgetState extends State<StreakDisplayWidget> {
                   child: Text(
                     streakString,
                     style: GoogleFonts.outfit(
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w600,
                       fontSize: fontSize,
                       height: 1.0,
                       letterSpacing: letterSpacing,
@@ -367,10 +372,13 @@ class _StreakIconState extends State<_StreakIcon>
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         _loopCount++;
-        // Continue looping if hovering, otherwise stop after 2 loops
+        // Continue looping if hovering, otherwise stop at last frame after 2 loops
         if (widget.isHovering || _loopCount < 2) {
           _controller.reset();
           _controller.forward();
+        } else {
+          // Stay at the last frame when idle (more visible colors)
+          _controller.value = 1.0;
         }
       }
     });
@@ -400,32 +408,72 @@ class _StreakIconState extends State<_StreakIcon>
     return SizedBox(
       width: widget.size,
       height: widget.size,
-      child: Lottie.asset(
-        'assets/animations/streak_fire.json',
-        controller: _controller,
-        fit: BoxFit.contain,
-        frameBuilder: (context, child, composition) {
-          if (composition == null) {
+      child: widget.isHovering
+          ? Lottie.asset(
+          'assets/animations/streak_fire.json',
+          controller: _controller,
+          fit: BoxFit.contain,
+          frameBuilder: (context, child, composition) {
+            if (composition == null) {
+              return Icon(
+                Icons.local_fire_department,
+                color: Colors.orange,
+                size: widget.size,
+              );
+            }
+            return child;
+          },
+          onLoaded: (composition) {
+            _controller.duration = composition.duration;
+            _controller.forward();
+          },
+          errorBuilder: (context, error, stackTrace) {
             return Icon(
               Icons.local_fire_department,
               color: Colors.orange,
               size: widget.size,
             );
-          }
-          return child;
-        },
-        onLoaded: (composition) {
-          _controller.duration = composition.duration;
-          _controller.forward();
-        },
-        errorBuilder: (context, error, stackTrace) {
-          return Icon(
-            Icons.local_fire_department,
-            color: Colors.orange,
-            size: widget.size,
-          );
-        },
-      ),
+          },
+        )
+          : ShaderMask(
+              shaderCallback: (bounds) => LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  const Color(0xFFFF6B00), // Orange-red at top
+                  const Color(0xFFFFA500), // Orange middle
+                  const Color(0xFFFFD700), // Bright yellow at bottom
+                ],
+                stops: const [0.0, 0.5, 1.0],
+              ).createShader(bounds),
+              blendMode: BlendMode.srcATop,
+              child: Lottie.asset(
+                'assets/animations/streak_fire.json',
+                controller: _controller,
+                fit: BoxFit.contain,
+                frameBuilder: (context, child, composition) {
+                  if (composition == null) {
+                    return Icon(
+                      Icons.local_fire_department,
+                      color: Colors.orange,
+                      size: widget.size,
+                    );
+                  }
+                  return child;
+                },
+                onLoaded: (composition) {
+                  _controller.duration = composition.duration;
+                  _controller.forward();
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(
+                    Icons.local_fire_department,
+                    color: Colors.orange,
+                    size: widget.size,
+                  );
+                },
+              ),
+            ),
     );
   }
 }
