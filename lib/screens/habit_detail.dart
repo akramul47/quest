@@ -103,7 +103,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
         SafeArea(
           bottom: false,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
             child: HabitDetailOverviewCard(
               habit: habit,
               isDark: isDark,
