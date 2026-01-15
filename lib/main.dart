@@ -462,23 +462,7 @@ class _WindowFrameState extends State<WindowFrame> with WindowListener {
                                     : Theme.of(context).colorScheme.primary,
                               ),
                               const SizedBox(width: 8),
-                              // "Drag to move" text - only shows when hovering over header
-                              if (_isHeaderHovered)
-                                Expanded(
-                                  child: Text(
-                                    'Drag to move',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: isDark
-                                          ? AppTheme.primaryColorDark
-                                          : Theme.of(
-                                              context,
-                                            ).colorScheme.primary,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              if (!_isHeaderHovered) const Spacer(),
+                              const Spacer(),
                               // Always on top toggle button
                               Consumer<WindowStateProvider>(
                                 builder: (context, windowStateProvider, child) {
