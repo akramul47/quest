@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../Utils/app_theme.dart';
 import '../Utils/responsive_layout.dart';
+import '../providers/update_provider.dart';
 import 'home_screen.dart';
 import 'habits_screen.dart';
 import 'focus_screen.dart';
@@ -63,10 +66,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF000000) : Colors.white,
@@ -105,7 +105,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = Theme.of(context).colorScheme.primary;
-    
+
     return Expanded(
       child: InkWell(
         onTap: () {
@@ -166,10 +166,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 _buildSideNavigation(),
                 // Main Content
                 Expanded(
-                  child: IndexedStack(
-                    index: _currentIndex,
-                    children: _screens,
-                  ),
+                  child: IndexedStack(index: _currentIndex, children: _screens),
                 ),
               ],
             ),
@@ -185,7 +182,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final isDesktop = deviceType == DeviceType.desktop;
 
     return Container(
-      width: isDesktop ? 220 : 72,
+      width: isDesktop ? 210 : 70,
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF000000) : Colors.white,
         border: Border(
@@ -197,23 +194,92 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ),
         ),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Stack(
         children: [
-          // Navigation Items
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: EdgeInsets.symmetric(horizontal: isDesktop ? 12 : 8),
-            itemCount: _navItems.length,
-            itemBuilder: (context, index) {
-              return _buildSideNavItem(
-                item: _navItems[index],
-                isSelected: _currentIndex == index,
-                isExpanded: isDesktop,
-                onTap: () => setState(() => _currentIndex = index),
-              );
-            },
+          // Navigation Items (Pixel-perfect centering relative to entire screen height)
+          Center(
+            child: ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.symmetric(horizontal: isDesktop ? 15 : 8),
+              itemCount: _navItems.length,
+              itemBuilder: (context, index) {
+                return _buildSideNavItem(
+                  item: _navItems[index],
+                  isSelected: _currentIndex == index,
+                  isExpanded: isDesktop,
+                  onTap: () => setState(() => _currentIndex = index),
+                );
+              },
+            ),
+          ),
+
+          // Logo section (Pinned to top)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Padding(
+              padding: EdgeInsets.only(
+                top: 56,
+                left: isDesktop ? 14 : 0,
+                right: isDesktop ? 14 : 0,
+              ),
+              child: Column(
+                crossAxisAlignment: isDesktop
+                    ? CrossAxisAlignment.start
+                    : CrossAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/quest_app_logo_glass.png',
+                    height: isDesktop ? 56 : 42,
+                  ),
+                  if (isDesktop) ...[
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        const SizedBox(width: 7),
+                        Text(
+                          'Quest',
+                          style: GoogleFonts.outfit(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w200,
+                            letterSpacing: 1,
+                            color: isDark
+                                ? AppTheme.textDarkMode
+                                : AppTheme.textDark,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Consumer<UpdateProvider>(
+                          builder: (context, updateProvider, child) {
+                            final version =
+                                updateProvider.appVersion?.replaceAll(
+                                  'v',
+                                  '',
+                                ) ??
+                                '';
+                            return Text(
+                              version,
+                              style: GoogleFonts.jetBrainsMono(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w400,
+                                color:
+                                    (isDark
+                                            ? AppTheme.textDarkMode
+                                            : AppTheme.textDark)
+                                        .withValues(alpha: 0.5),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -259,7 +325,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       isSelected ? item.activeIcon : item.icon,
                       color: isSelected
                           ? primaryColor
-                          : (isDark ? Colors.grey.shade600 : Colors.grey.shade500),
+                          : (isDark
+                                ? Colors.grey.shade600
+                                : Colors.grey.shade500),
                       size: 24,
                     ),
                     const SizedBox(width: 14),
@@ -267,10 +335,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       item.label,
                       style: GoogleFonts.inter(
                         fontSize: 14,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w500,
                         color: isSelected
                             ? primaryColor
-                            : (isDark ? Colors.grey.shade400 : const Color(0xFF1A1A1A)),
+                            : (isDark
+                                  ? Colors.grey.shade400
+                                  : const Color(0xFF1A1A1A)),
                         letterSpacing: 0.1,
                       ),
                     ),
@@ -281,7 +353,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                     isSelected ? item.activeIcon : item.icon,
                     color: isSelected
                         ? primaryColor
-                        : (isDark ? Colors.grey.shade600 : Colors.grey.shade500),
+                        : (isDark
+                              ? Colors.grey.shade600
+                              : Colors.grey.shade500),
                     size: 24,
                   ),
                 ),
