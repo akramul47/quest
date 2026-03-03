@@ -592,20 +592,13 @@ class _HomeScreenState extends State<HomeScreen> {
         ? AppTheme.primaryColorDark
         : Theme.of(context).colorScheme.primary;
 
+    final deviceType = ResponsiveLayout.getDeviceType(context);
+    final isMobile = deviceType == DeviceType.mobile;
+
     return Row(
       children: [
-        Text(
-          'Quest',
-          style: AppTheme.headerStyle.copyWith(
-            fontSize: ResponsiveLayout.responsiveFontSize(
-              context,
-              mobile: 28,
-              tablet: 32,
-              desktop: 36,
-            ),
-            color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
-          ),
-        ),
+        if (isMobile)
+          Image.asset('assets/quest_app_logo_glass.png', height: 42),
         const Spacer(),
         // Streak Display
         const StreakDisplayWidget(compact: true),

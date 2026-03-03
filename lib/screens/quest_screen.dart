@@ -19,8 +19,10 @@ class _QuestScreenState extends State<QuestScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final deviceType = ResponsiveLayout.getDeviceType(context);
     final isMobile = deviceType == DeviceType.mobile;
-    final isTabletOrDesktop = deviceType == DeviceType.tablet || deviceType == DeviceType.desktop;
-    final bool showWindowControls = !kIsWeb && Platform.isWindows && isTabletOrDesktop;
+    final isTabletOrDesktop =
+        deviceType == DeviceType.tablet || deviceType == DeviceType.desktop;
+    final bool showWindowControls =
+        !kIsWeb && Platform.isWindows && isTabletOrDesktop;
 
     return Container(
       decoration: BoxDecoration(
@@ -49,23 +51,26 @@ class _QuestScreenState extends State<QuestScreen> {
           // Main content
           Expanded(
             child: SafeArea(
-              top: !showWindowControls, // No top safe area on Windows tablet/desktop
+              top:
+                  !showWindowControls, // No top safe area on Windows tablet/desktop
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.military_tech_outlined,
-                      size: isMobile ? 80 : 100,
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                    Image.asset(
+                      'assets/quest_app_logo_glass.png',
+                      height: isMobile ? 120 : 160,
                     ),
                     const SizedBox(height: 24),
                     Text(
                       'Quest',
                       style: GoogleFonts.outfit(
                         fontSize: isMobile ? 32 : 40,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? AppTheme.textDarkMode : AppTheme.textDark,
+                        fontWeight: FontWeight.w200,
+                        letterSpacing: -1.0,
+                        color: isDark
+                            ? AppTheme.textDarkMode
+                            : AppTheme.textDark,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -76,7 +81,9 @@ class _QuestScreenState extends State<QuestScreen> {
                         textAlign: TextAlign.center,
                         style: GoogleFonts.inter(
                           fontSize: isMobile ? 16 : 18,
-                          color: isDark ? AppTheme.textMediumDark : AppTheme.textMedium,
+                          color: isDark
+                              ? AppTheme.textMediumDark
+                              : AppTheme.textMedium,
                         ),
                       ),
                     ),

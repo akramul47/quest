@@ -61,40 +61,13 @@ class AboutCard extends StatelessWidget {
           Row(
             children: [
               // App Icon
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      isDark
-                          ? AppTheme.primaryColorDark
-                          : AppTheme.primaryColor,
-                      (isDark
-                              ? AppTheme.primaryColorDark
-                              : AppTheme.primaryColor)
-                          .withValues(alpha: 0.7),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                          (isDark
-                                  ? AppTheme.primaryColorDark
-                                  : AppTheme.primaryColor)
-                              .withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.verified_rounded,
-                  size: 32,
-                  color: Colors.white,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.asset(
+                  'assets/quest_app_logo_glass.png',
+                  width: 56,
+                  height: 56,
+                  fit: BoxFit.contain,
                 ),
               ),
               const SizedBox(width: 16),
@@ -108,7 +81,7 @@ class AboutCard extends StatelessWidget {
                       'Quest',
                       style: GoogleFonts.outfit(
                         fontSize: 24,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w200,
                         color: isDark
                             ? AppTheme.textDarkMode
                             : AppTheme.textDark,
