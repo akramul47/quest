@@ -60,17 +60,50 @@ class AboutCard extends StatelessWidget {
           // App Header with Icon, Name and Version
           Row(
             children: [
-              // App Icon
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
+              // App Icon with premium logo box background
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: isDark
+                        ? [
+                            AppTheme.primaryColorDark.withValues(alpha: 0.35),
+                            AppTheme.primaryColorDark.withValues(alpha: 0.25),
+                          ]
+                        : [
+                            AppTheme.primaryColor.withValues(alpha: 0.12),
+                            AppTheme.primaryColor.withValues(alpha: 0.06),
+                          ],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: isDark
+                        ? AppTheme.primaryColorDark.withValues(alpha: 0.5)
+                        : AppTheme.primaryColor.withValues(alpha: 0.25),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color:
+                          (isDark
+                                  ? AppTheme.primaryColorDark
+                                  : AppTheme.primaryColor)
+                              .withValues(alpha: 0.15),
+                      blurRadius: 15,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
                 child: Image.asset(
                   'assets/quest_app_logo_glass.png',
-                  width: 56,
-                  height: 56,
+                  width: 60,
+                  height: 66,
                   fit: BoxFit.contain,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 10),
 
               // App Name and Version
               Expanded(
@@ -112,7 +145,7 @@ class AboutCard extends StatelessWidget {
                       child: Text(
                         appVersion,
                         style: GoogleFonts.jetBrainsMono(
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
                           letterSpacing: 0.5,
