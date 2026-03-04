@@ -70,7 +70,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: isDark
-              ? const Color(0xFF000000)
+              ? AppTheme.backgroundGradientStartDark
               : AppTheme.backgroundGradientStart,
           border: Border(
             top: BorderSide(
@@ -187,7 +187,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       width: isDesktop ? 210 : 70,
       decoration: BoxDecoration(
         color: isDark
-            ? const Color(0xFF000000)
+            ? AppTheme.backgroundGradientStartDark
             : AppTheme.backgroundGradientStart,
         border: Border(
           right: BorderSide(
