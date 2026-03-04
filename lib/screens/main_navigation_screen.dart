@@ -69,7 +69,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF000000) : Colors.white,
+          color: isDark
+              ? const Color(0xFF000000)
+              : AppTheme.backgroundGradientStart,
           border: Border(
             top: BorderSide(
               color: isDark
@@ -184,7 +186,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     return Container(
       width: isDesktop ? 210 : 70,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF000000) : Colors.white,
+        color: isDark
+            ? const Color(0xFF000000)
+            : AppTheme.backgroundGradientStart,
         border: Border(
           right: BorderSide(
             color: isDark

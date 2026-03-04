@@ -12,6 +12,7 @@ import '../widgets/window_controls_bar.dart';
 
 import '../widgets/settings/settings_section_header.dart';
 import '../widgets/settings/theme_selector.dart';
+import '../widgets/settings/app_theme_selector.dart';
 import '../widgets/settings/data_management_card.dart';
 import '../widgets/settings/about_card.dart';
 
@@ -191,6 +192,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                               ),
                               const SizedBox(height: 20),
                               const ThemeSelector(),
+                              const SizedBox(height: 20),
+                              const AppThemeSelector(),
                               const SizedBox(height: 40),
 
                               // Data Management Section

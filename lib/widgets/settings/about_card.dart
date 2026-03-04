@@ -98,12 +98,12 @@ class AboutCard extends StatelessWidget {
                 ),
                 child: Image.asset(
                   'assets/quest_app_logo_glass.png',
-                  width: 60,
-                  height: 66,
+                  width: 56,
+                  height: 56,
                   fit: BoxFit.contain,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 15),
 
               // App Name and Version
               Expanded(

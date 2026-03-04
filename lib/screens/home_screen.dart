@@ -659,7 +659,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   AppTheme.backgroundGradientStartDark,
                   AppTheme.backgroundGradientEndDark,
                 ]
-              : [Colors.blue.shade50, Colors.purple.shade50],
+              : [
+                  AppTheme.backgroundGradientStart,
+                  AppTheme.backgroundGradientEnd,
+                ],
         ),
       ),
       child: Scaffold(
