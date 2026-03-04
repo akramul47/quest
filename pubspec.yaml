@@ -39,6 +39,7 @@ dependencies:
   fl_chart: ^0.69.0
   # Shorebird code push for OTA updates
   shorebird_code_push: ^1.1.0
+  flutter_svg: ^2.2.3
 
 dev_dependencies:
   flutter_test:
@@ -51,3 +52,4 @@ flutter:
   assets:
     - assets/
     - assets/animations/
+    - assets/illustrations/

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../Utils/responsive_layout.dart';
 import '../../models/todo.dart';
 import '../../models/todo_list.dart';
@@ -131,59 +132,51 @@ class _TodoListSectionState extends State<TodoListSection> {
                 Center(
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 48),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [
-                                Theme.of(
-                                  context,
-                                ).colorScheme.primary.withOpacity(0.08),
-                                Theme.of(
-                                  context,
-                                ).colorScheme.primary.withOpacity(0.04),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.primary.withOpacity(0.05),
-                                blurRadius: 12,
-                                spreadRadius: 2,
+                    child: Builder(
+                      builder: (context) {
+                        final isLoading = context.watch<TodoList>().isLoading;
+                        if (isLoading) {
+                          return Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SvgPicture.asset(
+                                'assets/illustrations/loading-ui.svg',
+                                height: 160,
                               ),
                             ],
-                          ),
-                          child: Icon(
-                            widget.priority.icon,
-                            size: 56,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withOpacity(0.35),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Text(
-                          'No ${widget.title.toLowerCase()} yet',
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 0.2,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withOpacity(0.6),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+                          );
+                        }
+
+                        final isMainQuest =
+                            widget.priority == TodoPriority.mainQuest;
+                        final emptySvg = isMainQuest
+                            ? 'assets/illustrations/no-data.svg'
+                            : 'assets/illustrations/among-nature.svg';
+
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SvgPicture.asset(emptySvg, height: 160),
+                            const SizedBox(height: 20),
+                            Text(
+                              'No ${widget.title.toLowerCase()} yet',
+                              style: GoogleFonts.inter(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                letterSpacing: 0.2,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withOpacity(0.6),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),
