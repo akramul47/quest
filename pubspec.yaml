@@ -2,7 +2,7 @@ name: quest
 description: "Your life, organized by intent."
 publish_to: 'none'
 
-version: 1.1.0+6
+version: 1.2.0+7
 
 environment:
   sdk: ^3.8.1
@@ -53,3 +53,4 @@ flutter:
     - assets/
     - assets/animations/
     - assets/illustrations/
+    - shorebird.yaml
