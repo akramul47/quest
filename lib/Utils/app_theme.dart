@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'app_theme_data.dart';
 import 'themes/serene_theme.dart';
 

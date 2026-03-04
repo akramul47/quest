@@ -116,7 +116,7 @@ class AppThemeSelector extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 22),
           if (isTabletOrDesktop)
             Row(
               children: [

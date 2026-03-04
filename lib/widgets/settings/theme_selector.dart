@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../Utils/app_theme.dart';
+import '../../Utils/app_theme_data.dart';
 import '../../Utils/responsive_layout.dart';
 import '../../providers/theme_provider.dart';
 
@@ -145,7 +146,9 @@ class ThemeSelector extends StatelessWidget {
                 Expanded(
                   child: _ThemeOption(
                     title: 'Dark',
-                    subtitle: 'Pure AMOLED black',
+                    subtitle: themeProvider.appTheme == AppThemeType.classic
+                        ? 'Pure AMOLED black'
+                        : 'Serene Dark Theme',
                     icon: Icons.dark_mode_rounded,
                     mode: AppThemeMode.dark,
                     themeProvider: themeProvider,
@@ -177,7 +180,9 @@ class ThemeSelector extends StatelessWidget {
                 const SizedBox(height: 14),
                 _ThemeOption(
                   title: 'Dark',
-                  subtitle: 'Pure AMOLED black',
+                  subtitle: themeProvider.appTheme == AppThemeType.classic
+                      ? 'Pure AMOLED black'
+                      : 'Serene Dark Theme',
                   icon: Icons.dark_mode_rounded,
                   mode: AppThemeMode.dark,
                   themeProvider: themeProvider,
