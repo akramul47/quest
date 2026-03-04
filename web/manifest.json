@@ -1,11 +1,11 @@
 {
-    "name": "quest",
-    "short_name": "quest",
+    "name": "Quest - All-in-One Productivity App",
+    "short_name": "Quest",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Quest - Your all-in-one productivity app to gamify your life. Manage habits, tasks, and reach your goals.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
@@ -30,6 +30,29 @@
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "screenshots/web.PNG",
+            "sizes": "1920x1080",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "Web Application Dashboard"
+        },
+        {
+            "src": "screenshots/mobile.jpg",
+            "sizes": "1080x1920",
+            "type": "image/jpeg",
+            "form_factor": "narrow",
+            "label": "Mobile Application View"
+        },
+        {
+            "src": "screenshots/habits.PNG",
+            "sizes": "1080x1920",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "Habit Tracking"
         }
     ]
 }

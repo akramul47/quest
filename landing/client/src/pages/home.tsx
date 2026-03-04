@@ -20,9 +20,11 @@ import {
   Repeat,
   Focus
 } from "lucide-react";
-import phoneMockup from "@assets/generated_images/productivity_app_phone_mockup.png";
-import tabletMockup from "@assets/generated_images/productivity_app_tablet_mockup.png";
-import desktopMockup from "@assets/generated_images/productivity_app_desktop_mockup.png";
+import phoneMockup from "@assets/mobile.jpg";
+import tabletMockup from "@assets/habits.PNG";
+import desktopMockup from "@assets/web.PNG";
+import focusMockup from "@assets/focus.jpg";
+import focusDarkMockup from "@assets/focus_dark.PNG";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
@@ -48,14 +50,14 @@ function Navbar() {
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="fixed top-0 left-0 right-0 z-50 px-6 py-4"
+      className="fixed top-0 left-0 right-0 z-50 px-6 py-6"
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between glass rounded-2xl px-6 py-3">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-            <Target className="w-5 h-5 text-white" />
+      <div className="max-w-7xl mx-auto flex items-center justify-between glass rounded-2xl px-6 py-4">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-lg flex items-center justify-center">
+            <img src="/logo.png" alt="Quest Logo" className="w-full h-full object-contain drop-shadow-md" />
           </div>
-          <span className="font-display font-semibold text-xl" data-testid="logo-text">Quest</span>
+          <span className="font-display font-semibold text-2xl" data-testid="logo-text">Quest</span>
         </div>
 
         <div className="hidden md:flex items-center gap-8">
@@ -488,8 +490,8 @@ function Platforms() {
                   whileHover={{ scale: 1.05 }}
                 >
                   <img
-                    src={phoneMockup}
-                    alt="Mobile app"
+                    src={focusMockup}
+                    alt="Focus mode app"
                     className="rounded-2xl shadow-xl"
                   />
                 </motion.div>
@@ -499,7 +501,7 @@ function Platforms() {
                 >
                   <img
                     src={tabletMockup}
-                    alt="Tablet app"
+                    alt="Habits app view"
                     className="rounded-2xl shadow-xl"
                   />
                 </motion.div>
@@ -509,8 +511,8 @@ function Platforms() {
                 whileHover={{ scale: 1.02 }}
               >
                 <img
-                  src={desktopMockup}
-                  alt="Desktop app"
+                  src={focusDarkMockup}
+                  alt="Focus dark mode app"
                   className="rounded-2xl shadow-xl"
                 />
               </motion.div>
@@ -659,11 +661,11 @@ function Footer() {
     <footer className="py-12 border-t border-border/50">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-              <Target className="w-5 h-5 text-white" />
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center">
+              <img src="/logo.png" alt="Quest Logo" className="w-full h-full object-contain drop-shadow-md" />
             </div>
-            <span className="font-display font-semibold text-xl">Quest</span>
+            <span className="font-display font-semibold text-2xl">Quest</span>
           </div>
 
           <div className="flex items-center gap-8 text-sm text-muted-foreground">
