@@ -188,7 +188,7 @@ class UpdateProvider extends ChangeNotifier {
   // --- Web Update Logic ---
 
   static const String _currentWebVersion =
-      '1.0.1'; // Increment this for new web updates
+      '1.2.0'; // Increment this for new web updates
   String? _lastSeenWebVersion;
 
   /// Check for web updates (version comparison)

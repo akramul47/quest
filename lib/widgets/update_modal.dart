@@ -173,19 +173,50 @@ class UpdateModal extends StatelessWidget {
                           color: textColor,
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        onRestart == null
-                            ? ReleaseNotes.currentReleaseNotes
-                            : ReleaseNotes.pendingUpdateText,
-                        style: GoogleFonts.inter(
-                          fontSize: 15,
-                          color: isDark
-                              ? AppTheme.textMediumDark
-                              : AppTheme.textMedium,
-                          height: 1.6,
+                      const SizedBox(height: 16),
+                      if (onRestart == null)
+                        ...ReleaseNotes.changelog.map(
+                          (entry) => Padding(
+                            padding: const EdgeInsets.only(bottom: 14),
+                            child: RichText(
+                              text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: '${entry.title}\n',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: textColor,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: entry.description,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w400,
+                                      color: isDark
+                                          ? AppTheme.textMediumDark
+                                          : AppTheme.textMedium,
+                                      height: 1.6,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )
+                      else
+                        Text(
+                          ReleaseNotes.pendingUpdateText,
+                          style: GoogleFonts.inter(
+                            fontSize: 15,
+                            color: isDark
+                                ? AppTheme.textMediumDark
+                                : AppTheme.textMedium,
+                            height: 1.6,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),

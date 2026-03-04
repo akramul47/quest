@@ -1,3 +1,10 @@
+class ChangelogEntry {
+  final String title;
+  final String description;
+
+  const ChangelogEntry({required this.title, required this.description});
+}
+
 class ReleaseNotes {
   // ==============================================================================
   // UPDATE CONFIGURATION
@@ -10,34 +17,36 @@ class ReleaseNotes {
   static const String appUpdatedTitle = 'What\'s New';
 
   // ==============================================================================
-  // WHATS NEW (Edit this section for each release)
+  // WHATS NEW — v1.2.0 (Edit this section for each release)
   // ==============================================================================
 
-  /// The detailed release notes shown to the user.
-  /// Use \n\n for paragraph breaks and • for bullet points.
-  static const String currentReleaseNotes = '''
-• Web Update Notifications: You'll now be notified of new web versions automatically.
+  static const List<ChangelogEntry> changelog = [
+    ChangelogEntry(
+      title: 'App Branding',
+      description:
+          'Introduced the new Quest glass logo across the app, sidebar, and about card for a unified, premium look.',
+    ),
+    ChangelogEntry(
+      title: 'Serene Theme',
+      description:
+          'Added the brand-new Serene theme with a soft, calming color palette. Switch between Classic and Serene in Settings.',
+    ),
+    ChangelogEntry(
+      title: 'UI Refinements',
+      description:
+          'Polished the task page empty states with custom illustrations, refined the sidebar and bottom nav dark mode backgrounds, and improved habit detail layout across all screen sizes.',
+    ),
+    ChangelogEntry(
+      title: 'Bug Fixes',
+      description:
+          'Fixed layout issues on Android tablets, resolved streak overflow on habit detail, corrected status bar styling in edge-to-edge mode, and addressed misc navigation stability issues.',
+    ),
+  ];
 
-• Responsive Design: The update modal now adapts beautifully to mobile, tablet, and desktop screens.
+  /// Flattened plain text for backward compatibility
+  static String get currentReleaseNotes =>
+      changelog.map((e) => '${e.title}\n${e.description}').join('\n\n');
 
-• Performance Improvements: We've optimized the app loading and interaction speeds for a smoother experience.
-
-• Bug Fixes: Resolved layout issues on tablet devices and improved navigation stability.
-
-• UI Polish: Enhanced padding and margins for a cleaner look.
-
-• Habit Detail Redesign: A cleaner look with simplified statistics, optimized layout for larger screens, and refined streak cards.
-
-• Focus Timer Enhancements: Enjoy a more fluid experience with improved wave animations and better positioning of session details.
-
-• Task Management Polish: Refined task detail interactions and fixed undo functionality for a smoother workflow.
-
-• Optimized Overview: Adjusted the overview card design for better balance and visibility on tablet and desktop devices.
-
-• Web Stability: Significant improvements to data handling and stability when running on the web platform.
-''';
-
-  /// Text shown when an update is pending (waiting for restart).
-  /// This can be a shorter summary or the full notes.
-  static const String pendingUpdateText = currentReleaseNotes;
+  static const String pendingUpdateText =
+      'A new version of Quest is ready. Restart to apply the update and enjoy the latest features.';
 }
