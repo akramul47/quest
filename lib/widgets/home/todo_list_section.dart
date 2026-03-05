@@ -6,6 +6,8 @@ import '../../Utils/responsive_layout.dart';
 import '../../models/todo.dart';
 import '../../models/todo_list.dart';
 import 'draggable_todo_item.dart';
+import '../../providers/theme_provider.dart';
+import '../../Utils/app_theme_data.dart';
 
 class TodoListSection extends StatefulWidget {
   final List<Todo> todos;
@@ -142,18 +144,30 @@ class _TodoListSectionState extends State<TodoListSection> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               SvgPicture.asset(
-                                'assets/illustrations/loading-ui.svg',
+                                context.watch<ThemeProvider>().appTheme ==
+                                        AppThemeType.classic
+                                    ? 'assets/illustrations/loading-ui-classic.svg'
+                                    : 'assets/illustrations/loading-ui.svg',
                                 height: 160,
                               ),
                             ],
                           );
                         }
 
+                        final appTheme = context
+                            .watch<ThemeProvider>()
+                            .appTheme;
+                        final isClassic = appTheme == AppThemeType.classic;
                         final isMainQuest =
                             widget.priority == TodoPriority.mainQuest;
+
                         final emptySvg = isMainQuest
-                            ? 'assets/illustrations/no-data.svg'
-                            : 'assets/illustrations/among-nature.svg';
+                            ? (isClassic
+                                  ? 'assets/illustrations/to-do-list-classic.svg'
+                                  : 'assets/illustrations/to-do-list.svg')
+                            : (isClassic
+                                  ? 'assets/illustrations/among-nature-classic.svg'
+                                  : 'assets/illustrations/among-nature.svg');
 
                         return Column(
                           mainAxisAlignment: MainAxisAlignment.center,

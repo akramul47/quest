@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../Utils/app_theme.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+import '../../providers/theme_provider.dart';
+import '../../Utils/app_theme_data.dart';
 
 class HabitEmptyState extends StatelessWidget {
   final bool isDark;
@@ -22,12 +26,23 @@ class HabitEmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            showArchived ? Icons.archive_outlined : Icons.track_changes,
-            size: isMobile ? 80 : 100,
-            color: (isDark ? AppTheme.primaryColorDark : AppTheme.primaryColor)
-                .withOpacity(0.3),
-          ),
+          showArchived
+              ? Icon(
+                  Icons.archive_outlined,
+                  size: isMobile ? 80 : 100,
+                  color:
+                      (isDark
+                              ? AppTheme.primaryColorDark
+                              : AppTheme.primaryColor)
+                          .withOpacity(0.3),
+                )
+              : SvgPicture.asset(
+                  context.watch<ThemeProvider>().appTheme ==
+                          AppThemeType.classic
+                      ? 'assets/illustrations/online-meetings-classic.svg'
+                      : 'assets/illustrations/online-meetings.svg',
+                  height: isMobile ? 160 : 200,
+                ),
           const SizedBox(height: 24),
           Text(
             showArchived ? 'No archived habits' : 'No habits yet',
@@ -43,7 +58,7 @@ class HabitEmptyState extends StatelessWidget {
             child: Text(
               showArchived
                   ? 'Archived habits will appear here'
-                  : 'Start building better habits today',
+                  : 'Start your journey and build better habits today',
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 fontSize: isMobile ? 16 : 18,
