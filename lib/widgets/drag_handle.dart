@@ -27,7 +27,7 @@ class _DragHandleState extends State<DragHandle> {
           height: 32,
           decoration: BoxDecoration(
             color: _isDragging
-                ? Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5)
+                ? Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5)
                 : Colors.transparent,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(12),

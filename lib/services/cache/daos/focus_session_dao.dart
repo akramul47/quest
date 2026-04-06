@@ -139,8 +139,9 @@ class FocusSessionDao {
   /// Load timer settings
   Future<TimerSettings> loadSettings() async {
     final db = _db;
-    if (db == null)
+    if (db == null) {
       return const TimerSettings(); // Web platform - return defaults
+    }
 
     final results = await db.query(
       'settings',

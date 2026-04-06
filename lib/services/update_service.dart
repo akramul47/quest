@@ -55,7 +55,7 @@ class UpdateService {
     try {
       _status = UpdateStatus.checking;
 
-      final isAvailable = await _shorebirdCodePush.isShorebirdAvailable();
+      final isAvailable = _shorebirdCodePush.isShorebirdAvailable();
       if (!isAvailable) {
         _status = UpdateStatus.unsupported;
         return false;
@@ -123,7 +123,7 @@ class UpdateService {
     }
 
     try {
-      final isAvailable = await _shorebirdCodePush.isShorebirdAvailable();
+      final isAvailable = _shorebirdCodePush.isShorebirdAvailable();
       if (!isAvailable) {
         _status = UpdateStatus.unsupported;
         return false;

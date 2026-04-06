@@ -95,8 +95,8 @@ class _FocusScreenState extends State<FocusScreen> {
                               final isShort = availableHeight < 650;
 
                               // Calculate component heights with guaranteed minimums
-                              final headerHeight = 70.0;
-                              final statisticsHeight = 140.0;
+                              const headerHeight = 70.0;
+                              const statisticsHeight = 140.0;
                               final bottomControlsMinHeight = isVeryShort
                                   ? 120.0
                                   : (isShort ? 160.0 : 200.0);

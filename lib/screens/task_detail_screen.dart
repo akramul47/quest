@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'dart:io' show Platform;
 import 'package:google_fonts/google_fonts.dart';
 import '../models/todo.dart';
 import '../Utils/app_theme.dart';
 import '../Utils/responsive_layout.dart';
-import '../widgets/window_controls_bar.dart';
 import '../widgets/task_detail/priority_selector.dart';
 import '../widgets/task_detail/description_field.dart';
 import '../widgets/task_detail/date_time_section.dart';

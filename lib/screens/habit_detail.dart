@@ -62,7 +62,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
           children: [
             // Window controls bar for tablet/desktop Windows
             if (showWindowControls)
-              WindowControlsBar(
+              const WindowControlsBar(
                 showBackButton: false,
                 showDragIndicator: false,
               ),

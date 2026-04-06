@@ -81,7 +81,7 @@ class _ArchivesScreenState extends State<ArchivesScreen> {
           children: [
             // Window controls bar for tablet/desktop Windows
             if (showWindowControls)
-              WindowControlsBar(showBackButton: true, showDragIndicator: false),
+              const WindowControlsBar(showBackButton: true, showDragIndicator: false),
             
             Expanded(
               child: Consumer<TodoList>(

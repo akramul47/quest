@@ -331,7 +331,7 @@ class WavyCircularProgressPainter extends CustomPainter {
 
     // Calculate wave offset at endpoint to align dot perfectly with wavy edge
     // Use radius-based scaling to match the main wavy ring
-    final waveFreq = 12;
+    const waveFreq = 12;
     final waveAmplitude = radius * 0.035; // Match the scaling in _drawWavyRing
     final waveOffset =
         math.sin(actualEndAngle * waveFreq + wavePhase) * waveAmplitude;
@@ -369,7 +369,7 @@ class WavyCircularProgressPainter extends CustomPainter {
     double blur = 0,
   }) {
     final path = Path();
-    final waveCount = 12; // Number of waves around the circle
+    const waveCount = 12; // Number of waves around the circle
     // Scale wave amplitude with radius for consistent visual impact on all screen sizes
     final waveAmplitude =
         radius * 0.035; // Proportional to radius instead of stroke width
