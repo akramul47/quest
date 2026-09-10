@@ -144,13 +144,12 @@ class HabitAdvancedOptions extends StatelessWidget {
     bool value,
     ValueChanged<bool> onChanged,
   ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark
-            ? AppTheme.glassBackgroundDark.withValues(alpha: 0.3)
-            : AppTheme.glassBackground.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return Material(
+      color: isDark
+          ? AppTheme.glassBackgroundDark.withValues(alpha: 0.3)
+          : AppTheme.glassBackground.withValues(alpha: 0.5),
+      borderRadius: BorderRadius.circular(16),
+      clipBehavior: Clip.antiAlias,
       child: SwitchListTile(
         value: value,
         onChanged: onChanged,
