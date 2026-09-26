@@ -75,6 +75,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final updateProvider = context.read<UpdateProvider>();
     // Listen for update ready state
     updateProvider.addListener(_onUpdateStateChanged);
+    
+    // Manually trigger in case the provider already checked for updates before listener was added
+    _onUpdateStateChanged();
 
     // For web, check with delay to ensure loading matches user request
     if (kIsWeb) {
@@ -90,10 +93,39 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted) return;
     final updateProvider = context.read<UpdateProvider>();
     if (updateProvider.shouldShowModal && !_isUpdateModalVisible) {
-      setState(() {
-        _isUpdateModalVisible = true;
-      });
+      _isUpdateModalVisible = true;
       updateProvider.markModalShown();
+      
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        barrierColor: Colors.black.withValues(alpha: 0.5),
+        builder: (dialogContext) {
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(16),
+            child: UpdateModal(
+               patchVersion: updateProvider.availablePatchNumber,
+               appVersion: updateProvider.appVersion,
+               onDismiss: () {
+                 if (kIsWeb) {
+                   updateProvider.dismissWebUpdate();
+                 } else {
+                   updateProvider.dismissUpdate();
+                 }
+                 Navigator.pop(dialogContext);
+               },
+               onRestart: updateProvider.availablePatchNumber == null ? null : () {
+                 SystemNavigator.pop();
+               },
+            ),
+          );
+        },
+      ).then((_) {
+         if (mounted) {
+           _isUpdateModalVisible = false;
+         }
+      });
     }
   }
 
@@ -708,57 +740,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
 
-              // Update modal overlay with semi-transparent backdrop
-              if (_isUpdateModalVisible)
-                GestureDetector(
-                  onTap: () {
-                    // Dismiss on backdrop tap
-                    setState(() => _isUpdateModalVisible = false);
-                    context.read<UpdateProvider>().dismissUpdate();
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    color: Colors.black.withValues(alpha: 0.5),
-                  ),
-                ),
-
-              // Animated update modal
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 350),
-                curve: Curves.easeOutCubic,
-                left: 0,
-                right: 0,
-                top: _isUpdateModalVisible
-                    ? MediaQuery.of(context).padding.top +
-                          70 +
-                          (showWindowControls ? 32 : 0)
-                    : MediaQuery.of(context).size.height,
-                bottom: _isUpdateModalVisible
-                    ? 0
-                    : -MediaQuery.of(context).size.height,
-                child: UpdateModal(
-                  patchVersion: context
-                      .watch<UpdateProvider>()
-                      .availablePatchNumber,
-                  appVersion: context.watch<UpdateProvider>().appVersion,
-                  onDismiss: () {
-                    setState(() => _isUpdateModalVisible = false);
-                    if (kIsWeb) {
-                      context.read<UpdateProvider>().dismissWebUpdate();
-                    } else {
-                      context.read<UpdateProvider>().dismissUpdate();
-                    }
-                  },
-                  onRestart:
-                      context.read<UpdateProvider>().availablePatchNumber ==
-                          null
-                      ? null
-                      : () {
-                          // Close the app to apply update on next launch
-                          SystemNavigator.pop();
-                        },
-                ),
-              ),
             ],
           ),
         ),

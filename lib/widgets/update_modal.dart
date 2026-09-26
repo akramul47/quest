@@ -77,7 +77,7 @@ class UpdateModal extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(30),
         child: Column(
-          mainAxisSize: MainAxisSize.max, // Fill height
+          mainAxisSize: MainAxisSize.min, // Hug content
           children: [
             // Header Row (Info Left, Close Right)
             Container(
@@ -150,8 +150,8 @@ class UpdateModal extends StatelessWidget {
               ),
             ),
 
-            // Description Content (Expanded)
-            Expanded(
+            // Description Content (Flexible to avoid overflowing)
+            Flexible(
               child: Container(
                 width: double.infinity,
                 child: SingleChildScrollView(

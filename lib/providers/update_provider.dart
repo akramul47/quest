@@ -62,7 +62,7 @@ class UpdateProvider extends ChangeNotifier {
     // Load app version first
     await _loadAppVersion();
 
-    if (!_updateService.isPlatformSupported) return;
+    // if (!_updateService.isPlatformSupported) return;
 
     await _loadDismissedPatch();
     await _loadLastSeenAppVersion();
